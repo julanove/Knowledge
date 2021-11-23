@@ -6,7 +6,7 @@
 widget.option({ track_state_changed: true });
 
 
-var apiKey = "eyJhbGciOiJodHRwOi8vd3d3LnczLm9yZy8yMDAxLzA0L3htbGRzaWctbW9yZSNobWFjLXNoYTI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJrdXJ1bWFjb25uZWN0IiwiYXVkIjoia3VydW1hY29ubmVjdCIsImlhdCI6MTU3MjU5MzkzNywiZXhwIjoxNTcyNTk3NTM3LCJDdXN0b21lckNkIjoiMDAwMzUyNjUxMSJ9.6KqkCucORrgVvVuxsarICKaoDw9tCnUgN7LaUTydkTY";
+var apiKey = "";
 // Enquetes
 var enqueteTypes = [
     /* 質問1 */ 'choices',
