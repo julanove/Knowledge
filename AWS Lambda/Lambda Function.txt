@@ -1,0 +1,212 @@
+----- 1. EC2 Stop Instance
+
+import boto3
+region = 'ap-northeast-1'
+instances = ['i-056734152f235e3e6']
+ec2 = boto3.client('ec2', region_name=region)
+
+def lambda_handler(event, context):
+    ec2.stop_instances(InstanceIds=instances)
+    print('started your instances: ' + str(instances))
+	
+----- 2. EC2 Start Instance
+
+import boto3
+region = 'ap-northeast-1'
+instances = ['i-056734152f235e3e6']
+ec2 = boto3.client('ec2', region_name=region)
+
+def lambda_handler(event, context):
+    ec2.start_instances(InstanceIds=instances)
+    print('started your instances: ' + str(instances))
+	
+
+----- 3. EC2 Start Instance
+
+import boto3
+import json
+
+region = 'ap-northeast-1'
+listInstance = ['i-0c552abfc75a36000']
+ec2 = boto3.client('ec2', region_name=region)
+
+def lambda_handler(event, context):
+    filters =[{'Name':'instance-id','Values':listInstance}]
+    reservations=ec2.describe_instances(Filters=filters)
+    print (reservations)
+    return json.dumps(reservations, indent=4, sort_keys=True, default=str)
+	
+----- 4. EC2 Start Instance
+
+exports.handler = async (event) => {
+    // TODO implement
+    console.log('sendSmsPush');
+    var phoneNumber = '6688';
+        const AWS = require('aws-sdk');
+        AWS.config.region = 'ap-northeast-1';
+        const sns = new AWS.SNS({apiVersion: '2010-03-31'});
+        const params = {
+            Message: 'ＥＮＥＯＳでんきへのお申し込み手続きがお済みでないお客さま',
+            MessageStructurxe: 'ưewwew',
+            PhoneNumber:phoneNumber.substring(1,phoneNumber.length).replace(/-/g,'')
+        };
+        
+        let pushResult = "";
+
+        try {
+            const data = await sns.publish(params).promise();   
+            console.log("MessageID is " + data.MessageId);
+            pushResult = data.MessageId;
+        } catch (err) {
+            console.log("Error");
+            console.error(err, err.stack); 
+        }
+        return pushResult;
+};
+
+
+----- 5. SEND SNS
+
+let AWS = require('aws-sdk');
+var mysql2 = require('mysql2');
+let fs  = require('fs');
+
+let connection;
+
+exports.handler = async(event) => {
+	const promise = new Promise(function(resolve, reject) {
+        
+		console.log("Starting query ...\n");
+	  	console.log("Running iam auth ...\n");
+
+    	console.log ("IAM Token obtained\n");
+    
+        let connectionConfig = {
+          host: process.env['publicdb.ch3epbsflcxg.ap-northeast-1.rds.amazonaws.com'], // Store your endpoint as an env var
+          user: 'admin',
+          database: process.env['testing'], // Store your DB schema name as an env var
+          ssl: { rejectUnauthorized: false},
+          password: '12345678',
+          authSwitchHandler: function ({pluginName, pluginData}, cb) {
+              console.log("Setting new auth handler.");
+          }
+        };
+        
+        connection = mysql2.createConnection();
+		
+		connection.connect(function(err) {
+			if (err) {
+				console.log('error connecting: ' + err.stack);
+				return;
+			}
+			
+			console.log('connected as id ' + connection.threadId + "\n");
+		 });
+
+		connection.query("SELECT * FROM contacts", function (error, results, fields) {
+			if (error){ 
+		  		//throw error;
+		  		reject ("ERROR " + error);
+			}
+		  	
+			if(results.length > 0){
+				let result = results[0].email + ' ' + results[0].firstname + ' ' + results[0].lastname;
+				console.log(result);
+				
+				let response = {
+			        "statusCode": 200,
+			        "statusDescription": "200 OK",
+			        "isBase64Encoded": false,
+			        "headers":{
+			        	"Content-Type": "text/html"
+			        },
+			        body: result,
+			    };
+				
+				connection.end(function(error, results) {
+					  if(error){
+					    //return "error";
+					    reject ("ERROR");
+					  }
+					  // The connection is terminated now 
+					  console.log("Connection ended\n");
+					  
+					  resolve(response);
+				});
+			}
+		});
+	});
+	return promise;
+};
+
+----- 6. RDS Node 
+
+import sys
+import logging
+import rds_config
+import pymysql
+#rds settings
+
+
+#rds_host  = "privatedb.ch3epbsflcxg.ap-northeast-1.rds.amazonaws.com" 
+rds_host  = "prx-publicdb.proxy-ch3epbsflcxg.ap-northeast-1.rds.amazonaws.com" 
+
+name = rds_config.db_username
+password = rds_config.db_password
+db_name = rds_config.db_name
+
+logger = logging.getLogger()
+logger.setLevel(logging.INFO)
+
+try:
+    conn = pymysql.connect(rds_host, user=name, passwd=password, db=db_name, connect_timeout=5)
+except pymysql.MySQLError as e:
+    logger.error("ERROR: Unexpected error: Could not connect to MySQL instance.")
+    logger.error(e)
+    sys.exit()
+
+logger.info("SUCCESS: Connection to RDS MySQL instance succeeded")
+print("SUCESS")
+
+item_count = 0
+
+def handler(event, context):
+    print("SUCESS 2")
+    item_count = 0
+    with conn.cursor() as cur:
+        cur.execute("select * from TestResponse;")
+        for row in cur:
+            item_count += 1
+            logger.info(row)
+            print(row)
+            #print(row)
+    conn.commit()
+    return "Added %d items from RDS MySQL table" %(item_count)
+
+
+
+------------------ START STOP INSTANCE LIST
+
+import boto3
+region = 'ap-northeast-1'
+ec2 = boto3.client('ec2', region_name=region)
+newList = []
+def lambda_handler(event, context):
+    listID = event.get('listInstance') 
+    newList.extend(listID.split(",") if (listID and listID.split(",", 1)[0] != "") else listID) 
+    ec2.start_instances(InstanceIds=newList)
+
+
+------------------ START STOP INSTANCE LIST
+
+import boto3
+region = 'ap-northeast-1'
+ec2 = boto3.client('ec2', region_name=region)
+newList = []
+
+def lambda_handler(event, context):
+    listID = event.get('listInstance')
+    newList.extend(listID.split(",") if (listID and listID.split(",", 1)[0] != "") else listID)
+    print(newList)
+    ec2.stop_instances(InstanceIds=newList)
+    print('stopped your instances: ' + str(newList))

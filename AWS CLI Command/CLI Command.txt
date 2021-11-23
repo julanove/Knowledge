@@ -1,0 +1,7 @@
+-- RDS PROXY ------------------------------------------------------------
+
+aws rds describe-db-proxy-targets --db-proxy-name prx-stagingproxy
+
+aws rds describe-db-proxies --db-proxy-name prx-pwa
+
+aws rds describe-db-proxy-target-groups --db-proxy-name prx-stagingproxy

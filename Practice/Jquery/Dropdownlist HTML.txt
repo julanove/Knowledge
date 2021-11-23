@@ -1,0 +1,115 @@
+﻿
+
+
+<div class="wrapper">
+    <section krt-if="state == 1">
+        <div class="card">
+            <header class="card-head">
+
+                <button type="button" class="btn-close karte-close">
+                    <i class="icon-close" aria-label="閉じる"></i>
+                </button>
+
+                <h1 class="card-heading">
+                    #{headerTitle}
+                </h1>
+            </header>
+            <div class="card-body">
+
+
+                <div class="card-detail">
+                    
+                    <div class="karte_parent">
+                        <div class="karte_left smallf">ボディタイプ: <br/> (複数選択可) </div>
+                        <div class="multiselect karte_right"  id="multiBody">
+                           
+                          </div>
+                    </div>
+                    
+                    <div class="karte_parent">
+                        <div class="karte_left">メーカー: </div>
+                         <select id="multiMaker"  class = "karte_right">
+                            <option value="">メーカーを選択する</option>
+                        </select>
+                    </div> 
+                    
+                    <div class="karte_parent">
+                        <div class="karte_left smallf">車種: <br/> (3車種まで) </div>
+                        <div class="multiselect karte_right" >
+                            <div class="selectBox" id="testM">
+                              <select>
+                                <option>車種を選択する</option>
+                              </select>
+                              <div class="overSelect"></div>
+                            </div>
+                            <div class="checkboxes" id="multiModel">
+                            </div>
+                          </div>
+                    </div> 
+                    
+                    <div class="karte_parent">
+                        <div class="karte_left">価格帯: </div>
+                        <div class="karte_right">
+                          <select id="priceFrom"  krt-model="answer3"  options="pulldowns" class="karte_half">
+                                <option value="">指定なし</option>
+                            </select>
+                            〜
+                            <select id="priceTo"  krt-model="answer4"  options="pulldowns" class="karte_half">
+                                <option value="">指定なし</option>
+                            </select>
+                        </div>
+                    </div> 
+                    
+                    <div class="karte_parent">
+                        <div class="karte_left">年式: </div>
+                        <div class="karte_right">
+                          <select id="nensikiFrom"  krt-model="answer5"  options="pulldowns" class="karte_half">
+                                <option value="">指定なし</option>
+                            </select>
+                            〜
+                            <select id="nensikiTo"  krt-model="answer6"  options="pulldowns" class="karte_half">
+                                <option value="">指定なし</option>
+                            </select>
+                        </div>     
+                    </div> 
+                    
+                    
+                        <div>
+                    </div>
+               
+                <p class="card-button">
+                    <button type="button" class="btn"
+                            krt-on:click="submit()"
+                        >
+                        {{sendable ? question.on : question.off}}
+                    </button>
+                </p>
+            </div>
+        </div>
+    </section>
+    <section krt-if="state == 2">
+        <div class="card">
+            <header class="card-head">
+
+                <button type="button" id="btnClose" class="btn-close karte-close">
+                    <i class="icon-close" aria-label="閉じる"></i>
+                </button>
+
+                <h1 class="card-heading">
+                    ご回答ありがとうございます
+                </h1>
+            </header>
+            <div class="card-body text-center">
+
+          
+                <p class="card-detail">#{thanks.description}</p>
+
+                <p class="card-button">
+                    <button type="button" class="btn karte-close">
+                        #{thanks.btn}
+                    </button>
+                </p>
+            </div>
+        </div>
+    </section>
+</div>

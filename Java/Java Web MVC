@@ -1,0 +1,45 @@
+1. Group ID
+	ID of a group: nuitruc.java.quynhhung 
+	
+2. Artifact ID
+	ID of a project: quynhung
+	
+3. Maven
+	Just like Nuget but in package and managed by a POM file
+	
+4. Mở port 3306 trên AWS - tạo user remote vì root chỉ có thể access dc từ local
+
+	mysql -uroot -p
+	1b) If the myslq server is running in Kubernetes (K8s) and being accessed via a NodePort
+
+	kubectl exec -it [pod-name] -- /bin/bash
+	mysql -uroot -p
+	2) Create user
+
+	CREATE USER 'user'@'%' IDENTIFIED BY 'password';
+	3) Grant permissions
+
+	 GRANT ALL PRIVILEGES ON *.* TO 'user'@'%' WITH GRANT OPTION;
+	4) Flush priviledges
+
+	FLUSH PRIVILEGES;
+
+5. Install Apache Adapter 
+
+	Eclipse JST Server Adapters
+	
+6. Start Apache Tomcat
+
+	Eclipse Interprise
+	
+	Apache Tomcat 9.0
+	
+	In the eclipse right click on server and click on properties.
+	If Location is set workspace/metadata click on switch location and so that it refers to /servers/tomcatv7server at localhost.server
+	Save and close
+	Next double click on server
+	Under server locations mostly it would be selected as use workspace metadata Instead, select use tomcat installation
+	Save changes
+	Restart server and verify localhost:8080 works.
+	
+7.

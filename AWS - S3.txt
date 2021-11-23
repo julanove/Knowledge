@@ -23,8 +23,3 @@ S3
 	+ Một khi đã version-enabled -> ko thể chuyển ngược lại, chỉ có thể suspend
  - Bucket:
 	+ Tên ko bao gồm kí tự hoa
-
-Access Key ID:
-	AKIAIYPDZK2ZLE6YM7AQ
-Secret Access Key:
-	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

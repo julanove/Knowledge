@@ -1,0 +1,446 @@
+/*setTimeout(function() {
+    widget.show()
+    chat.deactivate();
+}, 0);
+*/
+widget.option({ track_state_changed: true });
+
+
+var apiKey = "eyJhbGciOiJodHRwOi8vd3d3LnczLm9yZy8yMDAxLzA0L3htbGRzaWctbW9yZSNobWFjLXNoYTI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJrdXJ1bWFjb25uZWN0IiwiYXVkIjoia3VydW1hY29ubmVjdCIsImlhdCI6MTU3MjU5MzkzNywiZXhwIjoxNTcyNTk3NTM3LCJDdXN0b21lckNkIjoiMDAwMzUyNjUxMSJ9.6KqkCucORrgVvVuxsarICKaoDw9tCnUgN7LaUTydkTY";
+// Enquetes
+var enqueteTypes = [
+    /* 質問1 */ 'choices',
+    /* 質問2 */ 'choices', 
+    /* 質問3 */ 'choices',
+    /* 質問4 */ 'choices',
+    /* 質問5 */ 'choices',
+    /* 質問6 */ 'choices'
+];
+
+
+var maker;
+
+$( document ).ready(function() {
+    if($("#" + name).length == 0) {
+   }
+});
+
+
+widget.setVal('sendable', false);
+widget.setVal('radios', '#{question.choices1}'.split(/<br \/>/));
+widget.setVal('radios2', '#{question.choices2}'.split(/<br \/>/));
+widget.setVal('radios3', '#{question.choices3}'.split(/<br \/>/));
+
+
+
+
+widget.onChangeVal('answer1', function(x) { checkSendable(1, x) });
+widget.onChangeVal('answer2', function(x) { checkSendable(2, x) });
+widget.onChangeVal('answer3', function(x) { checkSendable(3, x) });
+widget.onChangeVal('answer4', function(x) { checkSendable(4, x) });
+widget.onChangeVal('answer5', function(x) { checkSendable(5, x) });
+widget.onChangeVal('answer6', function(x) { checkSendable(6, x) });
+
+
+
+    var time = new Date();
+    var cBodyType = "";
+    var cMaker = "";
+    var cMakerValue = "";
+    var cModel = "";
+    var cNedanFrom = "";
+    var cNedanTo = "";
+    var cNenshikiFrom = "";
+    var cNenshikiTo = "";
+    var tempModelResult = "";
+    
+    var cNedanFromV = "";
+    var cNedanToV = "";
+    var cNenshikiFromV = "";
+    var cNenshikiToV = "";
+    
+widget.method('submit', function() {
+    //if ('tracker' in window) tracker.track('_answer_question', generateQA());
+    for (var i = 1; i <= questionData.question_count; i++) {
+        console.log(questionData);
+        widget.setVal('answer' + i, '');
+    }
+    widget.setState(widget.getState() + 1);
+    
+    var time = new Date();
+    //cBodyType = $("#testB select option").html().trim() == "ボディタイプーを選択する" ? "" : $("#testB select option").html();
+    cBodyType = getBodyValue();
+    cMaker = $("#multiMaker option:selected").html() == "メーカーを選択する" ? "" : $("#multiMaker option:selected").html();
+    cMakerValue = $("#multiMaker").val();
+    cModel = $("#testM select option").html() == "車種を選択する" ? "" : tempModelResult;
+    
+    cNedanFrom = $("#priceFrom option:selected").html() == "指定なし" ? "" : $("#priceFrom option:selected").html();
+    if (cNedanFrom != "") { cNedanFromV =  $("#priceFrom option:selected").attr('name');}
+    cNedanTo = $("#priceTo option:selected").html()  == "指定なし" ? "" : $("#priceTo option:selected").html();
+    if (cNedanTo != "") { cNedanToV =  $("#priceTo option:selected").attr('name');}
+    cNenshikiFrom = $("#nensikiFrom option:selected").html() == "指定なし" ? "" : $("#nensikiFrom option:selected").html();
+    if (cNenshikiFrom != "") { cNenshikiFromV =  $("#nensikiFrom option:selected").attr('name');}
+    cNenshikiTo = $("#nensikiTo option:selected").html() == "指定なし" ? "" : $("#nensikiTo option:selected").html();
+    if (cNenshikiTo != "") { cNenshikiToV =  $("#nensikiTo option:selected").attr('name');}
+    
+    if(cNedanFromV != "" && cNedanToV != "" && parseInt(cNedanFromV) > parseInt(cNedanToV))
+    {
+        console.log('dao gia');
+        cNedanFrom = $("#priceTo option:selected").html();
+        cNedanTo = $("#priceFrom option:selected").html();
+    }
+     if(cNenshikiFromV != "" && cNenshikiToV != "" && parseInt(cNenshikiFromV) > parseInt(cNenshikiToV))
+    {
+        console.log('dao nenshiki');
+        cNenshikiFrom = $("#nensikiTo option:selected").html();
+        cNenshikiTo = $("#nensikiFrom option:selected").html();
+    }
+    
+    var result = 'ボディタイプ: ' + cBodyType + '\n' +
+        'メーカー:' + cMaker + '\n' +
+        '車種:' + cModel + '\n' +
+        '価格帯:' + cNedanFrom + ( cNedanFrom != "" || cNedanTo != "" ? '~' : '') + cNedanTo + '\n' +
+        '年式:' + cNenshikiFrom + ( cNenshikiFrom != "" || cNenshikiTo != "" ? '~' : '') + cNenshikiTo + ' '; 
+    
+    if( cBodyType == "" &&
+        cMaker == "" &&
+        cModel == "" &&
+        cNedanFrom == "" &&
+        cNedanTo == "" &&
+        cNenshikiFrom == "" &&
+        cNenshikiTo == ""){
+    }
+    else {
+        
+        //chat.send({text: "" + result + ""});
+        
+        setTimeout(function(){
+        $('.Messenger_FooterInner textarea').val(result);
+        //},1000);
+        
+        //setTimeout(function(){
+        $('.Messenger_FooterInner textarea').get(0).dispatchEvent(new Event('input'));
+        },1100);
+        
+        setTimeout(function(){
+        $('.Messenger_Btns a')[0].click();
+        },1200);
+        
+        setTimeout(function(){
+        $('.Messenger_FooterInner textarea').val('');
+        },1300);
+        
+        setTimeout(function(){
+        chat.send([{text: '#{question.tks}<span style="display: none;">'+time.getTime()+'</span>'}]);
+        },2000);
+        
+        
+    }    
+    
+});
+
+
+var expanded = false;
+
+function getBodyValue()
+{
+    var result = ""; 
+    result += ($('#コンパクトカー').is(':checked') ? "," + $('#コンパクトカー').val() : "") ;
+    result += ($('#軽自動車').is(':checked') ? "," + $('#軽自動車').val()  : "") ;
+    result += ($('#セダン').is(':checked') ? "," + $('#セダン').val()  : "") ;
+    result += ($('#SUV').is(':checked') ? "," + $('#SUV').val()  : "") ;
+    result += ($('#ミニバン').is(':checked') ? "," + $('#ミニバン').val()  : "") ;
+    result += ($('#バン・トラック').is(':checked') ? "," + $('#バン・トラック').val()  : "") ;
+    
+    return result.substring(1);
+}
+
+
+
+var expanded = false;
+
+
+$(document).on('click','#testM', function() {
+     var checkboxes = document.getElementById("multiModel");
+      if (!expanded) {
+        checkboxes.style.display = "block";
+        expanded = true;
+      } else {
+        checkboxes.style.display = "none";
+        expanded = false;
+      }
+});
+ 
+ 
+// $(document).on('click','#testB', function() {
+//     var checkboxes = document.getElementById("multiBody");
+//      if (!expanded) {
+//        checkboxes.style.display = "block";
+//        expanded = true;
+//      } else {
+//        checkboxes.style.display = "none";
+//        expanded = false;
+//      }
+//});
+
+
+
+$(document).on('change','.modelItem', function(e) {
+    var checkbox = $(this), 
+    value = checkbox.attr('id');
+   
+     try
+        {
+            var modelResult = "";
+            var isNumber = 0; 
+            var chkBoxTemple;
+            
+            $("#multiModel label input[type=checkbox]:checked").each(function () {
+                isNumber++;
+            });
+            
+            if (isNumber > 3)
+            {
+                this.checked = false;
+                return;
+            }
+            
+            $("#multiModel label input[type=checkbox]:checked").each(function () {
+                modelResult = modelResult + "," + $(this).attr('name');
+            });
+            
+            if (modelResult.length >= 15)
+            {
+                tempModelResult = modelResult.substring(1);
+                $("#testM select option").html(modelResult.substring(1,15) + "...");
+            }
+            else
+            {
+                tempModelResult = modelResult.substring(1);
+                $("#testM select option").html(modelResult.substring(1));
+            }
+            
+            if(isNumber == 0)
+            {
+                $("#testM select option").html("車種を選択する");
+                tempModelResult = "車種を選択す";
+            }
+        }catch(error){}
+});
+
+//$(document).on('change','.modelItemB', function(e) {
+//    var checkbox = $(this), 
+//    value = checkbox.attr('id');
+//     try
+//        {
+//            var isNumber = 0; 
+//            var modelResult = "";
+//            $("#multiBody label input[type=checkbox]:checked").each(function () {
+//                isNumber++;
+//                modelResult = modelResult + "," + $(this).attr('id');
+//                $("#testB select option").html(modelResult.substring(1));
+//            });
+//            if(isNumber == 0)
+//            {
+//                $("#testB select option").html("ボディタイプーを選択する");
+//            }
+//        }catch(error){}
+//});
+
+$(document).on('change','#multiMaker', function () {
+            var makerSelected = $('#multiMaker option:selected').val();
+            
+            if(makerSelected != "")
+            {
+                LoadCarModel(makerSelected, 0);
+                cModel =  "車種を選択する";
+            }
+            
+            $('#multiModel').find('label').remove().end();
+            $("#testM select option").html("車種を選択する");
+            var option = "";
+            console.log(makerSelected);
+        });
+
+function loadCarBodyType()
+{
+    //$('#multiBody').append('<div><label class="beau" for="軽自動車"><input type="checkbox" name="軽自動車"  id="軽自動車" value="軽自動車" > 軽自動車 </labe>' +
+//'<label for="コンパクトカー"><input type="checkbox" name="コンパクトカー"  id="コンパクトカー" value="コンパクトカー" > コンパクトカー </labe></div>' +
+//'<label for="SUV"><input type="checkbox" name="SUV"  id="SUV" value="SUV" > SUV </labe></div>' +
+//'<div><label class="beau" for="ミニバン"><input type="checkbox" name="ミニバン"  id="ミニバン" value="ミニバン" > ミニバン </labe>' +
+//'<label for="バン・トラック"><input type="checkbox" name="バン・トラック"  id="バン・トラック" value="バン・トラック" > バン・トラック </labe></div>');
+    
+    console.log(cBodyType);
+    var i = 0;
+    var arBodyType = ["軽自動車", "コンパクトカー", "セダン", "SUV", "ミニバン", "バン・トラック"];
+    $.each( arBodyType, function( text, value ) {
+        var check = cBodyType.split(',').includes(value) == true ? "checked" : "";
+        i++;
+        //$('#multiBody').append($('<label for="'+value+'"><input type="checkbox" ' + check +  ' style="margin: -1px 4px 0 0;vertical-align: middle;" class="modelItemB chexb" id="'+value+'" />'+value+'</label>'));
+        $('#multiBody').append((i==1 ? '<div>' : '') + '<label for="'+value+'"><input type="checkbox" ' + check + ' name="'+value+'"  id="'+value+'" value="'+value+'" > '+value+'</labe><br/>' + (i==2 ? '</div>' : ''));
+    });
+}
+
+function LoadCarModel(makerSelected, nope) {
+
+    $.ajax({
+        	   type: "get",
+        	   url: "https://ts-kcch.test-ex.idom-inc.com/api/configuration/getMakerModels",
+        	   contentType: "application/json; charset=utf-8",
+        	   data: {
+        	       "makerCd" : makerSelected,
+        	       "isHasLabel" : false
+        	   },
+        	   headers: {
+                "Content-Type": "application/json; charset=utf-8",
+                "Authorization": "Bearer " + apiKey},
+        	    success: function (result) {
+        	       console.log('xxx');
+        	       console.log(result);
+        	       if (result.length != 0)
+                   {
+                        $.each( result, function( key, value ) {
+                            
+                        var check = cModel.split(',').includes(value.Text) == true ? "checked" : "";
+                        console.log(check);
+                        $('#multiModel').append($('<label for="'+value.Value+'"><input type="checkbox" ' + check +  ' style="margin: -1px 4px 0 0;vertical-align: middle;" class="modelItem chexb" name="'+value.Text+'" id="'+value.Value+'" />'+value.Text+'</label>'));
+                        
+                        })
+                        
+                        if(cModel != "" && nope == 1)
+                        {
+                            if (cModel.length >= 15)
+                            {
+                                $("#testM select option").html(cModel.substring(0,15) + "...");
+                            }
+                            else
+                            {
+                                $("#testM select option").html(cModel);
+                            }
+                        }
+                   }
+        	    }
+            });
+}
+        
+function loadCarMakerPriceNenshiki(){
+    $.ajax({
+	   type: "get",
+	   url: "https://ts-kcch.test-ex.idom-inc.com/api/configuration/makers",
+	   contentType: "application/json; charset=utf-8",
+	   headers: {
+        "Content-Type": "application/json; charset=utf-8",
+        "Authorization": "Bearer " + apiKey},
+	    success: function (result) {
+	        console.log(result);
+	        var o;
+           $.each( result, function( key, value ) {
+                $('#multiMaker').append($('<option>', {
+                    value: value.Value,
+                    text: value.Text
+                    }));
+                });
+                
+                if(cMakerValue != "")
+                {
+                    $('#multiMaker').val(cMakerValue);
+                    LoadCarModel(cMakerValue, 1);
+                }
+                
+                loadCarBodyType();
+            }
+        });
+        
+        $.ajax({
+	   type: "get",
+	   url: "https://ts-kcch.test-ex.idom-inc.com/api/configuration/nenShikies",
+	   headers: {
+        "Content-Type": "application/json; charset=utf-8",
+        "Authorization": "Bearer " + apiKey},
+	    success: function (result) {
+	        console.log(result);
+	        var o;
+           $.each( result, function( key, value ) {
+                $('#nensikiFrom').append($('<option>', {
+                    value: value.Text,
+                    text: value.Text,
+                    name:value.Value
+                    }));
+                $('#nensikiTo').append($('<option>', {
+                    value: value.Text,
+                    text: value.Text,
+                    name:value.Value
+                    }));
+                });
+                
+                if(cNenshikiFrom != "")
+                {
+                    $('#nensikiFrom').val(cNenshikiFrom);
+                }
+                if(cNenshikiTo != "")
+                {
+                    $('#nensikiTo').val(cNenshikiTo);
+                }
+            }
+        });
+        
+        $.ajax({
+	   type: "get",
+	   url: "https://ts-kcch.test-ex.idom-inc.com/api/configuration/pricesFrom",
+	   headers: {
+        "Content-Type": "application/json; charset=utf-8",
+        "Authorization": "Bearer " + apiKey},
+	    success: function (result) {
+	        console.log(result);
+	        var o;
+           $.each( result, function( key, value ) {
+                $('#priceFrom').append($('<option>', {
+                    value: value.Text,
+                    text: value.Text,
+                    name:value.Value
+                    }));
+                $('#priceTo').append($('<option>', {
+                    value: value.Text,
+                    text: value.Text,
+                    name:value.Value
+                    }));
+                });
+            
+                if(cNedanFrom != "")
+                {
+                    $('#priceFrom').val(cNedanFrom);
+                }
+                if(cNedanTo != "")
+                {
+                    $('#priceTo').val(cNedanTo);
+                }
+            }
+        });
+}
+
+chat.emitter.on('push_message', function(res){
+    setTimeout(function(){
+    if ('[#希望条件を回答する]' == res.content.text) {
+            widget.show();
+            
+            loadCarMakerPriceNenshiki();
+        }         
+	},100);
+});
+
+//----------------------------------------------------------------------
+
+$(document).click(function (e) {
+    e.stopPropagation();
+    var container = $("#multiModel");
+    var containerFirst = $("#testM");
+    //console.log(e.target);
+    
+     if (container.find(e.target).length == 0 && containerFirst.find(e.target).length == 0) {
+        if( document.getElementById('multiModel') !== null ) {
+            document.getElementById("multiModel").style.display = "none";
+            expanded = false;
+        }
+    }
+})
+   

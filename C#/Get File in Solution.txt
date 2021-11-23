@@ -1,0 +1,3 @@
+//FileStream x1 = new FileStream(AppDomain.CurrentDomain.BaseDirectory + "/credentials.json", FileMode.Open, FileAccess.Read);
+//FileStream x2 = new FileStream(Environment.CurrentDirectory + "/credentials.json", FileMode.Open, FileAccess.Read);
+//FileStream x3 = new FileStream("credentials.json", FileMode.Open, FileAccess.Read);
