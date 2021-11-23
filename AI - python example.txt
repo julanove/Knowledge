@@ -1,0 +1,49 @@
+def allLongestStrings(i):
+    x = len(max(i, key=len))
+    print (x)
+    list = []
+    for a in range(len(i)):
+        if(len(i[a]) == x):
+            list.append(i[a])
+    return list
+
+-----------------------------------------------
+
+for i in s1:
+
+-----------------------------------------------
+
+filtered = filter(fun, sequence) 
+
+kiểm tra các phần tử trong sequence bằng fun. trả về các phần tử đủ yêu cầu
+
+-----------------------------------------------
+
+123(45(67(89)abcd(91)123213)232)1232
+123(45(67 98 abcd 19 123213)232)1232
+
+
+-----------------------------------------------
+
+iL = [i for (i, x) in enumerate(a) if x == -1]
+will help you understand.
+-> (i,x ) đại diện cho index/value
+-> như câu trên sẽ trả về mỗi index
+
+Ví dụ:
+def firstDigit(inputString):
+   al = list([x for (i,x) in enumerate(inputString) if x.isnumeric() == True])
+   return al[0]
+Sẽ trả về value thay vì index.
+
+	r = [inputString.count(i) for i in string.ascii_lowercase]
+		bbbaacdafe", the output should be
+		isBeautifulString(inputString) = true;
+
+
+The enumerate function takes as input an iterable (a list for instance) and returns a (index, value) list based on this iterable.
+Actually, it returns a generator, not a list but this is the idea.
+For example:
+
+list(enumerate([3, 14, 15, 9]))
+>>> [(0, 3), (1, 14), (2, 15), (3 9)]

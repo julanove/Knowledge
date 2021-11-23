@@ -1,0 +1,18 @@
+
+
+https://www.dailymotion.com/video/x7c2908
+https://cophimz.net/phim-tay-du-ky-2-kk-3730/
+http://salaphim.com/tay-du-ky-tran-hao-dan/tay-du-ky-tran-hao-dan-tap-28/
+
+hằng sửa:
+	destination:
+		hiển thị tour phân trang
+	home:
+		menu text
+		
+		
+8dcc1d57438e
+
+Backlog FCM error .... 
+
+cd /mnt/c/Tools/Vietnam_travel

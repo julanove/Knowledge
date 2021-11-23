@@ -1,0 +1,24 @@
+**
+
+I. as 
+
+def func(a=1, b=2, c=3):
+   print a
+   print b
+   print b 
+
+func(1, 2, 3)
+
+params = {'a': 2, 'b': 3, 'c': 4}
+
+func(**params)
+
+def func(*args, **kwargs):
+
+
+*args extracts positional parameters and **kwargs extract keyword parameters.
+
+
+II. as operator.
+
+	x**y (x to the power y)

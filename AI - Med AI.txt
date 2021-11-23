@@ -1,0 +1,25 @@
+chiều cao
+giới tính
+nhịp tim
+giới tinh
+cân nặng
+độ tuổi
+huyết áp
+-
+true or false
+giới hạn
+giới hạn theo nhóm
+
+- objective
+1. để chẩn đoán dc bệnh cần phải có những nhóm test cơ bản 
+-> predict dc kết quả từ những nhóm test
+-> predict dc nhóm test nào cần
+
+" dựa vào lịch sử bệnh.
+" dựa vào những 
+predict kêt quả test dựa vào kết quả test khác 
+	-> review predicted result và measured result -
+	-> thông tin cá thể và kq tesst khác ->
+predict bệnh dựa vào kết quả test
+scan hình ảnh siêu âm
+

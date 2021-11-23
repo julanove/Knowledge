@@ -1,0 +1,584 @@
+https://599765092169.signin.aws.amazon.com/console
+599765092169
+KMS key ID
+fd444f65-5d44-4fc7-bb8c-461145696b7a
+
+NSY-Glacier
+Access key ID: AKIAYXJGJA5ESHCMG3RC
+Secret access key: 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
+
+I. Service
+II. Cloudwatch
+III. RDS
+
+
+1. AWS
+ a. Sell in bulk -> Cheaper if use
+ b. New feature available everytime 
+ c. Deploy in new region
+ d. 3 Model of Cloud Computing
+	- IaaS (Infra)
+		Người dùng quản lý app, runtime, secure và db zz
+	- PaaS (Platform) - ko cần biết đến quản lý infra
+		Người dùng quản lý app
+	- SaaS (Software) - chỉ cần biết cách sử dụng 
+		Người dùng éo care j nữa. Ví dụ là salesforce
+  e. 1 region có thể bao gồm nhiều AZ
+  f. Latency giữa các Az thấp hơn 1 digit nên sync repli within AZ 
+  
+2. Lambda
+ a. Run code withou provisioning 
+ b. Lambda is not fit for running long time- function, Tối đa 5p thôi
+ c. Hẹn giờ tắt/ mở EC2
+	- Tạo 1 policy có quyền start/ stop trên IAM
+	- Tạo 1 role cho Lambda, gán policy vừa tạo vào
+	- Tạo Lambda function, gán role vừa tạo
+	- Kết nối vs Cloudwatch để execute Lambda function (pending)
+
+3. VPC
+ a. Bảo vệ 1 nhóm AWS resource trong 1 subnet 
+ b. Load Balancer, NAT Instance nên để vào public subnet, để có thể đâm ra ngoài qua internet gateway (Sử dụng cho Lambda)
+ c. NAT Instance (khi ko muốn kết nối trực tiếp từ NAT đến internet) để trong 2 zone khác nhau, phòng trường hợp 1 cái lăn ra chết
+ d. Bastion/ VPN Instance kết nối đến các tài nguyên riêng tư từ internet, enable MFA để tăng cường bảo mật.
+ e. Đặt trong các private subnet
+ f. VPC bị giới hạn trong 1 region, tức là ko span sang 1 region khác dc.
+ g. Chọn No preference khi tạo VPC để span to AZs chứ k chỉ nằm trong 1 AZ. 
+ h. Add service endpoint khi tạo để kết nối với S3 cũng như Dynamo DB
+ i. Sự khác nhau giữa Service Endpoint và NAT (Nat đâm ra ngoài, trong khi SE kết nối với các service bên trong AWS như S3 và Dynamo để tiết kiệm)
+	
+4. Subnet: 
+ a. (CIDR) the IPv4 block 192.168.100.0/22 represents the 1024 IPv4 addresses from 192.168.100.0 to 192.168.103.255.
+ b. IPv6 block is fixed to /56
+ c. khi đã tạo VPC rồi thì ko alter CIDR range dc, chỉ có cách tạo 1 VPC mới sau đó migrate cũ lên." 
+	-> Cũ rồi, h người ta có thể add thêm CIDR range r nhé zzz
+ d. Subnet có 3 loại: public (có internet gateway), private (có nat) và VPN-only subnet (sử dụng khi connect on-premise vs VPC, có internet gateway)
+ e. Hoặc cũng có thể tạo subnet cho từng workload (dep envr or product envr)
+ f. Subnet giới hạn trong 1 AZs -> đồng nghĩa với 1 AZs, phải khởi tạo 1 subnet riêng
+ g. Cần chú ý khi khởi tạo VPC -> subnet tạo ra chỉ giới hạn trong range của VPC
+ h. first four and last IP mỗi subnet are reserved (cannot use) 10.0.0.1,2,3 and 255.
+		
+ Example: Để có 1 public subnet
+		  + Cần 1 route table có igw 0.0.0.0/0 
+		  + Associate thằng subnet cần public đó vào
+		
+	/28 - 16
+	/27 - 32
+	/26 - 64
+	/25 - 128
+	/24 - 254
+	/23 - 510
+	/22 - 1022
+	/21 - 2046
+	/20 - 4094
+	/19 - 8190
+	/18 - 16382
+	/17 - 32766
+	/16 - 65536
+ 	
+5. Route Table:
+ a. Store route để foward packet tới 1 destination. 
+ b. The routate 0.0.0.0/0 for all IPv4 ko thể cater vs destination of all IPvs6 -> add another entry ::/0 cho IPv6
+	
+	Internet Gateway: 1 phần của VPC, allows VPC to communicate với internet
+		10.0.0.0.16 			- Local (internal routing within VPC)
+		2011:dc8:1234:1c00::/56 - Local (internal routing within VPC)
+		172.31.0.0/16			- pcx-1d2e1f2c (VPC peering, đâm sang 1 VPC khác)		
+		0.0.0.0/0 				- igw-11222 (Allowing all trafic to go to the Internet Gateway)
+	
+6. AWS Direct Connect: Tất tần tật những thứ để kết nối on-premise vs VPC
+ a. Virtual Private Gateway: 
+ b. Direct Connect Gateway:
+	
+	
+7. Security Group:
+ a. MySQL/ Aurora: 3306
+ b. Apply ở tầng instance, not subnet level
+ c. By default, allow all outbound traffic. Bởi vì anh là stateful, k phải stateless
+ d. Có thể đặt source của SG là 1 SG khác
+	*Cty: Đặt SG của RDS là src mở công 3306 đến toàn bộ các SV khác 
+		
+8. Network Address Translation (NAT)
+ a. Open traffic to internet of an instance from private subnet (1 chiều). The internet cannot initiate a connection backward.
+ b. Nat Instance no more. 
+	
+9. Network Access Control List: (Network ACLs)
+ a. Tương tự như Security Group - tuy nhiên hoạt động ở tầng subnet như 1 firewall
+ b. Max rule là 32766
+ c. NACL là stateless inbound and outbound rules trong khi Security Groups lại là stateful. 
+ d. NACL hỗ trợ deny rule trong khi SG chỉ hỗ trợ allow (ko allow nghĩa là ko cho phép)
+		
+10. Amazon VPC Peering: 
+		- Kết nối nhiều VPC lại với nhau (chỉ trong 1 region). Và với VPC trong tài khoản khác
+		2021 (Update)
+		- Trong khi VPC Peering chỉ có thể kết nối 2 VPC thì transit gateway có thể kết nối đến 5 VPC, tuy nhiên giá thì VPC Peering rẻ hơn và chỉ tính theo dung lượng truyền qua chứ ko theo thời gian như VPC Peering.
+		
+11. VPC Endpoint:
+ a. Hiện tại chỉ hỗ trợ cho S3 và DynamoDB. Sử dụng để kết nối đến S3 hoặc DynamoDB mà ko phải chạy ra rồi chạy ngoài
+ b. Private connect ngay bên trong AWS 
+ c. Tạo 1 entry trong route table cho private subnet -> thẳng VPC Endpoint cho S3 hoặc Dynamo
+ d. Đại khái là 1 phần tử năm trong private subnet. Route table sẽ associated subnet nào cần sử dụng đến endpoint này
+	VPC Endpoint Service. 
+		- Tạo luôn 1 ứng dụng trong VPC. Các AWSer khác có thể truy cập app đó qua VPC Enpoint. Và bạn là người cung cấp service - qua LB.
+		
+12. IP
+	Địa chỉ IPv4 được chia thành 6 class khác nhau là A, B, C, D, E, Loopback mỗi class được quy định một  dải IP :
+	a. Dải IP Class A : 1.0.0.1 126.0.0.0 (có thể viết 1-126)
+	b. Dải IP Class B : 128.1.0.0 191.254.0.0(có thể viết 128 -191)
+	c. Dải IP Class C : 192.0.1.0 223.255.254.0 (có thể viết 192-223)
+	d. Dải IP Class D: 224.0.0.0 239.255.255.255(có thể viết 224-239)
+	e. Dải IP Class E : 240.0.0.0 254.255.255.255(có thể viết 240-254)
+	f. Dải IP Loopback : 127.0.0.0
+	
+	g. Tổng IP trong 1 subnet.
+	Ví dụ, để tìm khoảng IP của "/ 29" tiền tố, chúng ta trừ đi tiền tố 29 từ 32. Kết quả 3 được sử dụng như là một số của 2. Do đó, phạm vi IP bạn nhận được là "2 đến lũy thừa của 3" tức là 8 IPs.
+	
+	h. Giả sử một khối địa chỉ IP có 64 địa chỉ được chia thành ba mạng con gồm 32, 16 và 16 địa chỉ. Mặt nạ của địa chỉ sẽ là "/ 26". Tuy nhiên, các mạng con sẽ có mặt nạ mạng con riêng của chúng.
+		+ Mạng con thứ nhất gồm 32 địa chỉ sẽ có mặt nạ mạng con "/ 27" (nghĩa là 2 đến điện 5).
+		+ Mạng con thứ hai gồm 16 địa chỉ sẽ có mặt nạ mạng con "/ 28" (nghĩa là 2 đến nguồn 4).
+		+ Thứ ba subnet chứa 16 địa chỉ sẽ có subnet mask của "/ 28" (nghĩa là 2 đến sức mạnh 4).
+	Do đó, một khối địa chỉ của 64 địa chỉ IP được chia thành ba khối 32, 16 và 16 địa chỉ mỗi.
+
+13. LightSail
+	- For small businesses, need virtual private server. low-cost
+	Launch Virtual Machine (VM)
+	Attach Solid State Drive (SSD)
+	Manage the IAM
+	Generate security groups
+	Setup the DNS
+	Create the static IP
+	
+14. Clou9
+	- Xài để code 
+	
+15. AWS Firewall Manager / AWS Shield
+	- Quản lý connect đến Gateway API, CloudFront hay LoadBalancer.
+	- Với WAF có thể chặn dc IP, value từ request header, SQL, number request v...v...
+	- AWS Shield chặn ddos cho EC2, ELB hay CloudFront (tốn tiền, ko có tiền học =)))
+	- Shield Standard có thể chống dc ddos, vs Shield Advanced thì có thể protect ở ELB, CLF và Route 53.
+	a. Cross site
+	b. IP match
+	c. GEO
+	d. Size length
+	e. SQL Injection
+	f. String request
+	g. Regex
+	h. Tất cả những điều kiện trên bổ sung thêm rate-based request.
+	 Nếu 1 request vượt quá 1 mức khai báo (2000 request/5m) thì bloc cmnl
+	
+16. Route53
+	a. Có 2 cách để trỏ domain, thay đổi nameserver và DNS
+	b. Hosted Zone.
+	 Container holds information about how u want to route traffic on the Internet for a specific domain.
+	c. Route53 hỗ trợ health check ở rất nhiều nơi toàn thế giới. 
+	b. Weight
+	
+17. Nên phân biệt dc S3, EBS, EFS
+	- S3: 1 kho object, truy cập dữ liệu từ mọi region, zone, rẻ hơn so vs EBS, có thể deploy web tĩnh
+	- EBS: lưu theo 1 block, phải gắn với 1 instance EC2, chỉ tồn tại trên 1 vùng
+	- EFS:  Vì chỉ chứa file system nên nhiều instance EC2 có thể truy cập vào 1 EFS, đắt. Chỉ hố trợ encription khi tạo. 
+	 EFS chỉ hoạt động tại 1 VPC tại 1 thời điểm
+	 Dùng VPC peering nếu muốn mount
+	- Glacier: rẻ, thik hợp để lưu trữ dữ liệu dài lâu, tuy nhiên thời gian access rất chậm.
+	
+18. S3 
+	a. Danta transfer via SSL using IAM
+	b. Sử dụng phối hợp với CloudFront -> tăng tốc độ distribute , minimize network latency
+	c. Can archive old file to Glacier sử dụng life cycle sau 1 thời gian
+	d. Tạo private repository như GIT trên S3
+	e. Ko có cơ chế object loking, thằng nào đi trước thì thắng. 
+	f. Cách thay đổi tên và folder trong bucket có ảnh hưởng đến tốc độ truy xuất và partition
+	g. Sử dụng hex hask key để maximize partition (67891234 và 67891233 đều bắt đầu bằng 6 nên 1 là reverse lại, 2 là dùng hex hash key)
+	h. S3 dc tạo trên 1 region tiền định và ko leave region đó. Có thể transfer object sang region khác.
+	i. Mã hóa sử AES 256 và AWS - KMS. 
+		https://docs.aws.amazon.com/AmazonS3/latest/dev/UsingServerSideEncryption.html
+	k. Giới thiệu new storage class: Intelligent-Tiering. Khi 1 file ko sử dụng quá 30 ngày -> IA, và khi nó dc sử dụng -> Standard.
+	l. Độ durable của IA và RRS: IA (99.9999999999) RRS(99.99)
+	m. Dùng multi part upload để upload file trên 5GB
+	n.  File Gateway. 1 cái app hay kiểu thế để truy cập S3 từ on-premise.
+	i. Eventual Consistency: Nhất quán theo kiểu cuối cùng kiểu j cũng dc cập nhật thôi -> node2 data có thể là stale data. 
+	h. Strong Consistency: Nhất quán 1 cách mạnh mẽ, khi 1 file dc update -> đến lúc update toàn bộ node hoàn thành -> ko access nào lấy dc file 
+	k. 1 single Put request -> chỉ có thể upload 1 file max 5Gb. Dùng multi-part upload -> 5TB
+	
+	SSD bao gồm 2 loại: 
+		+ General Purpose SSD (gp2)  - Có khả năng burst IO -> Tích lại credit và dùng khi cần
+			Ổ trên 1TB thường có baseline > burst performance nên thường méo cần burstmode( >3000 IOPS )
+		+ Provisioned IOPS SSD (io1) 
+		
+	"Some EC2 instance also have a local storage built in that is called the instance store. The instance storage is ephemeral -> gone whenever u terminate the instace"
+	
+	REPLICATION
+		- Files in an existing bucket are not replicated automatically but all the subsequent updated files will be automatically replicated.
+		Sau khi thiết đặt REPLICATION, các file hiện tại trong source bucket ko dc replication mà chỉ những file mới dc upload hoặc subsequent updated file ms dc replicate thôi.
+		
+19. IAM
+	Hiểu đơn giản, 1 accout có thể thuộc 1 hoặc nhiều group, 1 group có thể có 1 hoặc nhiều policies. Policy có 1 danh sách và có thể tạo ra custom policy. End game. 		
+		Policy có 2 type:
+			AWS Managed Policies
+			Custom Managed Policies
+	
+20. CloudFront.
+	a. Content Delivery Network (CDN)
+	b. caches copy of your content "close" to your viewer.
+	c. ensure end-user request are served by closest edge location
+	d. protect against DDOS
+	e. Có thể sử dụng để distribute software (vì donw nó nhanh)
+	f. Hoặc stream video
+	g. 3 vị trí: Orgin WEB SERVER -> Regional Edge Location -> Cloud Front (nearest Edge Location)
+	h. Có thể chặn luôn quốc gia mà ko cần qua WAF
+ 
+	
+	
+21. EC2: Có 3 loại instance dựa vào giá
+		- On demand: Loại mặc định, co giãn dc. 
+		- Reserved Instance: Loại biết trc cấu hình, có thể trả tiền trc hoặc ko.
+		- Spot instance: đấu giá, thằng nào nhanh tay thì lượm. 
+	
+22. IAM
+	a. If you have an app running on EC and it need to access other AWS services. -> The best way is to provide credential to the app running on EC2 by using IAM roles.
+	b. Always enable Cloudtrails để xem mấy thằng user nó đang làm cái éo j. Chuyển log vào S3
+	c. User - Group - Policy đi vs nhau. 
+	d. Role 1 mình chơi 1 kiểu, tự tạo permisson, tự gán short-term cho 1 thánh 
+	
+23. Auto Scaling 
+	a. Phải khởi tạo 1 launch configuration trc khi tạo 1 Auto SCaling group. ASgroup sẽ chạy dựa trên launch configuration này. Khi 1 lc bị xóa (lc ko thể sửa) thì ASgroup sẽ tự động update thông tin EC2 dựa trên lc mới. ví dụ lc là 4 instance C4, sau đó xóa lc và update thành C4-extra -> Những instance EC2 từ đó về sau sinh ra sẽ chỉ dựa trên lc này.
+	b. Sử dụng Auto Scaling policy để scale theo schedule.
+	c. Sử dụng AWS SNS để gửi notifi qua HTTP hoặc HTTPS 
+	d. Simple Scaling Policies
+		- Tăng, giảm, mỗi nấc tăng bn tự điều chỉnh
+	e. Target Traking Policies
+		- Chỉ cần chốt 1 target value, hệ thống sẽ tự động up/down để maintain cái chỉ số ấy
+	f. Chọn nhiều subnet khi tạo ASG để nó chạy sang nhiều AZs
+	g. Instance warm-up: Set thời gian để cho đến khi instance hoàn toàn dc warmup thì mới count vào metric -> scale. Kiểu mới vào cần thời gian thở ấy, ko thì ko tính.
+
+24. Load Balancer.
+	a. Với bọn Java mất dạy hay có trò cache server IP vào DNS thì load-balancer nó sẽ ko balance cho lắm nữa. Nên từ đấy ta có thể dùng cross-zone load balancing. (chỉ cần config khi sử dụng classic LB)
+	b. Quyết định LB là external hay internal -> khai báo lúc khởi tạo LB
+	
+	 
+25. AWS SQS (Simple Queue Service) 
+	a. Có 2 loại: Standard và FIFO
+	b. Standard: Default type, best-effort ensuring that every messages are delivered the same order they're sent. 
+		- near unlimited transaction.
+	c. FIFO: First In, First Out. 300 transaction per/ sec 
+	d. Tối đa 1 tin là 256Kb
+	e. Delivery Delay. Thời gian gửi chậm đến consumer sau khi vào queue. Ko ảnh hưởng đến standard, tuy nhiên affect hoàn toàn FIFO
+	
+26. Cognito 
+	Có 2 thứ
+	a. Identity Pools
+	b. User Pools
+	-> User Pools để chứa user directories (sign-in, sign-out) trong khi Identity Pools để chứa credential truy cập vào AWS service
+	c. Sync data between many device of 1 user
+	
+27. Batch
+	
+	
+28. Direct Connect
+	- Thiết lập kết nối trực tiếp từ data center đến VPC 
+	- Có thể sử dụng Kinesis Firehouse hoặc  Snowball (gửi hàng về nhà) để chuyển dữ liệu dần lên Cloud
+	
+29. AWS SNS (Simple Notification Service)
+	a. Tạo topic -> Tạo policies (Who can publish messages aka publisher to all who wanna receive these messages aka subscriber) 
+
+30. AWS Step functions SWF (Simple WorkFlow)
+	
+31. AWS OpsWork
+	Bao gồm 3 thành phần
+	a. Chef
+	b. Stacks
+	c. Puppet
+	
+32. Mapreduce 
+	-> Distribute the computation of data over multiple Amazon EC2 instance
+	-> Nghiên cứu tìm cách chuyển dữ liệu SQL sang Mapreduce trên Spark/ Hadoop
+	
+33. CloudFormation
+	a. Bạn xác định tất cả các tài nguyên mà bạn muốn AWS bật lên trong một bản thiết kế chi tiết, bấm vào một nút, và sau đó AWS sẽ thực hiện giúp bạn phần việc còn lại. Bản thiết kế này được gọi là một template trong CloudFormation. CloudFormation đảm bảo rằng các tài nguyên phụ thuộc trong template của bạn đều được tạo theo đúng thứ tự. Ví dụ, giả sử chúng ta muốn tạo record DNS Route53 và một instance EC2 có record DNS trỏ tới instance EC2. CloudFormation sẽ để cung cấp instance EC2 trước, chờ cho nó sẵn sàng được sử dụng, và sau đó tạo bản ghi DNS. AWS CloudFormation điều phối việc cung cấp các tài nguyên mong muốn. Vì vậy, thay vì phải viết script với một loạt các lời gọi API AWS, chờ vòng lặp và thử lại logic, bạn chỉ cần mô tả những gì bạn muốn và yêu cầu CloudFormation thực hiện điều đó cho bạn
+	
+34. BeanStalk
+	- Là 1 SaaS
+	- Khác vs Lambda tính phí theo thời gian chạy code thì BeanStalk tính phí theo resource chứa code.
+	- Nó giống với LightSail
+
+35. API Gateway
+	- API KEYs ??
+	- Usge Plan
+	- 
+	
+II--------------------------- Monitoring
+
+1. CloudWatch
+
+2. Config
+	Khi config thay đổi
+	
+3. VPC Flow Logs Nằm trong EC2/ Network Interface
+	- Có thể tạo cho subnet, network interface và VPC. Vấn đề là éo biết nó nằm ở đâu thôi ???
+
+4. Trusted Advisor
+	Đưa ra lời khuyên trên 5 category
+	a. Cost Optimization
+	b. Security
+	c. Fault Tolerance: Auto Scaling, Health Check v...value
+	d. Performance
+	e. Service Limits
+	
+
+
+6. CloudTrail.
+	a. Who made the request
+	b. When was the request made
+	c. What was the request about 
+	d. Which resources  were acted upon in response to the request.
+	e. Where was the request made from and made to.
+	f. API, S3, Lambda 
+	
+III-------------------------------------- RDS
+
+Khi tạo RDS hoặc ElastiCache -> Phải tạo subnet group -> Là 1 tập hợp nhiều subnet từ các AZ để AWS assign IP cho RDS instance
+
+Các RDS DB có thể snapshot ra S3, sau đó sử dụng Amazon Sagemaker, Amazon EMR, and Amazon Athena để phân tích dữ liệu
+
+22. Aurora 
+	a. compatible with MySQL và PostgreSQL 
+	b. 6 different storage nodes in three different AZ
+	c. Ko có định nghĩa standby database -> khi primary chết thì ông read replica lên thay ngay
+	d. -> Rất nhah, gấp 5 lần SQL truyền thống vì read nó phủ thế mà
+	e. Aurora có backtrack -> quay về thời điểm thay đổi trước. Chức năng này rất tốt để test những function cần remove v...v..
+
+23. Redshift
+	a. A data warehouse
+	b. A data warehouse phân biệt đọc và phân tích dữ liệu (analytical and transaction workload) 
+	c. Data reading bigger than writing and updating.
+	d. Leader node và compute node
+	e. Ledaer node đóng vao trò như 1 endpoint
+	f. Khi nhận dc request thì leader node tiếp nhận và lên execution plan -> compute node phù hợp -> tính -> gửi ngc lại về leader node
+	g. bên ngoài ko thể connect vs compute node mà phải qua leader node, tuy nhiên compute node lại có thể  talk with sv như S3
+	h. Có 2 loại single node cluster và mutinode cluster
+	i. Hỗ trợ mirror giữa các node, vậy nên đối vs dữ liệu 6Tb chỉ cần chọn 3 node dc1.8xlarge vs dung lượng 2.56TB.
+	k. UNLOAD <> COPY
+	l. Dense Store and Dense Compute`
+	
+24. DynamoDB
+	a. For storing IOT sensor data or log ingestion
+	- Phục vụ cho mục đích phân tích dữ liệu chưa hoàn chỉnh
+	- Độ trễ thấp
+	
+25. CloudFront 
+	- Orgin (Source) có thể là S3, EC2 hoặc ELB hoặc với bất kỳ custom HTTP nào ??
+	- Mối liên hệ giữa CloudF và API trong PWA ???
+	- Với CF, có thể sử dụng CFFunctions và Lambda@Edge để distribute HTTP Request, 
+		+ CFFunctions thì chỉ có thể sử dụng Java	
+		+ Lambda@Edge thì Node.js và Python
+	- OriginShield ?? Nhanh hơn, cache xịn hơn
+	- Tại sao có thể cho phép chọn lên đến 25 origins ?? Vì tương ứng với mỗi orgin lại có 1 behaviour khác nhau
+	- 
+
+26. AWS Migration Service Tools
+	Migrate an existing Mysql DB on an EC2 to a RDS instance.
+	
+27. Route 53
+    
+	A (address record)
+		Địa chỉ IPv4: 192.0.2.1
+	AAAA (IPv6 address record)
+		Địa chỉ IPv6: 2001:0db8:85a3:0:0:8a2e:0370:7334
+	CNAME (canonical name record)
+		domain to subdomain. VD -> hostname.example.com
+		hoặc là alias
+		hoặc là 1 domain khác
+	CAA (certification authority authorization)
+		khó vl
+	MX (mail exchange record)
+		Ví dụ: 10 mail.example.com (priority + domainname của mail server)
+		Có thể route đến nhiều server với độ priority khác nhau, vd namecheap và 365
+	NAPTR (name authority pointer record)
+		khó vl
+	NS (name server record)
+	
+	PTR (pointer record)
+	SOA (start of authority record)
+	SPF (sender policy framework)
+	SRV (service locator)
+	TXT (text record)
+	
+	- Public hosted zone và private hosted zone
+		+ Public: route traffic on the internet
+		+ Private: route traffic within VPC
+	
+	- Có thể sử dụng Route53 to route policy and Blue/Green deployment
+	
+28. KMS
+	Supports 2 kind of keys: master and data keys
+	- Data key: encrypt and decrypt actual data
+	- Master key: protect ( encrypt, decrypt ) data key và some data up to 4Kb
+	Flow sẽ là thế này:
+	1. Client calls ksm:GenerateDataKey by passing ID of the KMS master key
+	2. Request is authenticated!
+	3. 1 data key (được mã hóa với masterkey) sẽ dc sinh ra
+	
+------------------------------------------------------- PRACTICE -------------------------------------------------
+1. DB
+- DB dc đặt hoàn toàn trong private subnet
+- Tạo các SG vs port 3306 vs source link đến các SG khác -> Instance từ các SG này có thể truy cập đến DB
+- "When you specify a security group as the source for a rule, traffic is allowed from the elastic network interfaces (ENI) for the instances associated with the source security group for the specified protocol and port. Adding a security group as a source does not add rules from the source security group."
+- Sử dụng VPN vs VPC này để connect (Dùng VGW để kết nối)
+
+2. SQS priority SNS
+- SQS cũng là một topic sẽ được hỏi nhiều thứ chi tiết liên quan đến DelaySeconds, hay VisibilityTimeout. (Basically the time taken by the consumer to process the message)
+- Gửi từ SNS -> SQS (SQS hỗ trợ chức năng subscribe ngược)
+- Long polling -> Chờ đến khi nào có mess để gửi thì thôi.
+- SQS ko encript data by default, muốn dùng phải enable lên 
+
+3. The static content of the website can be stored in Amazon CloudFront ??
+https://medium.com/@jstubblefield7939/serving-static-files-with-amazon-cloudfront-cdn-ccec91a985cd
+
+4. DB - Chú ý về cơ chế Replica, Snapshot, Encryption của các dịch vụ.
+ DynamoDB (ví dụ maximize throughput thông qua partion/ sort key, secondary index
+
+5. ElastiCache
+
+6. APIGateway
+ 
+7. Kinesis, Opswork, AWS Config, VPC FLow Logs, Cognito, Elastic MapReduc, Cognito, Athena, Snowball, Version Control, signed-URL, expiration, Cross-region-replication, ELB, AutoScale, Route 53, Redshift, IAM, CoudFront (cả feature Origin Access Identity (OAI) của CloudFront),  Aurora, Elastic Transcoder, Identity Provider, Elastic Beanstalk, Docker, Code Deploy
+
+8. Placement Group ?
+ Chia làm 3 types:
+Cluster: Tăng tốc độ giữa các instance. Tối đa 10Gb cho các bé. Ko recommend mix instance's type.
+Partition: Hỗ trợ tối đa 7 partition trong mỗi zone (Dedicated Instances thì chỉ có 2 thôi). Số lượng EC2 instance ném vào tùy thuộc vào limit của acc. PARTITION đảm bảo instance trong 1 partition ko share underlying hardware với instance trong 1 partition khác.
+Spread: dễ hiểu nhất, mỗi ông 1 rack, ko lquan đến nhau về network speed hay power source. Tối đa 7 instance Spread trong mỗi zone (ví dụ trong zone A chỉ có 7 con instance trong 1 Spread. Sử dụng hoặc tạo thêm 1 spread nếu muốn apply cho hơn 8 instance. Éo ảm báo sự pread giữa các instance. Có thể mix các instance với nhau.
+Anh em lưu ý là chỉ có thể add instance vào placement group khi khởi tạo chứ ko thể cho 1 instance đã tồn tại vào được
+
+9. Virtual Tape Backup
+
+10. IAM Task - Container
+- Tạo IAM Role cho 1 task trong 1 container.
+
+11. Có thể sử dụng CloudWatch hoặc Lambda để scale up/down EBS ?
+	- Dùng CloudWatch để monitor
+	- Take a snapshot for backup purpose
+	- Expand sử dụng Lambda -> Gọi 1 AWS Steps Function
+	- Extend the file system (to take advantage of the additional storage)
+	- Check the status to make sure the volume expanded and extended correctly.
+	- Send email notification
+	 - 
+
+13. Tạo VPG để access RDS từ private subnet
+ - site-to-site IPsec VPN ?
+ 
+14. Sử dụng API Gateway để giúp cust gọi Lambda từ HTTPS
+
+32. Mapreduce 
+	-> Distribute the computation of data over multiple Amazon EC2 instance
+	-> Nghiên cứu tìm cách chuyển dữ liệu SQL sang Mapreduce trên Spark/ Hadoop
+
+I ------------- GENERAL WTF
+
+b. Lambda is not fit for running long time- function, max 5m.
+c. BeanStalk and Docker relationship ??
+d. Fargate Launch type in ECS
+e. Add Life Cycle Hook to Auto Scaling group -> put the instance into wait state before termination khi Scale in -> chặn việc loss data đồng bộ
+f. Auto Scaling can mix between On-Demand and Spot Instance (set ratio, vdu 20% OD và 80%SI)
+g. Da hell is Cloud Formation Drift Detection drift ??
+h. Auto Scaling cool down timers ??
+i. IAM Task - Container ????????????
+k. Có thể sử dụng HSM Hardware Security Module để manage top level encription keys. ?? Redshift
+l. When calamity happens, consider a whole region gone KABOOM, not only 1 AZ -> Use Route53 to route..
+m. Read Replica chỉ tăng cao khả năng đọc chứ k tăng cường độ high availablity (read và write)
+n. pre-sign URL -> Cách tốt nhất để cho quyền tạm thời. https://docs.aws.amazon.com/AmazonS3/latest/dev/PresignedUrlUploadObject.html
+o. Nhiều EC2 thì cần nhiều NAT instance(s) để trỏ đến. 1 con -> gây ra bottleneck
+p. Redshift is not serverless ..
+x1. You can monitor the service limits for the EC2 instance through Trusted Advisor
+x2. Virtual Private Gateway is the AmZ VPC side of VPN connection. (does not invole the internet when there is need to ensure that communication acros both environment)
+x3. Amazon Redshift VPC Routing -> ko cho traffic flow through Internet
+x3. CloudFront access log / request sent to CloudFront API
+x4. Get-s3object -Bucketname vgc.jp -region ap-northeast-1
+x5. AWS Managed Microsoft AD
+x6. S3 Server Side Encryption - encription at rest (mã hóa trc khi lưu vào hdd)
+x7. CloudTrail, log luôn luôn dc encript
+
+
+EC2 Image Builders
+AWS Private link
+Cloudwatch Alarm Action
+2. Container - chứa tất cả những thứ cần để chạy app, ko cần  
+4. Gateway Cache vs Gateway Store-volume	
+8. AWS Directory Service ??
+11. Load Balancer (LB): 
+ classic LB, 
+ network LB, 
+ application LB
+ Load Balancer starts a new instance if failver (page 249)
+ SSE-S3
+SSE-C
+SSE-KMS
+CloudHSM
+
+AWS Polly Lexicon
+Application Shard MySQL
+
+
+II ------------- VPC WTF
+
+a. VPC Enpoint always takes precedence over NAT-Gateway and Internet-gateway
+b. NACL is stateless. You can cum in and also cum out with SG, but NO if NACL say so.
+c. NAT-Gateway must stay in public subnet -> mà public subnet thì phải có Internet gateway 
+ - Cái này là khi tạo NAT, phải chỉ định public subnet cho nó. Mà public subnet là thế nào thì biết rồi đấy.
+ - Tiếp theo khi dùng thì ở route table, add NAT vào. Thường là route table của private subnet.
+d. Bastion host để kết nối vs các thành phần nằm trong private subnet. (Cần setting NACL inbound và outbound ?)
+e. VPC DNS Hostname 
+f. Mỗi instance EC2 được lưu trữ trên 1 physical machine thì được ngăn cách bởi hypervios nên ko thể làm j dc nhau và hack dc nhau 
+g. Dữ liệu dc mã hóa mới 256 bit AES
+
+III ------------ RDS WTF
+
+a. Aurora <=64 TB while Redshift -> Immortal
+b. RDS not use to contain session
+c. Dahell is DynamoDB Stream and Application Shard MySQL 
+e. Using Redshift VPC Routing and S3 VPC Endpoint so Redshift can get data from S3 ???
+
+
+III ------------ NEWS KNOWLEDGE OR HAVE YET TO KNOW
+ 1. Enable DNS hostname trong VPC
+  - Ví dụ: enable sẽ g iups 1 public EC2 có địa chỉ IP -> Public IPv4 DNS.  3.85.111.34 ->  ec2-3-85-111-34.compute-1.amazonaws.com
+  
+ 2. 
+ Lambda có thể kết hợp với EventBridge để xử lý response
+
+
+Lambda Cold Start giờ có thể sử dụng provisioned concurency để xử lý. Ko cần phải dùng Cloudwatch event nữa.
+Default key policy của 1 KMS là root hoặc là bất kỳ 1 thằng nào đó. Nếu đã xóa user ấy rồi thì phải liên hệ AWS Support, chứ ko tự sửa dc. Ngay cả root user cũng chịu
+
+Identity và Federation on-premise, SSO integration
+AWS Organization, SCP, Resource sharing
+S3 Pre-Signed Url và Request payer
+CloudFront Signed URL, Signed Cookies, OAI, cách thiết lập default hoặc custom certificate, tích hợp Lambda Edge vào request lifecycle, improve cache hit ratio, troubleshoot status code khi request đến S3 origin…
+Amazon Aurora serverless và DynamoDB global table
+Amazon Workspaces và App Stream 2.0
+Rất nhiều câu hỏi về three-tier web app
+Migration: Application Discovery Service, phân biệt Agent-less và Agent-based, sử dụng DMS + SCT để migrate database, SMS để replicate server giảm thiểu downtime
+Disaster Recovery, chọn solution đem lại RTO và RPO theo yêu cầu, chọn DR stategy với chi phí phù hợp cho doanh nghiệp
+Amazon Kinesis, build ứng dụng realtime, near realtime, troubleshoot Kinesis agent
+Amazon ES, ELK stack
+Block IPSet với WAF, DDoS protection với AWS Shield Basic/Advanced
+CloudWatch logs, X-ray, debug Lambda function, subscription filter…
+CloudFormation deletion policy
+CI/CD với CodePipeline, CodeBuild lifecycle hook, CodeDeploy, Blue/Green deployment on ElasticBeanstalk…
+Snowball family: Snowball, Snowmobile, cách tăng tốc độ copy trên Snowball device
+Một số security service: KMS, Secret Manager, ACM, SSM Parameter Store…
+Một số service/feature mới sử dụng rộng rãi thời gian gần đây: S3 Batch Operation, Amazon EventBridge, AWS Global Accelerator
+Quản lý chi phí với Cost Allocation Tag, Resource Tag, Cost Explorer và Billing Dashboard
+Trusted Advisor support plan, Service Quotas…
+Một chút về AI/ML, SageMaker, Rekognition
+5. Organization
+Nên thực hành về  OpsWorks (Chef, Puppet, Stack) 
+Mối liên hệ giữa OpsWork và CloudFormation
+fixed MAC address luôn đi cùng cả ENI
+AWS SAP ???
+aWS Stream ???
+WorkDocs
+ADConnector
+DHCP ko thể modify, chỉ có thể tạo 1 set mới rồi associated nó với VPCKinesis, S3, Athena -> xử lý clickstream data
+Web Identify Federation ??
+S3 Transfer Accelerator 
+

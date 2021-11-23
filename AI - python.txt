@@ -1,0 +1,198 @@
+﻿. Quét ảnh kết quả XN
+. -> Ko cần tên, tuổi, địa chỉ -> Chúng tôi ko lưu trữ và sử dụng thông tin người dùng -> Bạn có thể chỉ cần cung cấp dữ liệu bệnh
+. -> Dữ liệu trước đè lên dữ liệu sau
+. -> Đưa ra thông tin ứng với kết quả nhập vào
+
+Hiển thị phần trăm kết quả
+
+1. However, Python will also allocate the same memory address in the following two scenarios.
+The strings don’t have whitespaces and contain less than 20 characters.
+In case of Integers ranging between -5 to +255.
+
+2. element processing
+
+>>> my_tuple = (10, 20, 30)
+>>> my_tuple += (40, 50,)
+>>> print(my_tuple)
+(10, 20, 30, 40, 50)
+
+3. Extend your statement
+
+Using \ to extend your statement
+
+Implicit line continuation (), [], {}
+
+4. List
+
+Python
+
+>>> last_2_chars = str[-2:]
+>>> print(last_2_chars)
+
+>>> two_chars_before_last = str[-3:-1]
+>>> print(two_chars_before_last)
+
+stack.pop()
+- Get last item without using index
+
+6. print (r’\n’) Print fukn Raw
+ignore the meaning of those kind of special char that u know which Im fukn talking about
+
+7. Tuple
+Tuple is immutable
+# How does repetition work with tuples
+sample_tuple = ('Python 3',)*3
+print(sample_tuple)
+# Output - ('Python 3', 'Python 3', 'Python 3')
+ Advantage
+Python uses tuples to return multiple values from a function.
+Tuples are more lightweight than lists.
+It works as a single container to stuff multiple things.
+We can use them as a key in a dictionary.
+
+8. For
+Sử dụng range để tạo 1 list custom:
+
+for iter in range(0, 3):
+    print("iter: %d" % (iter))
+
+- Get index:
+
+books = ['C', 'C++', 'Java', 'Python']
+for index in range(len(books)):
+   print('Book (%d):' % index, books[index])
+   
+9. Method
+
+def typeOfNum(num): # Function header
+    # Function body
+    if num % 2 == 0:
+        def message():
+            print("You entered an even number.")
+    else:
+        def message():
+            print("You entered an odd number.")
+    message()
+	
+Tạo method dựa trên case. Finally call it.
+
+- có thể return multi value.
+
+- pass the function object to other function
+
+def fn1(a, b) : print('fn1 called')
+def fn2(fun, x, y) : fun(x, y)
+fn2(fn1, 22, 'bb')
+
+- embed function object in data struct
+
+def fn1(a) : print('fn1', a)
+def fn2(a) : print('fn2', a)
+
+listOfFuncs = [(fn1, "First function"), (fn2, "Second function")]
+for (f, arg) in listOfFuncs : f(arg)
+
+
+
+
+10. Class
+
+. The “class” keyword
+. The instance attributes
+. The class attributes
+. The “self” keyword
+. The “__init_” method
+
+- instance attributes
+
+
+class BookStore:
+    instances = 0
+    def __init__(self, attrib1, attrib2):
+        self.attrib1 = attrib1
+        self.attrib2 = attrib2
+        BookStore.instances += 1
+
+b1 = BookStore("", "")
+b2 = BookStore("", "")
+
+print("BookStore.instances:", BookStore.instances)
+
+
+def function(self):  Hàm constructor
+
+11. Exception
+try:
+   fob = open("test", "w")
+   fob.write("This is my test file for exception handling!!")
+except IOError:
+   print "Error: can\'t find the file or read data"
+else:
+   print "Write operation is performed successfully on the file"
+   fob.close()
+
+- catch many exception as one:
+except(Exception1[, Exception2[,...ExceptionN]]]):
+
+11. External Library 
+	import tensoreflow as tf
+	
+---------------------------------------------
+
+1.  Định nghĩa các cột dữ liệu cần tính 
+melbourne_features = ['Rooms', 'Bathroom', 'Landsize', 'Lattitude', 'Longtitude']
+
+By convention, this data is called X.
+Lấy ra (chỉ) các cột dữ liệu từ dữ liệu test
+X = melbourne_data[melbourne_features]
+
+
+2. 
+
+Building Your Model
+You will use the scikit-learn library to create your models. When coding, this library is written as sklearn, as you will see in the sample code. Scikit-learn is easily the most popular library for modeling the types of data typically stored in DataFrames.
+
+The steps to building and using a model are:
+
+Define: What type of model will it be? A decision tree? Some other type of model? Some other parameters of the model type are specified too.
+Fit: Capture patterns from provided data. This is the heart of modeling.
+Predict: Just what it sounds like
+Evaluate: Determine how accurate the model's predictions are.
+
+
+--> Tạo 1 decisionTree -> 
+randomState
+
+fit() cái decisionTree này với (dữ liệu có sẵn, predictValue)
+
+predict() -> đưa ra tiên đoán với dữ liệu cho (dữ liệu vào)
+
+--> Valid model
+
+Nó thay đổi. Mặt khác, nếu bạn sử dụng random_state=some_number, thì bạn có thể đảm bảo rằng đầu ra của Run 1 sẽ bằng với đầu ra của Run 2 , tức là phần tách của bạn sẽ luôn giống nhau. Không quan trọng random_statecon số thực tế là 42, 0, 21, ... Điều quan trọng là mỗi khi bạn sử dụng 42, bạn sẽ luôn nhận được cùng một đầu ra trong lần đầu tiên bạn thực hiện phân tách. Điều này hữu ích nếu bạn muốn kết quả có thể lặp lại, ví dụ như trong tài liệu, để mọi người luôn có thể thấy các số giống nhau khi họ chạy các ví dụ. Trong thực tế tôi sẽ nói, bạn nên đặt random_statesố cố định trong khi kiểm tra công cụ, nhưng sau đó loại bỏ nó trong sản xuất nếu bạn thực sự cần một sự phân chia ngẫu nhiên (và không cố định).
+
+Về câu hỏi thứ hai của bạn, trình tạo số giả ngẫu nhiên là trình tạo số tạo ra các số gần như thực sự ngẫu nhiên. Tại sao chúng không thực sự ngẫu nhiên nằm ngoài phạm vi của câu hỏi này và có lẽ sẽ không có vấn đề gì trong trường hợp của bạn, bạn có thể xem ở đây để biết thêm chi tiết.
+
+
+ Mean Absolute Error (also called MAE)
+ 
+Since models' practical value come from making predictions on new data, we measure performance on data that wasn't used to build the model. The most straightforward way to do this is to exclude some data from the model-building process, and then use those to test the model's accuracy on data it hasn't seen before. This data is called validation data.
+
+Chia dữ liệu ra để train, train_test_split
+
+---  underfitting - overfitting
+
+When we divide the houses amongst many leaves, we also have fewer houses in each leaf. Leaves with very few houses will make predictions that are quite close to those homes' actual values, but they may make very unreliable predictions for new data (because each prediction is based on only a few houses).
+
+
+This is a phenomenon called overfitting, where a model matches the training data almost perfectly, but does poorly in validation and other new data. On the flip side, if we make our tree very shallow, it doesn't divide up the houses into very distinct groups.
+
+At an extreme, if a tree divides houses into only 2 or 4, each group still has a wide variety of houses. Resulting predictions may be far off for most houses, even in the training data (and it will be bad in validation too for the same reason). When a model fails to capture important distinctions and patterns in the data, so it performs poorly even in training data, that is called underfitting.
+
+
+--- Random forest
+
+Dùng nhiều tree, và lấy giá trị bình quân
+
+RandomForestRegressor
+	

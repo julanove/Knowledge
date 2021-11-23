@@ -1,0 +1,30 @@
+S3
+ - Các chức năng chính:
+	+ Storage Classes. Tùy từng different use case mà S3 cung cấp storage class khác nhau
+	+ Bucket Poicies. Cung cấp policy cho user (giờ truy cập, vị trí truy cập (IP, công ty v...v) bucket hay range file dc truy cập)
+	+ AWS Identity and Access Management. (IAM) quản lý loại access of user hoặc 1 nhóm user tới S3 bucket hoặc 1 phần của bucket
+	+ Access Control Lists. 
+	+ Versioning
+	+ Operations
+		.Create a Bucket 
+		.Write an Object 
+		.Read an Object 
+		.Deleting an Object 
+		.Listing Keys 
+		
+ - 5Tb mỗi bucket
+ 
+ - Versioning: 
+	+ Cùng Key (name) khác ID 
+	+ Khi xóa, sẽ tạo 1 object khác (non-current) cùng tên khác ID -> restore
+	+ DELETE Object versionId (nói cách khác, xóa bằng ID ms có thể permanently remove dc)
+	+ Trước khi version-enabled thì ID của các object = null
+	+ 
+	+ Một khi đã version-enabled -> ko thể chuyển ngược lại, chỉ có thể suspend
+ - Bucket:
+	+ Tên ko bao gồm kí tự hoa
+
+Access Key ID:
+	AKIAIYPDZK2ZLE6YM7AQ
+Secret Access Key:
+	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
