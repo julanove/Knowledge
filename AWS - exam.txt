@@ -41,15 +41,23 @@ I. -----------------------------------------------------------------------------
 	- CloudWatch Logs
 
 3. VPC
- a. Bảo vệ 1 nhóm AWS resource trong 1 subnet 
- b. Load Balancer, NAT Instance nên để vào public subnet, để có thể đâm ra ngoài qua internet gateway (Sử dụng cho Lambda)
- c. NAT Instance (khi ko muốn kết nối trực tiếp từ NAT đến internet) để trong 2 zone khác nhau, phòng trường hợp 1 cái lăn ra chết
- d. Bastion/ VPN Instance kết nối đến các tài nguyên riêng tư từ internet, enable MFA để tăng cường bảo mật.
- e. Đặt trong các private subnet
- f. VPC bị giới hạn trong 1 region, tức là ko span sang 1 region khác dc.
- g. Chọn No preference khi tạo VPC để span to AZs chứ k chỉ nằm trong 1 AZ. 
- h. Add service endpoint khi tạo để kết nối với S3 cũng như Dynamo DB
- i. Sự khác nhau giữa Service Endpoint và NAT (Nat đâm ra ngoài, trong khi SE kết nối với các service bên trong AWS như S3 và Dynamo để tiết kiệm)
+	a. Bảo vệ 1 nhóm AWS resource trong 1 subnet 
+	b. Load Balancer, NAT Instance nên để vào public subnet, để có thể đâm ra ngoài qua internet gateway (Sử dụng cho Lambda)
+	c. NAT Instance (khi ko muốn kết nối trực tiếp từ NAT đến internet) để trong 2 zone khác nhau, phòng trường hợp 1 cái lăn ra chết
+	d. Bastion/ VPN Instance kết nối đến các tài nguyên riêng tư từ internet, enable MFA để tăng cường bảo mật.
+	g. VPC bị giới hạn trong 1 region, tức là ko span sang 1 region khác dc.
+	h. Chọn No preference khi tạo VPC để span to AZs chứ k chỉ nằm trong 1 AZ. 
+	i. Add service endpoint khi tạo để kết nối với S3 cũng như Dynamo DB
+	k. Sự khác nhau giữa Service Endpoint và NAT (Nat đâm ra ngoài, trong khi SE kết nối với các service bên trong AWS như S3 và Dynamo để tiết kiệm)
+	l. Enable DNS hostname trong VPC
+		- Ví dụ: enable sẽ giúp 1 public EC2 có địa chỉ IP -> Public IPv4 DNS.  3.85.111.34 ->  ec2-3-85-111-34.compute-1.amazonaws.com
+	m.
+	b. NACL is stateless. You can cum in and also cum out with SG, but NO if NACL say so.
+
+	d. Bastion host để kết nối vs các thành phần nằm trong private subnet. (Cần setting NACL inbound và outbound ?)
+	e. VPC DNS Hostname 
+	f. Mỗi instance EC2 được lưu trữ trên 1 physical machine thì được ngăn cách bởi hypervios nên ko thể làm j dc nhau và hack dc nhau 
+	g. Dữ liệu dc mã hóa mới 256 bit AES  
 	
 4. Subnet: 
  a. (CIDR) the IPv4 block 192.168.100.0/22 represents the 1024 IPv4 addresses from 192.168.100.0 to 192.168.103.255.
@@ -122,8 +130,9 @@ I. -----------------------------------------------------------------------------
  b. Private connect ngay bên trong AWS 
  c. Tạo 1 entry trong route table cho private subnet -> thẳng VPC Endpoint cho S3 hoặc Dynamo
  d. Đại khái là 1 phần tử năm trong private subnet. Route table sẽ associated subnet nào cần sử dụng đến endpoint này
+ e. VPC Enpoint always takes precedence over NAT-Gateway and Internet-gateway
 	VPC Endpoint Service. 
-		- Tạo luôn 1 ứng dụng trong VPC. Các AWSer khác có thể truy cập app đó qua VPC Enpoint. Và bạn là người cung cấp service - qua LB.
+		- Tạo luôn 1 ứng dụng trong VPC. Các AWSer khác có thể truy cập app đó qua VPC Endpoint. Và bạn là người cung cấp service - qua LB.
 		
 12. IP
 	Địa chỉ IPv4 được chia thành 6 class khác nhau là A, B, C, D, E, Loopback mỗi class được quy định một  dải IP :
@@ -235,13 +244,9 @@ I. -----------------------------------------------------------------------------
 	i. Eventual Consistency: Nhất quán theo kiểu cuối cùng kiểu j cũng dc cập nhật thôi -> node2 data có thể là stale data. 
 	h. Strong Consistency: Nhất quán 1 cách mạnh mẽ, khi 1 file dc update -> đến lúc update toàn bộ node hoàn thành -> ko access nào lấy dc file 
 	k. 1 single Put request -> chỉ có thể upload 1 file max 5Gb. Dùng multi-part upload -> 5TB
+	l. pre-sign URL -> Cách tốt nhất để cho quyền tạm thời. https://docs.aws.amazon.com/AmazonS3/latest/dev/PresignedUrlUploadObject.html
 	
-	SSD bao gồm 2 loại: 
-		+ General Purpose SSD (gp2)  - Có khả năng burst IO -> Tích lại credit và dùng khi cần
-			Ổ trên 1TB thường có baseline > burst performance nên thường méo cần burstmode( >3000 IOPS )
-		+ Provisioned IOPS SSD (io1) 
-		
-	"Some EC2 instance also have a local storage built in that is called the instance store. The instance storage is ephemeral -> gone whenever u terminate the instace"
+	
 	
 	REPLICATION
 		- Files in an existing bucket are not replicated automatically but all the subsequent updated files will be automatically replicated.
@@ -286,6 +291,12 @@ I. -----------------------------------------------------------------------------
 	- Partition: Hỗ trợ tối đa 7 partition trong mỗi zone (Dedicated Instances thì chỉ có 2 thôi). Số lượng EC2 instance ném vào tùy thuộc vào limit của acc. PARTITION đảm bảo instance trong 1 partition ko share underlying hardware với instance trong 1 partition khác.
 	- Spread: dễ hiểu nhất, mỗi ông 1 rack, ko lquan đến nhau về network speed hay power source. Tối đa 7 instance Spread trong mỗi zone (ví dụ trong zone A chỉ có 7 con instance trong 1 Spread. Sử dụng hoặc tạo thêm 1 spread nếu muốn apply cho hơn 8 instance. Éo ảm báo sự pread giữa các instance. Có thể mix các instance với nhau.
 	Anh em lưu ý là chỉ có thể add instance vào placement group khi khởi tạo chứ ko thể cho 1 instance đã tồn tại vào được.
+	g. SSD bao gồm 2 loại: 
+		+ General Purpose SSD (gp2)  - Có khả năng burst IO -> Tích lại credit và dùng khi cần
+			Ổ trên 1TB thường có baseline > burst performance nên thường méo cần burstmode( >3000 IOPS )
+		+ Provisioned IOPS SSD (io1) 
+		
+		"Some EC2 instance also have a local storage built in that is called the instance store. The instance storage is ephemeral -> gone whenever u terminate the instace"
 	
 22. IAM
 	a. If you have an app running on EC and it need to access other AWS services. -> The best way is to provide credential to the app running on EC2 by using IAM roles.
@@ -411,6 +422,14 @@ I. -----------------------------------------------------------------------------
 	
 	Service: Run and maitains desired number of tasks from a specified task definition
 	-> Nhân lên
+	
+42. NAT
+	-> NAT-Gateway must stay in public subnet -> mà public subnet thì phải có Internet gateway 
+	-> Cái này là khi tạo NAT, phải chỉ định public subnet cho nó. Mà public subnet là thế nào thì biết rồi đấy.
+	-> Tiếp theo khi dùng thì ở route table, add NAT vào. Thường là route table của private subnet.
+	Nhiều EC2 thì cần nhiều NAT instance(s) để trỏ đến. 1 con -> gây ra bottleneck
+	
+	
 II--------------------------- Monitoring
 
 1. CloudWatch
@@ -437,6 +456,7 @@ II--------------------------- Monitoring
 	d. Which resources  were acted upon in response to the request.
 	e. Where was the request made from and made to.
 	f. API, S3, Lambda 
+	g. CloudTrail, log luôn luôn dc encript
 	
 III-------------------------------------- RDS
 
@@ -497,9 +517,25 @@ IV. ----------------------------------------------------------------------------
 	Multicast is a network capability that allows one-to-many distribution of data. With multicasting one or more sources can transmit network packets to subscribers that typically reside within a multicast group. Multicast groups can have zero or more subscribers that wish to receive content from the sources
 	https://aws.amazon.com/articles/overlay-multicast-in-amazon-virtual-private-cloud/
 
+
+	
+
+
+V. ------------------------------------------------------------------------------------------------------------------------------------------------ FAQs
+
+1. ELB không thể point đến nhiều read to multiple replica, nhưng Route53 thì có thể
+
+2. SAM - Serverless Application Model:
+	Serverless::API => API Gateway trong CloudFormation
+	Serverless::Function => Lambda
+	
+3. Lambda Cold Start giờ có thể sử dụng provisioned concurency để xử lý. Ko cần phải dùng Cloudwatch event nữa.
+
 4. 
 	AWSRunPowerShellScript -> Cho window
 	AWSRunShellScript -> Cho Linux
+	
+5. HTTPD -> Apache HTTP Server
 
 ------------------------------------------------------- PRACTICE -------------------------------------------------
 
@@ -511,7 +547,6 @@ Pro 55-60 chưa làm!
  - Long polling -> Chờ đến khi nào có mess để gửi thì thôi.
  - SQS ko encript data by default, muốn dùng phải enable lên 
 
-
 * (Fargate/EC2) - Batch 
  - Batch có thể dùng để scheduly phân tích dữ liệu từ S3
  - Fargate là 1 serverless compute service để chạy container dc dùng bởi (ESC) và EKS
@@ -521,6 +556,8 @@ Pro 55-60 chưa làm!
 
 * Network LB vs Application LB:
  - Test HTTPS và TLS
+ 
+* Lambda có thể kết hợp với EventBridge để xử lý response
  
  
 2. ElastiCache
@@ -534,7 +571,7 @@ Cloudwatch Alarm Action
 8. AWS Directory Service ??
 
  Load Balancer starts a new instance if failver (page 249)
- SSE-S3
+SSE-S3
 SSE-C
 SSE-KMS
 CloudHSM
@@ -545,17 +582,11 @@ Service Control Policy:
 	Chỉ áp dụng cho account bên trong organization.
 	Ko áp dụng cho account ngoài, nên nếu set IAM cho account B ngoài organization thì nó vẫn truy cập dc vào 
 	
-Serverless Application Model:
-	Serverless::API => API Gateway trong CloudFormation
-	Serverless::Function => Lambda
+
 	
 Amazon BlockChain Template
 
-
-
 Direct Connect ?
-
-ELB không thể point đến nhiều read to multiple replica, nhưng Route53 thì có thể
 
 Thực hành thêm về Network, Application ELB cùng với HTTPS và TLS
 
@@ -565,10 +596,8 @@ Câu 75 - VPN Tunnel
 
 AWS Polly Lexicon
 Application Shard MySQL
- 1. Enable DNS hostname trong VPC
-  - Ví dụ: enable sẽ g iups 1 public EC2 có địa chỉ IP -> Public IPv4 DNS.  3.85.111.34 ->  ec2-3-85-111-34.compute-1.amazonaws.com 
-Lambda có thể kết hợp với EventBridge để xử lý response
-Lambda Cold Start giờ có thể sử dụng provisioned concurency để xử lý. Ko cần phải dùng Cloudwatch event nữa.
+ 1. 
+
 Default key policy của 1 KMS là root hoặc là bất kỳ 1 thằng nào đó. Nếu đã xóa user ấy rồi thì phải liên hệ AWS Support, chứ ko tự sửa dc. Ngay cả root user cũng chịu
 
 Identity và Federation on-premise, SSO integration
@@ -592,8 +621,7 @@ Một số service/feature mới sử dụng rộng rãi thời gian gần đây
 Quản lý chi phí với Cost Allocation Tag, Resource Tag, Cost Explorer và Billing Dashboard, Trusted Advisor support plan, Service Quotas…
 Một chút về AI/ML, SageMaker, Rekognition
 AWS Security
-
-5. Organization
+organization
 Nên thực hành về  OpsWorks (Chef, Puppet, Stack) 
 Mối liên hệ giữa OpsWork và CloudFormation
 fixed MAC address luôn đi cùng cả ENI
@@ -605,6 +633,60 @@ DHCP ko thể modify, chỉ có thể tạo 1 set mới rồi associated nó v�
 Web Identify Federation ??
 S3 Transfer Accelerator .
 Understand IAM Web Identity & Federation
+Storage Gateway
+FSx
+WAF
+Single Sign-on
+Shield
+Security HUB
+Resource Access Manager
+Macie
+Inspector
+Guard Duty
+Directory Service
+ACM
+Artifact
+Global Accelerator
+Direct Conect
+Transfer Family
+Server Migration Service
+Migration Hub
+DataSync
+Elast Transcoder
+Trusted Advisor
+System Manager
+Service Catalog
+Resource Access Manager
+License Manager
+EventBridge
+Control Tower
+Config
+Compute
+Optimizer
+Backup
+Translate
+Transcribe
+SageMaker
+Rekognition
+Lex
+Forecast
+Comprehend
+AppSync
+AppStream
+Workspaces
+Neptune
+ECR
+Outposts
+Managed BlockChain
+Alexa
+MQ
+Step Functions
+EMR
+QuickSight
+
+. PrivateLink uses elastic network interfaces within the client VPC so that there are no IP address conflicts with the service provider.
+
+
 https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ec2-instance-resize.html
 Amazon Elastic Transcoder -> MP4 -> HLS (HttpLiveStreaming)
 
@@ -624,9 +706,6 @@ Amazon Elastic Transcoder -> MP4 -> HLS (HttpLiveStreaming)
 
 I ------------- GENERAL WTF
 
-1. Lambda is not fit for running long time- function, max 5m.
-2. HTTPD -> Apache HTTP Server
-
 e. Add Life Cycle Hook to Auto Scaling group -> put the instance into wait state before termination khi Scale in -> chặn việc loss data đồng bộ
 f. Auto Scaling can mix between On-Demand and Spot Instance (set ratio, vdu 20% OD và 80%SI)
 g. Da hell is Cloud Formation Drift Detection drift ??
@@ -634,9 +713,8 @@ h. Auto Scaling cool down timers ??
 i. IAM Task - Container ????????????
 k. Có thể sử dụng HSM Hardware Security Module để manage top level encription keys. ?? Redshift
 l. When calamity happens, consider a whole region gone KABOOM, not only 1 AZ -> Use Route53 to route..
-m. Read Replica chỉ tăng cao khả năng đọc chứ k tăng cường độ high availablity (read và write)
-n. pre-sign URL -> Cách tốt nhất để cho quyền tạm thời. https://docs.aws.amazon.com/AmazonS3/latest/dev/PresignedUrlUploadObject.html
-o. Nhiều EC2 thì cần nhiều NAT instance(s) để trỏ đến. 1 con -> gây ra bottleneck
+n. 
+o. 
 p. Redshift is not serverless ..
 x1. You can monitor the service limits for the EC2 instance through Trusted Advisor
 x2. Virtual Private Gateway is the AmZ VPC side of VPN connection. (does not invole the internet when there is need to ensure that communication acros both environment)
@@ -645,23 +723,6 @@ x3. CloudFront access log / request sent to CloudFront API
 x4. Get-s3object -Bucketname vgc.jp -region ap-northeast-1
 x5. AWS Managed Microsoft AD
 x6. S3 Server Side Encryption - encription at rest (mã hóa trc khi lưu vào hdd)
-x7. CloudTrail, log luôn luôn dc encript
-
-II ------------- VPC WTF
-
-a. VPC Enpoint always takes precedence over NAT-Gateway and Internet-gateway
-b. NACL is stateless. You can cum in and also cum out with SG, but NO if NACL say so.
-c. NAT-Gateway must stay in public subnet -> mà public subnet thì phải có Internet gateway 
- - Cái này là khi tạo NAT, phải chỉ định public subnet cho nó. Mà public subnet là thế nào thì biết rồi đấy.
- - Tiếp theo khi dùng thì ở route table, add NAT vào. Thường là route table của private subnet.
-d. Bastion host để kết nối vs các thành phần nằm trong private subnet. (Cần setting NACL inbound và outbound ?)
-e. VPC DNS Hostname 
-f. Mỗi instance EC2 được lưu trữ trên 1 physical machine thì được ngăn cách bởi hypervios nên ko thể làm j dc nhau và hack dc nhau 
-g. Dữ liệu dc mã hóa mới 256 bit AES
-
-III ------------ RDS WTF
-
-
 
 
 III ------------ NEWS KNOWLEDGE OR HAVE YET TO KNOW
