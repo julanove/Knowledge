@@ -434,6 +434,13 @@ II--------------------------- Monitoring
 
 1. CloudWatch
 	a. CloudWatch Event's rule
+	b. Có thể sử dụng CloudWatch hoặc Lambda để scale up/down EBS ?
+	- Dùng CloudWatch để monitor
+	- Take a snapshot for backup purpose
+	- Expand sử dụng Lambda -> Gọi 1 AWS Steps Function
+	- Extend the file system (to take advantage of the additional storage)
+	- Check the status to make sure the volume expanded and extended correctly.
+	- Send email notification
 	
 2. Config
 	Khi config thay đổi
@@ -488,8 +495,6 @@ III-------------------------------------- RDS
 
 4. AWS Migration Service Tools
 	Migrate an existing Mysql DB on an EC2 to a RDS instance.
-	
-	
 
 . Các RDS DB có thể snapshot ra S3, sau đó sử dụng Amazon Sagemaker, Amazon EMR, and Amazon Athena để phân tích dữ liệu
 . Aurora <=64 TB while Redshift -> Immortal
@@ -537,6 +542,12 @@ V. -----------------------------------------------------------------------------
 	
 5. HTTPD -> Apache HTTP Server
 
+6. Default key policy của 1 KMS là root hoặc là bất kỳ 1 thằng nào đó. Nếu đã xóa user ấy rồi thì phải liên hệ AWS Support, chứ ko tự sửa dc. Ngay cả root user cũng chịu
+
+7. Fixed MAC address luôn đi cùng 1 ENI
+
+
+
 ------------------------------------------------------- PRACTICE -------------------------------------------------
 
 Pro 55-60 chưa làm!
@@ -560,8 +571,6 @@ Pro 55-60 chưa làm!
 * Lambda có thể kết hợp với EventBridge để xử lý response
  
  
-2. ElastiCache
- 
 Kinesis, Opswork, AWS Config, Elastic MapReduc,, Athena,  AutoScale, Redshift, ,  Aurora, Elastic Transcoder, Identity Provider, Docker, Code Deploy, Virtual Tape Backup
 EC2 Image Builders
 AWS Private link
@@ -583,30 +592,20 @@ Service Control Policy:
 	Ko áp dụng cho account ngoài, nên nếu set IAM cho account B ngoài organization thì nó vẫn truy cập dc vào 
 	
 
-	
 Amazon BlockChain Template
-
 Direct Connect ?
-
 Thực hành thêm về Network, Application ELB cùng với HTTPS và TLS
-
 AssumeRole giữa nhiều account, cách switch role (Câu 6 bài 3)
 Câu 75 - VPN Tunnel
 
-
 AWS Polly Lexicon
 Application Shard MySQL
- 1. 
-
-Default key policy của 1 KMS là root hoặc là bất kỳ 1 thằng nào đó. Nếu đã xóa user ấy rồi thì phải liên hệ AWS Support, chứ ko tự sửa dc. Ngay cả root user cũng chịu
-
 Identity và Federation on-premise, SSO integration
 AWS Organization, SCP, Resource sharing
 S3 Pre-Signed Url và Request payer
 CloudFront Signed URL, Signed Cookies, OAI, cách thiết lập default hoặc custom certificate, tích hợp Lambda Edge vào request lifecycle, improve cache hit ratio, troubleshoot status code khi request đến S3 origin…
 Amazon Aurora serverless và DynamoDB global table
 Amazon Workspaces và App Stream 2.0
-Rất nhiều câu hỏi về three-tier web app
 Migration: Application Discovery Service, phân biệt Agent-less và Agent-based, sử dụng DMS + SCT để migrate database, SMS để replicate server giảm thiểu downtime
 Disaster Recovery, chọn solution đem lại RTO và RPO theo yêu cầu, chọn DR stategy với chi phí phù hợp cho doanh nghiệp
 Amazon Kinesis, build ứng dụng realtime, near realtime, troubleshoot Kinesis agent
@@ -614,7 +613,7 @@ Amazon ES, ELK stack
 Block IPSet với WAF, DDoS protection với AWS Shield Basic/Advanced
 CloudWatch logs  subscription filter…
 CloudFormation deletion policy
-
+ElastiCache
 Snowball family: Snowball, Snowmobile, cách tăng tốc độ copy trên Snowball device
 Một số security service: ACM, SSM Parameter Store…
 Một số service/feature mới sử dụng rộng rãi thời gian gần đây: S3 Batch Operation, Amazon EventBridge, AWS Global Accelerator
@@ -624,7 +623,7 @@ AWS Security
 organization
 Nên thực hành về  OpsWorks (Chef, Puppet, Stack) 
 Mối liên hệ giữa OpsWork và CloudFormation
-fixed MAC address luôn đi cùng cả ENI
+
 AWS SAP ???
 aWS Stream ???
 WorkDocs
@@ -692,14 +691,6 @@ Amazon Elastic Transcoder -> MP4 -> HLS (HttpLiveStreaming)
 
 3. IAM Task - Container
 - Tạo IAM Role cho 1 task trong 1 container.
-
-4. Có thể sử dụng CloudWatch hoặc Lambda để scale up/down EBS ?
-	- Dùng CloudWatch để monitor
-	- Take a snapshot for backup purpose
-	- Expand sử dụng Lambda -> Gọi 1 AWS Steps Function
-	- Extend the file system (to take advantage of the additional storage)
-	- Check the status to make sure the volume expanded and extended correctly.
-	- Send email notification
 
 
 
