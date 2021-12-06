@@ -1,0 +1,24 @@
+Access vào RDS trong private subnet
+
+- Sau khi tạo VPN, đương nhiên có thể truy cập vào resources trong private subnet.
+
+- Tuy nhiên với RDS (ở window, chưa confirm trên ubuntu) thì chỉ có thể access đến bằng IP của RDS, ko thể access đến endpoint của RDS
+
+- Có điều này xảy ra bởi vì VPN chưa setting DNS và VPC chưa enable DNS hostname
+
+-> Sử dụng Route 53 Revolver để tạo DNS tương ứng cho 2 private subnet -> Sau đó gán cho VPN
+
+-> Những cái cần confirm:
+
+	- Trên ubuntu tại sao lại có DNS có thể access được RDS qua endpoint
+	
+	- Setting route table 
+		route-nopull
+		route 10.50.100.9 255.255.255.255
+		route 10.60.100.10 255.255.255.255
+	-> Là có thể truy cập được internet. route-nopull -> Meaning don't pull route from the server. 
+	
+	
+	- Test thử xem VPN có access dc resource nằm ngoài subnet được authorized ko ?
+	
+	
