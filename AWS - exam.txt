@@ -23,13 +23,22 @@ I. -----------------------------------------------------------------------------
   f. Latency giữa các Az thấp hơn 1 digit nên sync repli within AZ 
   
 2. Lambda
- a. Run code withou provisioning 
+ a. Run code without provisioning 
  b. Lambda is not fit for running long time- function, Tối đa 5p thôi
  c. Hẹn giờ tắt/ mở EC2
 	- Tạo 1 policy có quyền start/ stop trên IAM
 	- Tạo 1 role cho Lambda, gán policy vừa tạo vào
 	- Tạo Lambda function, gán role vừa tạo
 	- Kết nối vs Cloudwatch để execute Lambda function (pending)
+ d. Các event có thể invoke Lambda
+	- AWS DynamoDB
+	- SQS
+	- SNS
+	- Cloudwatch Event
+	- API Gateway 
+	- IOT
+	- Kinesis
+	- CloudWatch Logs
 
 3. VPC
  a. Bảo vệ 1 nhóm AWS resource trong 1 subnet 
@@ -262,9 +271,10 @@ I. -----------------------------------------------------------------------------
 		- Spot instance: đấu giá, thằng nào nhanh tay thì lượm. 
 	a. Có thể hibernation instance, tuy nhiên phải setting điều này lúc khởi tạo. Console hay CLI đều dc 
 	b. EC2ConfigService ?
-	c. RAID (redundant array of independent disks) kĩ thuật lưu trữ dữ liệu sử dụng sự kết hợp nhiều disks
-	RAID 0: Striping. Tăng cường I/O performance, tuy nhiên I/O sẽ distribute toàn volume 1 cách đồng đều, dữ liệu cùng thế
-    RAID 1: Mirroring. Ko tăng cường I/O performance, thay vào đó là khả năng ghi vào nhiều volume đồng thời cùng lúc. Khả năng lưu sẽ bị cắt 1 nửa vì phải lưu đến 2 bản ghi dữ liệu giống nhau cùng lúc
+	c. EBS - RAID (redundant array of independent disks) kĩ thuật lưu trữ dữ liệu sử dụng sự kết hợp nhiều disks
+		- RAID 0: Striping. Tăng cường I/O performance, tuy nhiên I/O sẽ distribute toàn volume 1 cách đồng đều, dữ liệu cùng thế
+		- RAID 1: Mirroring. Ko tăng cường I/O performance, thay vào đó là khả năng ghi vào nhiều volume đồng thời cùng lúc. Khả năng lưu sẽ bị cắt 1 nửa vì phải lưu đến 2 bản ghi dữ liệu giống nhau cùng lúc
+		- Snapshot của 1 EBS luôn luôn dc encrypted, nếu share 1 snapshot thì cũng đồng nghĩa share luôn CMK dùng để encript của nó
 	d. Nên phân biệt dc S3, EBS, EFS
 	- S3: 1 kho object, truy cập dữ liệu từ mọi region, zone, rẻ hơn so vs EBS, có thể deploy web tĩnh
 	- EBS: lưu theo 1 block, phải gắn với 1 instance EC2, chỉ tồn tại trên 1 vùng
@@ -298,6 +308,7 @@ I. -----------------------------------------------------------------------------
 	a. Với bọn Java mất dạy hay có trò cache server IP vào DNS thì load-balancer nó sẽ ko balance cho lắm nữa. Nên từ đấy ta có thể dùng cross-zone load balancing. (chỉ cần config khi sử dụng classic LB)
 	b. Quyết định LB là external hay internal -> khai báo lúc khởi tạo LB
 	c. Application Load Balancer có thể tích hợp được với WAF để filter IP hoặc so on
+		- ALB chỉ hỗ trợ HTTP/ HTTPS
 	
 	 
 25. AWS SQS (Simple Queue Service) 
@@ -345,6 +356,7 @@ I. -----------------------------------------------------------------------------
 	- Là 1 SaaS
 	- Khác vs Lambda tính phí theo thời gian chạy code thì BeanStalk tính phí theo resource chứa code.
 	- Nó giống với LightSail
+	- CI/CD với CodePipeline, CodeBuild lifecycle hook, CodeDeploy, Blue/Green deployment on ElasticBeanstalk…
 
 35. API Gateway
 	- API KEYs: Tạo key -> Có mới có thể truy cập dc API Gateway
@@ -384,6 +396,21 @@ I. -----------------------------------------------------------------------------
 	
 40. Resource Group: Group lại các resource (ví dụ như EC2) theo tags
 	
+41. ECS:
+	Tạo 1 ECS Cluster bao gồm có thể là:
+		- Networking Only
+		- EC2 Linux + Networking
+		- EC2 Windows + Networking
+	-> Nó sẽ đẻ ra 1 ECS instance = ngang với 1 EC2 
+	
+	Tiếp đến, Task Definition là cần thiết để chạy Docker container trong ECS, nó sẽ:
+		- Định nghĩa Docker image nào để dùng với mỗi container
+		- How much CPU, memory to use with each task
+		- Launch type ...v...
+	-> Đính nghĩa 1 Task, tiếp đấy sử dụng:
+	
+	Service: Run and maitains desired number of tasks from a specified task definition
+	-> Nhân lên
 II--------------------------- Monitoring
 
 1. CloudWatch
@@ -470,29 +497,42 @@ IV. ----------------------------------------------------------------------------
 	Multicast is a network capability that allows one-to-many distribution of data. With multicasting one or more sources can transmit network packets to subscribers that typically reside within a multicast group. Multicast groups can have zero or more subscribers that wish to receive content from the sources
 	https://aws.amazon.com/articles/overlay-multicast-in-amazon-virtual-private-cloud/
 
-
+4. 
+	AWSRunPowerShellScript -> Cho window
+	AWSRunShellScript -> Cho Linux
 
 ------------------------------------------------------- PRACTICE -------------------------------------------------
 
-1. SQS priority SNS
-- SQS cũng là một topic sẽ được hỏi nhiều thứ chi tiết liên quan đến DelaySeconds, hay VisibilityTimeout. (Basically the time taken by the consumer to process the message)
-- Gửi từ SNS -> SQS (SQS hỗ trợ chức năng subscribe ngược)
-- Long polling -> Chờ đến khi nào có mess để gửi thì thôi.
-- SQS ko encript data by default, muốn dùng phải enable lên 
+Pro 55-60 chưa làm!
 
+* SQS priority SNS
+ - SQS cũng là một topic sẽ được hỏi nhiều thứ chi tiết liên quan đến DelaySeconds, hay VisibilityTimeout. (Basically the time taken by the consumer to process the message)
+ - Gửi từ SNS -> SQS (SQS hỗ trợ chức năng subscribe ngược)
+ - Long polling -> Chờ đến khi nào có mess để gửi thì thôi.
+ - SQS ko encript data by default, muốn dùng phải enable lên 
+
+
+* (Fargate/EC2) - Batch 
+ - Batch có thể dùng để scheduly phân tích dữ liệu từ S3
+ - Fargate là 1 serverless compute service để chạy container dc dùng bởi (ESC) và EKS
+ - BeanStalk and Docker relationship ??
+ 
+* Kubernetes
+
+* Network LB vs Application LB:
+ - Test HTTPS và TLS
+ 
+ 
 2. ElastiCache
  
-Kinesis, Opswork, AWS Config, Elastic MapReduc,, Athena,  AutoScale, Redshift, ,  Aurora, Elastic Transcoder, Identity Provider, Elastic Beanstalk, Docker, Code Deploy, Virtual Tape Backup
+Kinesis, Opswork, AWS Config, Elastic MapReduc,, Athena,  AutoScale, Redshift, ,  Aurora, Elastic Transcoder, Identity Provider, Docker, Code Deploy, Virtual Tape Backup
 EC2 Image Builders
 AWS Private link
 Cloudwatch Alarm Action
 2. Container - chứa tất cả những thứ cần để chạy app, ko cần  
 4. Gateway Cache vs Gateway Store-volume	
 8. AWS Directory Service ??
-11. Load Balancer (LB): 
- classic LB, 
- network LB, 
- application LB
+
  Load Balancer starts a new instance if failver (page 249)
  SSE-S3
 SSE-C
@@ -511,8 +551,7 @@ Serverless Application Model:
 	
 Amazon BlockChain Template
 
-AWSRunPowerShellScript -> Cho window
-AWSRunShellScript -> Cho Linux
+
 
 Direct Connect ?
 
@@ -526,6 +565,48 @@ Câu 75 - VPN Tunnel
 
 AWS Polly Lexicon
 Application Shard MySQL
+ 1. Enable DNS hostname trong VPC
+  - Ví dụ: enable sẽ g iups 1 public EC2 có địa chỉ IP -> Public IPv4 DNS.  3.85.111.34 ->  ec2-3-85-111-34.compute-1.amazonaws.com 
+Lambda có thể kết hợp với EventBridge để xử lý response
+Lambda Cold Start giờ có thể sử dụng provisioned concurency để xử lý. Ko cần phải dùng Cloudwatch event nữa.
+Default key policy của 1 KMS là root hoặc là bất kỳ 1 thằng nào đó. Nếu đã xóa user ấy rồi thì phải liên hệ AWS Support, chứ ko tự sửa dc. Ngay cả root user cũng chịu
+
+Identity và Federation on-premise, SSO integration
+AWS Organization, SCP, Resource sharing
+S3 Pre-Signed Url và Request payer
+CloudFront Signed URL, Signed Cookies, OAI, cách thiết lập default hoặc custom certificate, tích hợp Lambda Edge vào request lifecycle, improve cache hit ratio, troubleshoot status code khi request đến S3 origin…
+Amazon Aurora serverless và DynamoDB global table
+Amazon Workspaces và App Stream 2.0
+Rất nhiều câu hỏi về three-tier web app
+Migration: Application Discovery Service, phân biệt Agent-less và Agent-based, sử dụng DMS + SCT để migrate database, SMS để replicate server giảm thiểu downtime
+Disaster Recovery, chọn solution đem lại RTO và RPO theo yêu cầu, chọn DR stategy với chi phí phù hợp cho doanh nghiệp
+Amazon Kinesis, build ứng dụng realtime, near realtime, troubleshoot Kinesis agent
+Amazon ES, ELK stack
+Block IPSet với WAF, DDoS protection với AWS Shield Basic/Advanced
+CloudWatch logs  subscription filter…
+CloudFormation deletion policy
+
+Snowball family: Snowball, Snowmobile, cách tăng tốc độ copy trên Snowball device
+Một số security service: ACM, SSM Parameter Store…
+Một số service/feature mới sử dụng rộng rãi thời gian gần đây: S3 Batch Operation, Amazon EventBridge, AWS Global Accelerator
+Quản lý chi phí với Cost Allocation Tag, Resource Tag, Cost Explorer và Billing Dashboard, Trusted Advisor support plan, Service Quotas…
+Một chút về AI/ML, SageMaker, Rekognition
+AWS Security
+
+5. Organization
+Nên thực hành về  OpsWorks (Chef, Puppet, Stack) 
+Mối liên hệ giữa OpsWork và CloudFormation
+fixed MAC address luôn đi cùng cả ENI
+AWS SAP ???
+aWS Stream ???
+WorkDocs
+ADConnector
+DHCP ko thể modify, chỉ có thể tạo 1 set mới rồi associated nó với VPCKinesis, S3, Athena -> xử lý clickstream data
+Web Identify Federation ??
+S3 Transfer Accelerator .
+Understand IAM Web Identity & Federation
+https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ec2-instance-resize.html
+Amazon Elastic Transcoder -> MP4 -> HLS (HttpLiveStreaming)
 
 3. IAM Task - Container
 - Tạo IAM Role cho 1 task trong 1 container.
@@ -544,8 +625,8 @@ Application Shard MySQL
 I ------------- GENERAL WTF
 
 1. Lambda is not fit for running long time- function, max 5m.
-c. BeanStalk and Docker relationship ??
-d. Fargate Launch type in ECS
+2. HTTPD -> Apache HTTP Server
+
 e. Add Life Cycle Hook to Auto Scaling group -> put the instance into wait state before termination khi Scale in -> chặn việc loss data đồng bộ
 f. Auto Scaling can mix between On-Demand and Spot Instance (set ratio, vdu 20% OD và 80%SI)
 g. Da hell is Cloud Formation Drift Detection drift ??
@@ -584,54 +665,7 @@ III ------------ RDS WTF
 
 
 III ------------ NEWS KNOWLEDGE OR HAVE YET TO KNOW
- 1. Enable DNS hostname trong VPC
-  - Ví dụ: enable sẽ g iups 1 public EC2 có địa chỉ IP -> Public IPv4 DNS.  3.85.111.34 ->  ec2-3-85-111-34.compute-1.amazonaws.com 
-Lambda có thể kết hợp với EventBridge để xử lý response
-Lambda Cold Start giờ có thể sử dụng provisioned concurency để xử lý. Ko cần phải dùng Cloudwatch event nữa.
-Default key policy của 1 KMS là root hoặc là bất kỳ 1 thằng nào đó. Nếu đã xóa user ấy rồi thì phải liên hệ AWS Support, chứ ko tự sửa dc. Ngay cả root user cũng chịu
 
-Identity và Federation on-premise, SSO integration
-AWS Organization, SCP, Resource sharing
-S3 Pre-Signed Url và Request payer
-CloudFront Signed URL, Signed Cookies, OAI, cách thiết lập default hoặc custom certificate, tích hợp Lambda Edge vào request lifecycle, improve cache hit ratio, troubleshoot status code khi request đến S3 origin…
-Amazon Aurora serverless và DynamoDB global table
-Amazon Workspaces và App Stream 2.0
-Rất nhiều câu hỏi về three-tier web app
-Migration: Application Discovery Service, phân biệt Agent-less và Agent-based, sử dụng DMS + SCT để migrate database, SMS để replicate server giảm thiểu downtime
-Disaster Recovery, chọn solution đem lại RTO và RPO theo yêu cầu, chọn DR stategy với chi phí phù hợp cho doanh nghiệp
-Amazon Kinesis, build ứng dụng realtime, near realtime, troubleshoot Kinesis agent
-Amazon ES, ELK stack
-Block IPSet với WAF, DDoS protection với AWS Shield Basic/Advanced
-CloudWatch logs, X-ray, debug Lambda function, subscription filter…
-CloudFormation deletion policy
-CI/CD với CodePipeline, CodeBuild lifecycle hook, CodeDeploy, Blue/Green deployment on ElasticBeanstalk…
-Snowball family: Snowball, Snowmobile, cách tăng tốc độ copy trên Snowball device
-Một số security service: KMS, Secret Manager, ACM, SSM Parameter Store…
-Một số service/feature mới sử dụng rộng rãi thời gian gần đây: S3 Batch Operation, Amazon EventBridge, AWS Global Accelerator
-Quản lý chi phí với Cost Allocation Tag, Resource Tag, Cost Explorer và Billing Dashboard
-Trusted Advisor support plan, Service Quotas…
-Một chút về AI/ML, SageMaker, Rekognition
-Auto Scaling
-AWS Elastic Beanstalk
-Elastic Load Balancing
-S3 Storage Classes
-DynamoDB and RDSy
-AWS CloudFront
-AWS Security
-5. Organization
-Nên thực hành về  OpsWorks (Chef, Puppet, Stack) 
-Mối liên hệ giữa OpsWork và CloudFormation
-fixed MAC address luôn đi cùng cả ENI
-AWS SAP ???
-aWS Stream ???
-WorkDocs
-ADConnector
-DHCP ko thể modify, chỉ có thể tạo 1 set mới rồi associated nó với VPCKinesis, S3, Athena -> xử lý clickstream data
-Web Identify Federation ??
-S3 Transfer Accelerator .
-Understand IAM Web Identity & Federation
-https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ec2-instance-resize.html
-Amazon Elastic Transcoder -> MP4 -> HLS (HttpLiveStreaming)
 
 dig <rds-hostname> -> lấy IP
 
