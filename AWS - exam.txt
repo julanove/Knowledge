@@ -1,11 +1,4 @@
-https://599765092169.signin.aws.amazon.com/console
-599765092169
-KMS key ID
-fd444f65-5d44-4fc7-bb8c-461145696b7a
 
-NSY-Glacier
-Access key ID: AKIAYXJGJA5ESHCMG3RC
-Secret access key: 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
 
 I. SERVICES
 II. CLOUDWATCH
@@ -420,9 +413,6 @@ II--------------------------- Monitoring
 	
 III-------------------------------------- RDS
 
-Khi tạo RDS hoặc ElastiCache -> Phải tạo subnet group -> Là 1 tập hợp nhiều subnet từ các AZ để AWS assign IP cho RDS instance
-
-Các RDS DB có thể snapshot ra S3, sau đó sử dụng Amazon Sagemaker, Amazon EMR, and Amazon Athena để phân tích dữ liệu
 
 1. Aurora 
 	a. compatible with MySQL và PostgreSQL 
@@ -454,6 +444,12 @@ Các RDS DB có thể snapshot ra S3, sau đó sử dụng Amazon Sagemaker, Ama
 	
 	
 
+. Các RDS DB có thể snapshot ra S3, sau đó sử dụng Amazon Sagemaker, Amazon EMR, and Amazon Athena để phân tích dữ liệu
+. Aurora <=64 TB while Redshift -> Immortal
+. RDS not use to contain session
+. Dahell is DynamoDB Stream and Application Shard MySQL 
+. Using Redshift VPC Routing and S3 VPC Endpoint so Redshift can get data from S3 ???
+
 	
  
 
@@ -478,38 +474,71 @@ IV. ----------------------------------------------------------------------------
 
 ------------------------------------------------------- PRACTICE -------------------------------------------------
 
-2. SQS priority SNS
+1. SQS priority SNS
 - SQS cũng là một topic sẽ được hỏi nhiều thứ chi tiết liên quan đến DelaySeconds, hay VisibilityTimeout. (Basically the time taken by the consumer to process the message)
 - Gửi từ SNS -> SQS (SQS hỗ trợ chức năng subscribe ngược)
 - Long polling -> Chờ đến khi nào có mess để gửi thì thôi.
 - SQS ko encript data by default, muốn dùng phải enable lên 
 
-
-4. DB - Chú ý về cơ chế Replica, Snapshot, Encryption của các dịch vụ.
- DynamoDB (ví dụ maximize throughput thông qua partion/ sort key, secondary index
-
-5. ElastiCache
+2. ElastiCache
  
-7. Kinesis, Opswork, AWS Config, Elastic MapReduc,, Athena,  AutoScale, Redshift, ,  Aurora, Elastic Transcoder, Identity Provider, Elastic Beanstalk, Docker, Code Deploy
+Kinesis, Opswork, AWS Config, Elastic MapReduc,, Athena,  AutoScale, Redshift, ,  Aurora, Elastic Transcoder, Identity Provider, Elastic Beanstalk, Docker, Code Deploy, Virtual Tape Backup
+EC2 Image Builders
+AWS Private link
+Cloudwatch Alarm Action
+2. Container - chứa tất cả những thứ cần để chạy app, ko cần  
+4. Gateway Cache vs Gateway Store-volume	
+8. AWS Directory Service ??
+11. Load Balancer (LB): 
+ classic LB, 
+ network LB, 
+ application LB
+ Load Balancer starts a new instance if failver (page 249)
+ SSE-S3
+SSE-C
+SSE-KMS
+CloudHSM
+Các bước import app to AWS
+	- Sử dụng VM Import để import current VM -> ready to use EC2
+	
+Service Control Policy:
+	Chỉ áp dụng cho account bên trong organization.
+	Ko áp dụng cho account ngoài, nên nếu set IAM cho account B ngoài organization thì nó vẫn truy cập dc vào 
+	
+Serverless Application Model:
+	Serverless::API => API Gateway trong CloudFormation
+	Serverless::Function => Lambda
+	
+Amazon BlockChain Template
 
-8. 
+AWSRunPowerShellScript -> Cho window
+AWSRunShellScript -> Cho Linux
 
-9. Virtual Tape Backup
+Direct Connect ?
 
-10. IAM Task - Container
+ELB không thể point đến nhiều read to multiple replica, nhưng Route53 thì có thể
+
+Thực hành thêm về Network, Application ELB cùng với HTTPS và TLS
+
+AssumeRole giữa nhiều account, cách switch role (Câu 6 bài 3)
+Câu 75 - VPN Tunnel
+
+
+AWS Polly Lexicon
+Application Shard MySQL
+
+3. IAM Task - Container
 - Tạo IAM Role cho 1 task trong 1 container.
 
-11. Có thể sử dụng CloudWatch hoặc Lambda để scale up/down EBS ?
+4. Có thể sử dụng CloudWatch hoặc Lambda để scale up/down EBS ?
 	- Dùng CloudWatch để monitor
 	- Take a snapshot for backup purpose
 	- Expand sử dụng Lambda -> Gọi 1 AWS Steps Function
 	- Extend the file system (to take advantage of the additional storage)
 	- Check the status to make sure the volume expanded and extended correctly.
 	- Send email notification
-	 - 
 
-13. Tạo VPG để access RDS từ private subnet
- - site-to-site IPsec VPN ?
+
 
 
 I ------------- GENERAL WTF
@@ -537,27 +566,6 @@ x5. AWS Managed Microsoft AD
 x6. S3 Server Side Encryption - encription at rest (mã hóa trc khi lưu vào hdd)
 x7. CloudTrail, log luôn luôn dc encript
 
-
-EC2 Image Builders
-AWS Private link
-Cloudwatch Alarm Action
-2. Container - chứa tất cả những thứ cần để chạy app, ko cần  
-4. Gateway Cache vs Gateway Store-volume	
-8. AWS Directory Service ??
-11. Load Balancer (LB): 
- classic LB, 
- network LB, 
- application LB
- Load Balancer starts a new instance if failver (page 249)
- SSE-S3
-SSE-C
-SSE-KMS
-CloudHSM
-
-AWS Polly Lexicon
-Application Shard MySQL
-
-
 II ------------- VPC WTF
 
 a. VPC Enpoint always takes precedence over NAT-Gateway and Internet-gateway
@@ -572,20 +580,13 @@ g. Dữ liệu dc mã hóa mới 256 bit AES
 
 III ------------ RDS WTF
 
-a. Aurora <=64 TB while Redshift -> Immortal
-b. RDS not use to contain session
-c. Dahell is DynamoDB Stream and Application Shard MySQL 
-e. Using Redshift VPC Routing and S3 VPC Endpoint so Redshift can get data from S3 ???
+
 
 
 III ------------ NEWS KNOWLEDGE OR HAVE YET TO KNOW
  1. Enable DNS hostname trong VPC
-  - Ví dụ: enable sẽ g iups 1 public EC2 có địa chỉ IP -> Public IPv4 DNS.  3.85.111.34 ->  ec2-3-85-111-34.compute-1.amazonaws.com
-  
- 2. 
- Lambda có thể kết hợp với EventBridge để xử lý response
-
-
+  - Ví dụ: enable sẽ g iups 1 public EC2 có địa chỉ IP -> Public IPv4 DNS.  3.85.111.34 ->  ec2-3-85-111-34.compute-1.amazonaws.com 
+Lambda có thể kết hợp với EventBridge để xử lý response
 Lambda Cold Start giờ có thể sử dụng provisioned concurency để xử lý. Ko cần phải dùng Cloudwatch event nữa.
 Default key policy của 1 KMS là root hoặc là bất kỳ 1 thằng nào đó. Nếu đã xóa user ấy rồi thì phải liên hệ AWS Support, chứ ko tự sửa dc. Ngay cả root user cũng chịu
 
@@ -618,7 +619,6 @@ DynamoDB and RDSy
 AWS CloudFront
 AWS Security
 5. Organization
-
 Nên thực hành về  OpsWorks (Chef, Puppet, Stack) 
 Mối liên hệ giữa OpsWork và CloudFormation
 fixed MAC address luôn đi cùng cả ENI
@@ -646,32 +646,4 @@ mysql -u admin -p -h client-certified-cluster-instance-1.cl2y9htvnn64.ap-northea
 
 
 
-Các bước import app to AWS
-	- Sử dụng VM Import để import current VM -> ready to use EC2
-	
-Service Control Policy:
-	Chỉ áp dụng cho account bên trong organization.
-	Ko áp dụng cho account ngoài, nên nếu set IAM cho account B ngoài organization thì nó vẫn truy cập dc vào 
-	
-Serverless Application Model:
-	Serverless::API => API Gateway trong CloudFormation
-	Serverless::Function => Lambda
-	
-Amazon BlockChain Template
-
-AWSRunPowerShellScript -> Cho window
-AWSRunShellScript -> Cho Linux
-
-Direct Connect ?
-
-
-
-ELB không thể point đến nhiều read to multiple replica, nhưng Route53 thì có thể
-
-
-
-Thực hành thêm về Network, Application ELB cùng với HTTPS và TLS
-
-AssumeRole giữa nhiều account, cách switch role (Câu 6 bài 3)
-Câu 75 - VPN Tunnel
 
