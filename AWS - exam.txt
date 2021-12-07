@@ -302,7 +302,12 @@ I. -----------------------------------------------------------------------------
 	a. If you have an app running on EC and it need to access other AWS services. -> The best way is to provide credential to the app running on EC2 by using IAM roles.
 	b. Always enable Cloudtrails để xem mấy thằng user nó đang làm cái éo j. Chuyển log vào S3
 	c. User - Group - Policy đi vs nhau. 
-	d. Role 1 mình chơi 1 kiểu, tự tạo permisson, tự gán short-term cho 1 thánh 
+	d. Role 1 mình chơi 1 kiểu, tự tạo permisson, tự gán short-term cho 1 thánh ??
+	e. Understand IAM Web Identity & Federation
+		- Tránh việc sử dụng user&access key. 
+		- User sẽ signin sử dụng IDP(Idenity Provider). 
+		- Người dùng sẽ nhận dc authen token -> exchange token này sang temporary security credential. 
+		- Sử dụng Coginito để đóng vai trò như 1 Idenity Broker
 	
 23. Auto Scaling 
 	a. Phải khởi tạo 1 launch configuration trc khi tạo 1 Auto SCaling group. ASgroup sẽ chạy dựa trên launch configuration này. Khi 1 lc bị xóa (lc ko thể sửa) thì ASgroup sẽ tự động update thông tin EC2 dựa trên lc mới. ví dụ lc là 4 instance C4, sau đó xóa lc và update thành C4-extra -> Những instance EC2 từ đó về sau sinh ra sẽ chỉ dựa trên lc này.
@@ -316,10 +321,16 @@ I. -----------------------------------------------------------------------------
 	g. Instance warm-up: Set thời gian để cho đến khi instance hoàn toàn dc warmup thì mới count vào metric -> scale. Kiểu mới vào cần thời gian thở ấy, ko thì ko tính.
 
 24. Load Balancer.
+	a. Application Load Balancer is best suited for load balancing of HTTP and HTTPS traffic
+	b. Network Load Balancer is used to distribute the traffic or load using TCP/UDP protocols
+		- Có thể route traffic tới nhiều port trên 1 instance
+		- Thích hợp với sử dụng ECS
+	c. Classic Load Balancer provides basic load balancing across multiple Amazon EC2 instances. 
 	a. Với bọn Java mất dạy hay có trò cache server IP vào DNS thì load-balancer nó sẽ ko balance cho lắm nữa. Nên từ đấy ta có thể dùng cross-zone load balancing. (chỉ cần config khi sử dụng classic LB)
 	b. Quyết định LB là external hay internal -> khai báo lúc khởi tạo LB
 	c. Application Load Balancer có thể tích hợp được với WAF để filter IP hoặc so on
 		- ALB chỉ hỗ trợ HTTP/ HTTPS
+	
 	
 	 
 25. AWS SQS (Simple Queue Service) 
@@ -333,8 +344,19 @@ I. -----------------------------------------------------------------------------
 26. Cognito 
 	Có 2 thứ
 	a. Identity Pools
+		- Sử dụng để giúp user có quyền hạn truy cập vào AWS resources
+		- Cycle của 1 idenity pool sẽ là như này:
+			-> Webapp gửi authen token tới Cognito (token này có thể tới từ các IDP như Facebook, Google)
+			-> Cognito exchange token này với AWS credential
+			-> User sử dụng temporary credential này để truy cập vào AWS resources
 	b. User Pools
-	-> User Pools để chứa user directories (sign-in, sign-out) trong khi Identity Pools để chứa credential truy cập vào AWS service
+		- User Pools để chứa user directories (sign-in, sign-out) trong khi Identity Pools để chứa credential truy cập vào AWS service
+		- Cycle của 1 user pool sẽ là như này:
+			-> User signin qua Cognito
+			-> User pool redirect post back này tới các Federating IDP khác (Google, Facebook)
+			-> Trả về authen token cho người dùng 
+			-> Người dùng sử dụng token này để truy cập vào API Gateway các kiểu
+			
 	c. Sync data between many device of 1 user
 	
 27. Batch
@@ -348,6 +370,7 @@ I. -----------------------------------------------------------------------------
 	a. Tạo topic -> Tạo policies (Who can publish messages aka publisher to all who wanna receive these messages aka subscriber) 
 
 30. AWS Step functions SWF (Simple WorkFlow)
+	- Đúng như tên, tạo ra 1 State Machine với các Lambda function là các node, có thể chạy song song, chờ, trả về kq v..v..
 	
 31. AWS OpsWork
 	Bao gồm 3 thành phần
@@ -429,6 +452,7 @@ I. -----------------------------------------------------------------------------
 	-> Tiếp theo khi dùng thì ở route table, add NAT vào. Thường là route table của private subnet.
 	Nhiều EC2 thì cần nhiều NAT instance(s) để trỏ đến. 1 con -> gây ra bottleneck
 	
+43. 
 	
 II--------------------------- Monitoring
 
@@ -448,13 +472,20 @@ II--------------------------- Monitoring
 3. VPC Flow Logs Nằm trong EC2/ Network Interface
 	- Có thể tạo cho subnet, network interface và VPC. Vấn đề là éo biết nó nằm ở đâu thôi ???
 
-4. Trusted Advisor
-	Đưa ra lời khuyên trên 5 category
-	a. Cost Optimization
-	b. Security
-	c. Fault Tolerance: Auto Scaling, Health Check v...value
-	d. Performance
-	e. Service Limits
+4. Money
+	a. Cost Allocation Tag
+	b. Resource Tag
+	c. Cost Explorer 
+	d. Billing Dashboard
+	e. Service Quotas
+		- Giới hạn của mỗi Services
+	f. Trusted Advisor
+		Đưa ra lời khuyên trên 5 category
+		- Cost Optimization
+		- Security
+		- Fault Tolerance: Auto Scaling, Health Check v...value
+		- Performance
+		- Service Limits
 
 6. CloudTrail.
 	a. Who made the request
@@ -466,7 +497,6 @@ II--------------------------- Monitoring
 	g. CloudTrail, log luôn luôn dc encript
 	
 III-------------------------------------- RDS
-
 
 1. Aurora 
 	a. compatible with MySQL và PostgreSQL 
@@ -502,8 +532,6 @@ III-------------------------------------- RDS
 . Dahell is DynamoDB Stream and Application Shard MySQL 
 . Using Redshift VPC Routing and S3 VPC Endpoint so Redshift can get data from S3 ???
 
-	
- 
 
 IV. ------------------------------------------------------------------------------------------------------------------------------------------------ OTHER KNOWLEDGE
 
@@ -523,7 +551,10 @@ IV. ----------------------------------------------------------------------------
 	https://aws.amazon.com/articles/overlay-multicast-in-amazon-virtual-private-cloud/
 
 
-	
+4. ML's services:
+	- Translation: Dịch
+	- Rekognition: Nhận diện ảnh
+	- Transcribe: Speech recognition
 
 
 V. ------------------------------------------------------------------------------------------------------------------------------------------------ FAQs
@@ -545,6 +576,8 @@ V. -----------------------------------------------------------------------------
 6. Default key policy của 1 KMS là root hoặc là bất kỳ 1 thằng nào đó. Nếu đã xóa user ấy rồi thì phải liên hệ AWS Support, chứ ko tự sửa dc. Ngay cả root user cũng chịu
 
 7. Fixed MAC address luôn đi cùng 1 ENI
+
+8. TCP là 1 phương thức kết nối giữa client và server trong khi HTTP/HTTPS là phương thức kết nối giữa client/server. Với TCP, target có thể là 1 EC2, continer hoặc IP Address
 
 
 
@@ -569,9 +602,10 @@ Pro 55-60 chưa làm!
  - Test HTTPS và TLS
  
 * Lambda có thể kết hợp với EventBridge để xử lý response
+
+* Single Sign-on SSO
  
- 
-Kinesis, Opswork, AWS Config, Elastic MapReduc,, Athena,  AutoScale, Redshift, ,  Aurora, Elastic Transcoder, Identity Provider, Docker, Code Deploy, Virtual Tape Backup
+AutoScale, Redshift, ,  Aurora, Elastic Transcoder, Identity Provider, Docker, Code Deploy, Virtual Tape Backup
 EC2 Image Builders
 AWS Private link
 Cloudwatch Alarm Action
@@ -591,16 +625,13 @@ Service Control Policy:
 	Chỉ áp dụng cho account bên trong organization.
 	Ko áp dụng cho account ngoài, nên nếu set IAM cho account B ngoài organization thì nó vẫn truy cập dc vào 
 	
-
 Amazon BlockChain Template
 Direct Connect ?
-Thực hành thêm về Network, Application ELB cùng với HTTPS và TLS
 AssumeRole giữa nhiều account, cách switch role (Câu 6 bài 3)
 Câu 75 - VPN Tunnel
 
 AWS Polly Lexicon
 Application Shard MySQL
-Identity và Federation on-premise, SSO integration
 AWS Organization, SCP, Resource sharing
 S3 Pre-Signed Url và Request payer
 CloudFront Signed URL, Signed Cookies, OAI, cách thiết lập default hoặc custom certificate, tích hợp Lambda Edge vào request lifecycle, improve cache hit ratio, troubleshoot status code khi request đến S3 origin…
@@ -617,8 +648,8 @@ ElastiCache
 Snowball family: Snowball, Snowmobile, cách tăng tốc độ copy trên Snowball device
 Một số security service: ACM, SSM Parameter Store…
 Một số service/feature mới sử dụng rộng rãi thời gian gần đây: S3 Batch Operation, Amazon EventBridge, AWS Global Accelerator
-Quản lý chi phí với Cost Allocation Tag, Resource Tag, Cost Explorer và Billing Dashboard, Trusted Advisor support plan, Service Quotas…
-Một chút về AI/ML, SageMaker, Rekognition
+Quản lý chi phí với…
+Một chút về AI/ML, SageMaker, 
 AWS Security
 organization
 Nên thực hành về  OpsWorks (Chef, Puppet, Stack) 
@@ -629,13 +660,10 @@ aWS Stream ???
 WorkDocs
 ADConnector
 DHCP ko thể modify, chỉ có thể tạo 1 set mới rồi associated nó với VPCKinesis, S3, Athena -> xử lý clickstream data
-Web Identify Federation ??
 S3 Transfer Accelerator .
-Understand IAM Web Identity & Federation
 Storage Gateway
 FSx
 WAF
-Single Sign-on
 Shield
 Security HUB
 Resource Access Manager
@@ -652,7 +680,6 @@ Server Migration Service
 Migration Hub
 DataSync
 Elast Transcoder
-Trusted Advisor
 System Manager
 Service Catalog
 Resource Access Manager
@@ -663,10 +690,7 @@ Config
 Compute
 Optimizer
 Backup
-Translate
-Transcribe
 SageMaker
-Rekognition
 Lex
 Forecast
 Comprehend
@@ -679,9 +703,10 @@ Outposts
 Managed BlockChain
 Alexa
 MQ
-Step Functions
-EMR
-QuickSight
+
+
+2. EMR
+1.QuickSight
 
 . PrivateLink uses elastic network interfaces within the client VPC so that there are no IP address conflicts with the service provider.
 
