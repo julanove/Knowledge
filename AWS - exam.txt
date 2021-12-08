@@ -1,12 +1,15 @@
-
-
 I. SERVICES
-II. CLOUDWATCH
-III. RDS
-IV. OTHER KNOWLEDGES
-V. GENERAL WTF
+II. VPC
+III. VPN
+IV. RDS
+V. MONITORING
+VI. MIGRATION
+VII. OTHER KNOWLEDGES
+VIII. FAQs
+IX. PRACTICE
+X. GENERAL WTFs
 
-I. -------------------------------------------------------------------------------------------------------- SERVICES
+I. ---------------------------------------------------------- SERVICES ----------------------------------------------------------
 
 1. AWS
  a. Sell in bulk -> Cheaper if use
@@ -23,254 +26,24 @@ I. -----------------------------------------------------------------------------
   f. Latency giữa các Az thấp hơn 1 digit nên sync repli within AZ 
   
 2. Lambda
- a. Run code without provisioning 
- b. Lambda is not fit for running long time- function, Tối đa 5p thôi
- c. Hẹn giờ tắt/ mở EC2
-	- Tạo 1 policy có quyền start/ stop trên IAM
-	- Tạo 1 role cho Lambda, gán policy vừa tạo vào
-	- Tạo Lambda function, gán role vừa tạo
-	- Kết nối vs Cloudwatch để execute Lambda function (pending)
- d. Các event có thể invoke Lambda
-	- AWS DynamoDB
-	- SQS
-	- SNS
-	- Cloudwatch Event
-	- API Gateway 
-	- IOT
-	- Kinesis
-	- CloudWatch Logs
-
-3. VPC
-	a. Bảo vệ 1 nhóm AWS resource trong 1 subnet 
-	b. Load Balancer, NAT Instance nên để vào public subnet, để có thể đâm ra ngoài qua internet gateway (Sử dụng cho Lambda)
-	c. NAT Instance (khi ko muốn kết nối trực tiếp từ NAT đến internet) để trong 2 zone khác nhau, phòng trường hợp 1 cái lăn ra chết
-	d. Bastion/ VPN Instance kết nối đến các tài nguyên riêng tư từ internet, enable MFA để tăng cường bảo mật.
-	g. VPC bị giới hạn trong 1 region, tức là ko span sang 1 region khác dc.
-	h. Chọn No preference khi tạo VPC để span to AZs chứ k chỉ nằm trong 1 AZ. 
-	i. Add service endpoint khi tạo để kết nối với S3 cũng như Dynamo DB
-	k. Sự khác nhau giữa Service Endpoint và NAT (Nat đâm ra ngoài, trong khi SE kết nối với các service bên trong AWS như S3 và Dynamo để tiết kiệm)
-	l. Enable DNS hostname trong VPC
-		- Ví dụ: enable sẽ giúp 1 public EC2 có địa chỉ IP -> Public IPv4 DNS.  3.85.111.34 ->  ec2-3-85-111-34.compute-1.amazonaws.com
-	m.
-	b. NACL is stateless. You can cum in and also cum out with SG, but NO if NACL say so.
-
-	d. Bastion host để kết nối vs các thành phần nằm trong private subnet. (Cần setting NACL inbound và outbound ?)
-	e. VPC DNS Hostname 
-	f. Mỗi instance EC2 được lưu trữ trên 1 physical machine thì được ngăn cách bởi hypervios nên ko thể làm j dc nhau và hack dc nhau 
-	g. Dữ liệu dc mã hóa mới 256 bit AES  
-	
-4. Subnet: 
- a. (CIDR) the IPv4 block 192.168.100.0/22 represents the 1024 IPv4 addresses from 192.168.100.0 to 192.168.103.255.
- b. IPv6 block is fixed to /56
- c. khi đã tạo VPC rồi thì ko alter CIDR range dc, chỉ có cách tạo 1 VPC mới sau đó migrate cũ lên." 
-	-> Cũ rồi, h người ta có thể add thêm CIDR range r nhé zzz
- d. Subnet có 3 loại: public (có internet gateway), private (có nat) và VPN-only subnet (sử dụng khi connect on-premise vs VPC, có internet gateway)
- e. Hoặc cũng có thể tạo subnet cho từng workload (dep envr or product envr)
- f. Subnet giới hạn trong 1 AZs -> đồng nghĩa với 1 AZs, phải khởi tạo 1 subnet riêng
- g. Cần chú ý khi khởi tạo VPC -> subnet tạo ra chỉ giới hạn trong range của VPC
- h. first four and last IP mỗi subnet are reserved (cannot use) 10.0.0.1,2,3 and 255.
+	a. Run code without provisioning 
+	b. Lambda is not fit for running long time- function, Tối đa 5p thôi
+	c. Hẹn giờ tắt/ mở EC2
+		- Tạo 1 policy có quyền start/ stop trên IAM
+		- Tạo 1 role cho Lambda, gán policy vừa tạo vào
+		- Tạo Lambda function, gán role vừa tạo
+		- Kết nối vs Cloudwatch để execute Lambda function (pending)
+	d. Các event có thể invoke Lambda
+		- AWS DynamoDB
+		- SQS
+		- SNS
+		- Cloudwatch Event
+		- API Gateway 
+		- IOT
+		- Kinesis
+		- CloudWatch Logs
 		
- Example: Để có 1 public subnet
-		  + Cần 1 route table có igw 0.0.0.0/0 
-		  + Associate thằng subnet cần public đó vào
-		
-	/28 - 16
-	/27 - 32
-	/26 - 64
-	/25 - 128
-	/24 - 254
-	/23 - 510
-	/22 - 1022
-	/21 - 2046
-	/20 - 4094
-	/19 - 8190
-	/18 - 16382
-	/17 - 32766
-	/16 - 65536
- 	
-5. Route Table:
- a. Store route để foward packet tới 1 destination. 
- b. The routate 0.0.0.0/0 for all IPv4 ko thể cater vs destination of all IPvs6 -> add another entry ::/0 cho IPv6
-	
-	Internet Gateway: 1 phần của VPC, allows VPC to communicate với internet
-		10.0.0.0.16 			- Local (internal routing within VPC)
-		2011:dc8:1234:1c00::/56 - Local (internal routing within VPC)
-		172.31.0.0/16			- pcx-1d2e1f2c (VPC peering, đâm sang 1 VPC khác)		
-		0.0.0.0/0 				- igw-11222 (Allowing all trafic to go to the Internet Gateway)
-	
-6. AWS Direct Connect: Tất tần tật những thứ để kết nối on-premise vs VPC
- a. Virtual Private Gateway: 
- b. Direct Connect Gateway:
-	
-	
-7. Security Group:
- a. MySQL/ Aurora: 3306
- b. Apply ở tầng instance, not subnet level
- c. By default, allow all outbound traffic. Bởi vì anh là stateful, k phải stateless
- d. Có thể đặt source của SG là 1 SG khác
-	*Cty: Đặt SG của RDS là src mở công 3306 đến toàn bộ các SV khác 
-		
-8. Network Address Translation (NAT)
- a. Open traffic to internet of an instance from private subnet (1 chiều). The internet cannot initiate a connection backward.
- b. Nat Instance no more. 
-	
-9. Network Access Control List: (Network ACLs)
- a. Tương tự như Security Group - tuy nhiên hoạt động ở tầng subnet như 1 firewall
- b. Max rule là 32766
- c. NACL là stateless inbound and outbound rules trong khi Security Groups lại là stateful. 
- d. NACL hỗ trợ deny rule trong khi SG chỉ hỗ trợ allow (ko allow nghĩa là ko cho phép)
-		
-10. Amazon VPC Peering: 
-		- Kết nối nhiều VPC lại với nhau (chỉ trong 1 region). Và với VPC trong tài khoản khác
-		2021 (Update)
-		- Trong khi VPC Peering chỉ có thể kết nối 2 VPC thì transit gateway có thể kết nối đến 5 VPC, tuy nhiên giá thì VPC Peering rẻ hơn và chỉ tính theo dung lượng truyền qua chứ ko theo thời gian như VPC Peering.
-		
-11. VPC Endpoint:
- a. Hiện tại chỉ hỗ trợ cho S3 và DynamoDB. Sử dụng để kết nối đến S3 hoặc DynamoDB mà ko phải chạy ra rồi chạy ngoài
- b. Private connect ngay bên trong AWS 
- c. Tạo 1 entry trong route table cho private subnet -> thẳng VPC Endpoint cho S3 hoặc Dynamo
- d. Đại khái là 1 phần tử năm trong private subnet. Route table sẽ associated subnet nào cần sử dụng đến endpoint này
- e. VPC Enpoint always takes precedence over NAT-Gateway and Internet-gateway
-	VPC Endpoint Service. 
-		- Tạo luôn 1 ứng dụng trong VPC. Các AWSer khác có thể truy cập app đó qua VPC Endpoint. Và bạn là người cung cấp service - qua LB.
-		
-12. IP
-	Địa chỉ IPv4 được chia thành 6 class khác nhau là A, B, C, D, E, Loopback mỗi class được quy định một  dải IP :
-	a. Dải IP Class A : 1.0.0.1 126.0.0.0 (có thể viết 1-126)
-	b. Dải IP Class B : 128.1.0.0 191.254.0.0(có thể viết 128 -191)
-	c. Dải IP Class C : 192.0.1.0 223.255.254.0 (có thể viết 192-223)
-	d. Dải IP Class D: 224.0.0.0 239.255.255.255(có thể viết 224-239)
-	e. Dải IP Class E : 240.0.0.0 254.255.255.255(có thể viết 240-254)
-	f. Dải IP Loopback : 127.0.0.0
-	
-	g. Tổng IP trong 1 subnet.
-	Ví dụ, để tìm khoảng IP của "/ 29" tiền tố, chúng ta trừ đi tiền tố 29 từ 32. Kết quả 3 được sử dụng như là một số của 2. Do đó, phạm vi IP bạn nhận được là "2 đến lũy thừa của 3" tức là 8 IPs.
-	
-	h. Giả sử một khối địa chỉ IP có 64 địa chỉ được chia thành ba mạng con gồm 32, 16 và 16 địa chỉ. Mặt nạ của địa chỉ sẽ là "/ 26". Tuy nhiên, các mạng con sẽ có mặt nạ mạng con riêng của chúng.
-		+ Mạng con thứ nhất gồm 32 địa chỉ sẽ có mặt nạ mạng con "/ 27" (nghĩa là 2 đến điện 5).
-		+ Mạng con thứ hai gồm 16 địa chỉ sẽ có mặt nạ mạng con "/ 28" (nghĩa là 2 đến nguồn 4).
-		+ Thứ ba subnet chứa 16 địa chỉ sẽ có subnet mask của "/ 28" (nghĩa là 2 đến sức mạnh 4).
-	Do đó, một khối địa chỉ của 64 địa chỉ IP được chia thành ba khối 32, 16 và 16 địa chỉ mỗi.
-
-13. LightSail
-	- For small businesses, need virtual private server. low-cost
-	Launch Virtual Machine (VM)
-	Attach Solid State Drive (SSD)
-	Manage the IAM
-	Generate security groups
-	Setup the DNS
-	Create the static IP
-	
-14. Clou9
-	- Xài để code 
-	
-15. AWS Firewall Manager / AWS Shield
-	- Quản lý connect đến Gateway API, CloudFront hay LoadBalancer.
-	- Với WAF có thể chặn dc IP, value từ request header, SQL, number request v...v...
-	- AWS Shield chặn ddos cho EC2, ELB hay CloudFront (tốn tiền, ko có tiền học =)))
-	- Shield Standard có thể chống dc ddos, vs Shield Advanced thì có thể protect ở ELB, CLF và Route 53.
-	a. Cross site
-	b. IP match
-	c. GEO
-	d. Size length
-	e. SQL Injection
-	f. String request
-	g. Regex
-	h. Tất cả những điều kiện trên bổ sung thêm rate-based request.
-	 Nếu 1 request vượt quá 1 mức khai báo (2000 request/5m) thì bloc cmnl
-	
-16. Route53
-	a. Có 2 cách để trỏ domain, thay đổi nameserver và DNS ??
-	b. Hosted Zone.
-	 Container holds information about how u want to route traffic on the Internet for a specific domain.
-	c. Route53 hỗ trợ health check ở rất nhiều nơi toàn thế giới. 
-	b. Weight
-		-> Hỗ trợ nested routing
-	
-17. Route 53
-    
-	A (address record)
-		Địa chỉ IPv4: 192.0.2.1
-	AAAA (IPv6 address record)
-		Địa chỉ IPv6: 2001:0db8:85a3:0:0:8a2e:0370:7334
-	CNAME (canonical name record)
-		domain to subdomain. VD -> hostname.example.com
-		hoặc là alias
-		hoặc là 1 domain khác
-	CAA (certification authority authorization)
-		khó vl
-	MX (mail exchange record)
-		Ví dụ: 10 mail.example.com (priority + domainname của mail server)
-		Có thể route đến nhiều server với độ priority khác nhau, vd namecheap và 365
-	NAPTR (name authority pointer record)
-		khó vl
-	NS (name server record)
-	
-	PTR (pointer record)
-	SOA (start of authority record)
-	SPF (sender policy framework)
-	SRV (service locator)
-	TXT (text record)
-	
-	- Public hosted zone và private hosted zone
-		+ Public: route traffic on the internet
-		+ Private: route traffic within VPC
-	
-	- Có thể sử dụng Route53 to route policy and Blue/Green deployment
-	
-	- Khi switch registrar. 
-		+ Ví dụ: domain đăng kí ở AWS, host lại nằm ở Vultr. 
-		-> Lấy NS của Vultr (vì địa chỉ IP của host nằm ở Vultr, trên DNS của Vultr có A record ghi IP của host)
-		-> Thay đổi [NS Record] của Route 53 và [Domain's nameserver] -> Chờ theo TTL 
-		-> TTL: Value cache giá trị của NS trên DNS, bình thường là 2 ngày. Sau khi change NS ổn định (test bằng cách để TTL thấp ~60) -> chuyển sang 2 ngày
-		-> Khi chuyển NS, thì các record của tên miền sẽ mặc định nằm trên máy chủ của DNS mới
-		https://docs.aws.amazon.com/Route53/latest/DeveloperGuide/domain-name-servers-glue-records.html
-	
-18. S3 
-	a. Danta transfer via SSL using IAM
-	b. Sử dụng phối hợp với CloudFront -> tăng tốc độ distribute , minimize network latency
-	c. Can archive old file to Glacier sử dụng life cycle sau 1 thời gian
-	d. Tạo private repository như GIT trên S3
-	e. Ko có cơ chế object loking, thằng nào đi trước thì thắng. 
-	f. Cách thay đổi tên và folder trong bucket có ảnh hưởng đến tốc độ truy xuất và partition
-	g. Sử dụng hex hask key để maximize partition (67891234 và 67891233 đều bắt đầu bằng 6 nên 1 là reverse lại, 2 là dùng hex hash key)
-	h. S3 dc tạo trên 1 region tiền định và ko leave region đó. Có thể transfer object sang region khác.
-	i. Mã hóa sử AES 256 và AWS - KMS. 
-		https://docs.aws.amazon.com/AmazonS3/latest/dev/UsingServerSideEncryption.html
-	k. Giới thiệu new storage class: Intelligent-Tiering. Khi 1 file ko sử dụng quá 30 ngày -> IA, và khi nó dc sử dụng -> Standard.
-	l. Độ durable của IA và RRS: IA (99.9999999999) RRS(99.99)
-	m. Dùng multi part upload để upload file trên 5GB
-	n.  File Gateway. 1 cái app hay kiểu thế để truy cập S3 từ on-premise.
-	i. Eventual Consistency: Nhất quán theo kiểu cuối cùng kiểu j cũng dc cập nhật thôi -> node2 data có thể là stale data. 
-	h. Strong Consistency: Nhất quán 1 cách mạnh mẽ, khi 1 file dc update -> đến lúc update toàn bộ node hoàn thành -> ko access nào lấy dc file 
-	k. 1 single Put request -> chỉ có thể upload 1 file max 5Gb. Dùng multi-part upload -> 5TB
-	l. pre-sign URL -> Cách tốt nhất để cho quyền tạm thời. https://docs.aws.amazon.com/AmazonS3/latest/dev/PresignedUrlUploadObject.html
-	
-	
-	
-	REPLICATION
-		- Files in an existing bucket are not replicated automatically but all the subsequent updated files will be automatically replicated.
-		Sau khi thiết đặt REPLICATION, các file hiện tại trong source bucket ko dc replication mà chỉ những file mới dc upload hoặc subsequent updated file ms dc replicate thôi.
-		
-19. IAM
-	Hiểu đơn giản, 1 accout có thể thuộc 1 hoặc nhiều group, 1 group có thể có 1 hoặc nhiều policies. Policy có 1 danh sách và có thể tạo ra custom policy. End game. 		
-		Policy có 2 type:
-			AWS Managed Policies
-			Custom Managed Policies
-	
-20. CloudFront.
-	a. Content Delivery Network (CDN)
-	b. caches copy of your content "close" to your viewer.
-	c. ensure end-user request are served by closest edge location
-	d. protect against DDOS
-	e. Có thể sử dụng để distribute software (vì donw nó nhanh)
-	f. Hoặc stream video
-	g. 3 vị trí: Orgin WEB SERVER -> Regional Edge Location -> Cloud Front (nearest Edge Location)
-	h. Có thể chặn luôn quốc gia mà ko cần qua WAF
- 
-	
-	
-21. EC2: Có 3 loại instance dựa vào giá
+3. EC2: Có 3 loại instance dựa vào giá
 		- On demand: Loại mặc định, co giãn dc. 
 		- Reserved Instance: Loại biết trc cấu hình, có thể trả tiền trc hoặc ko.
 		- Spot instance: đấu giá, thằng nào nhanh tay thì lượm. 
@@ -297,8 +70,122 @@ I. -----------------------------------------------------------------------------
 		+ Provisioned IOPS SSD (io1) 
 		
 		"Some EC2 instance also have a local storage built in that is called the instance store. The instance storage is ephemeral -> gone whenever u terminate the instace"
+		
+4. LightSail
+	For small businesses, need virtual private server. low-cost
+	Launch Virtual Machine (VM)
+	Attach Solid State Drive (SSD)
+	Manage the IAM
+	Generate security groups
+	Setup the DNS
+	Create the static IP
 	
-22. IAM
+5. Clou9
+	- Xài để code 
+	
+6. AWS Firewall Manager / AWS Shield
+	- Quản lý connect đến Gateway API, CloudFront hay LoadBalancer.
+	- Với WAF có thể chặn dc IP, value từ request header, SQL, number request v...v...
+	- AWS Shield chặn ddos cho EC2, ELB hay CloudFront (tốn tiền, ko có tiền học =)))
+	- Shield Standard có thể chống dc ddos, vs Shield Advanced thì có thể protect ở ELB, CLF và Route 53.
+	a. Cross site
+	b. IP match
+	c. GEO
+	d. Size length
+	e. SQL Injection
+	f. String request
+	g. Regex
+	h. Tất cả những điều kiện trên bổ sung thêm rate-based request.
+	 Nếu 1 request vượt quá 1 mức khai báo (2000 request/5m) thì bloc cmnl
+	
+7. Route53
+	a. Có 2 cách để trỏ domain, thay đổi nameserver và DNS ??
+	b. Hosted Zone.
+	 Container holds information about how u want to route traffic on the Internet for a specific domain.
+	c. Route53 hỗ trợ health check ở rất nhiều nơi toàn thế giới. 
+	d. Weight
+		-> Hỗ trợ nested routing
+	
+	e. Record Type:
+		A (address record)
+			Địa chỉ IPv4: 192.0.2.1
+		AAAA (IPv6 address record)
+			Địa chỉ IPv6: 2001:0db8:85a3:0:0:8a2e:0370:7334
+		CNAME (canonical name record)
+			domain to subdomain. VD -> hostname.example.com
+			hoặc là alias
+			hoặc là 1 domain khác
+		CAA (certification authority authorization)
+			khó vl
+		MX (mail exchange record)
+			Ví dụ: 10 mail.example.com (priority + domainname của mail server)
+			Có thể route đến nhiều server với độ priority khác nhau, vd namecheap và 365
+		NAPTR (name authority pointer record)
+			khó vl
+		NS (name server record)
+		
+		PTR (pointer record)
+		SOA (start of authority record)
+		SPF (sender policy framework)
+		SRV (service locator)
+		TXT (text record)
+	
+		- Public hosted zone và private hosted zone
+			+ Public: route traffic on the internet
+			+ Private: route traffic within VPC
+		
+		- Có thể sử dụng Route53 to route policy and Blue/Green deployment
+		
+		- Khi switch registrar. 
+			+ Ví dụ: domain đăng kí ở AWS, host lại nằm ở Vultr. 
+			-> Lấy NS của Vultr (vì địa chỉ IP của host nằm ở Vultr, trên DNS của Vultr có A record ghi IP của host)
+			-> Thay đổi [NS Record] của Route 53 và [Domain's nameserver] -> Chờ theo TTL 
+			-> TTL: Value cache giá trị của NS trên DNS, bình thường là 2 ngày. Sau khi change NS ổn định (test bằng cách để TTL thấp ~60) -> chuyển sang 2 ngày
+			-> Khi chuyển NS, thì các record của tên miền sẽ mặc định nằm trên máy chủ của DNS mới
+			https://docs.aws.amazon.com/Route53/latest/DeveloperGuide/domain-name-servers-glue-records.html
+	
+8. WAF
+	OWASP ?? 
+	1 Rule cung cấp bởi AWS
+9. S3 
+	a. Data transfer via SSL using IAM
+	b. Sử dụng phối hợp với CloudFront -> tăng tốc độ distribute , minimize network latency
+	c. Can archive old file to Glacier sử dụng life cycle sau 1 thời gian
+	d. Tạo private repository như GIT trên S3
+	e. Ko có cơ chế object loking, thằng nào đi trước thì thắng. 
+	f. Cách thay đổi tên và folder trong bucket có ảnh hưởng đến tốc độ truy xuất và partition
+	g. Sử dụng hex hask key để maximize partition (67891234 và 67891233 đều bắt đầu bằng 6 nên 1 là reverse lại, 2 là dùng hex hash key)
+	h. S3 dc tạo trên 1 region tiền định và ko leave region đó. Có thể transfer object sang region khác.
+	i. Mã hóa sử AES 256 và AWS - KMS. 
+		https://docs.aws.amazon.com/AmazonS3/latest/dev/UsingServerSideEncryption.html
+	k. Giới thiệu new storage class: Intelligent-Tiering. Khi 1 file ko sử dụng quá 30 ngày -> IA, và khi nó dc sử dụng -> Standard.
+	l. Độ durable của IA và RRS: IA (99.9999999999) RRS(99.99)
+	m. Dùng multi part upload để upload file trên 5GB
+	n.  File Gateway. 1 cái app hay kiểu thế để truy cập S3 từ on-premise.
+	i. Eventual Consistency: Nhất quán theo kiểu cuối cùng kiểu j cũng dc cập nhật thôi -> node2 data có thể là stale data. 
+	h. Strong Consistency: Nhất quán 1 cách mạnh mẽ, khi 1 file dc update -> đến lúc update toàn bộ node hoàn thành -> ko access nào lấy dc file 
+	k. 1 single Put request -> chỉ có thể upload 1 file max 5Gb. Dùng multi-part upload -> 5TB
+	l. pre-sign URL -> Cách tốt nhất để cho quyền tạm thời. https://docs.aws.amazon.com/AmazonS3/latest/dev/PresignedUrlUploadObject.html
+	
+	REPLICATION
+		- Files in an existing bucket are not replicated automatically but all the subsequent updated files will be automatically replicated.
+		Sau khi thiết đặt REPLICATION, các file hiện tại trong source bucket ko dc replication mà chỉ những file mới dc upload hoặc subsequent updated file ms dc replicate thôi.
+		
+10. CloudFront.
+	a. Content Delivery Network (CDN)
+	b. caches copy of your content "close" to your viewer.
+	c. ensure end-user request are served by closest edge location
+	d. protect against DDOS
+	e. Có thể sử dụng để distribute software (vì donw nó nhanh)
+	f. Hoặc stream video
+	g. 3 vị trí: Orgin WEB SERVER -> Regional Edge Location -> Cloud Front (nearest Edge Location)
+	h. Có thể chặn luôn quốc gia mà ko cần qua WAF
+
+11. IAM
+	Hiểu đơn giản, 1 accout có thể thuộc 1 hoặc nhiều group, 1 group có thể có 1 hoặc nhiều policies. Policy có 1 danh sách và có thể tạo ra custom policy. End game. 		
+		Policy có 2 type:
+			AWS Managed Policies
+			Custom Managed Policies
 	a. If you have an app running on EC and it need to access other AWS services. -> The best way is to provide credential to the app running on EC2 by using IAM roles.
 	b. Always enable Cloudtrails để xem mấy thằng user nó đang làm cái éo j. Chuyển log vào S3
 	c. User - Group - Policy đi vs nhau. 
@@ -309,7 +196,7 @@ I. -----------------------------------------------------------------------------
 		- Người dùng sẽ nhận dc authen token -> exchange token này sang temporary security credential. 
 		- Sử dụng Coginito để đóng vai trò như 1 Idenity Broker
 	
-23. Auto Scaling 
+12. Auto Scaling 
 	a. Phải khởi tạo 1 launch configuration trc khi tạo 1 Auto SCaling group. ASgroup sẽ chạy dựa trên launch configuration này. Khi 1 lc bị xóa (lc ko thể sửa) thì ASgroup sẽ tự động update thông tin EC2 dựa trên lc mới. ví dụ lc là 4 instance C4, sau đó xóa lc và update thành C4-extra -> Những instance EC2 từ đó về sau sinh ra sẽ chỉ dựa trên lc này.
 	b. Sử dụng Auto Scaling policy để scale theo schedule.
 	c. Sử dụng AWS SNS để gửi notifi qua HTTP hoặc HTTPS 
@@ -320,7 +207,7 @@ I. -----------------------------------------------------------------------------
 	f. Chọn nhiều subnet khi tạo ASG để nó chạy sang nhiều AZs
 	g. Instance warm-up: Set thời gian để cho đến khi instance hoàn toàn dc warmup thì mới count vào metric -> scale. Kiểu mới vào cần thời gian thở ấy, ko thì ko tính.
 
-24. Load Balancer.
+13. Load Balancer.
 	a. Application Load Balancer is best suited for load balancing of HTTP and HTTPS traffic
 	b. Network Load Balancer is used to distribute the traffic or load using TCP/UDP protocols
 		- Có thể route traffic tới nhiều port trên 1 instance
@@ -332,8 +219,7 @@ I. -----------------------------------------------------------------------------
 		- ALB chỉ hỗ trợ HTTP/ HTTPS
 	
 	
-	 
-25. AWS SQS (Simple Queue Service) 
+14. AWS SQS (Simple Queue Service) 
 	a. Có 2 loại: Standard và FIFO
 	b. Standard: Default type, best-effort ensuring that every messages are delivered the same order they're sent. 
 		- near unlimited transaction.
@@ -341,7 +227,7 @@ I. -----------------------------------------------------------------------------
 	d. Tối đa 1 tin là 256Kb
 	e. Delivery Delay. Thời gian gửi chậm đến consumer sau khi vào queue. Ko ảnh hưởng đến standard, tuy nhiên affect hoàn toàn FIFO
 	
-26. Cognito 
+15. Cognito 
 	Có 2 thứ
 	a. Identity Pools
 		- Sử dụng để giúp user có quyền hạn truy cập vào AWS resources
@@ -359,44 +245,41 @@ I. -----------------------------------------------------------------------------
 			
 	c. Sync data between many device of 1 user
 	
-27. Batch
+16. Batch
 	
+
 	
-28. Direct Connect
-	- Thiết lập kết nối trực tiếp từ data center đến VPC 
-	- Có thể sử dụng Kinesis Firehouse hoặc  Snowball (gửi hàng về nhà) để chuyển dữ liệu dần lên Cloud
-	
-29. AWS SNS (Simple Notification Service)
+17. AWS SNS (Simple Notification Service)
 	a. Tạo topic -> Tạo policies (Who can publish messages aka publisher to all who wanna receive these messages aka subscriber) 
 
-30. AWS Step functions SWF (Simple WorkFlow)
+18. AWS Step functions SWF (Simple WorkFlow)
 	- Đúng như tên, tạo ra 1 State Machine với các Lambda function là các node, có thể chạy song song, chờ, trả về kq v..v..
 	
-31. AWS OpsWork
+19. AWS OpsWork
 	Bao gồm 3 thành phần
 	a. Chef
 	b. Stacks
 	c. Puppet
 	Nếu manually gắn 1 EC2 vào ELB thì có thể break communication.
 	
-32. Mapreduce 
+20. Mapreduce 
 	-> Distribute the computation of data over multiple Amazon EC2 instance
 	-> Nghiên cứu tìm cách chuyển dữ liệu SQL sang Mapreduce trên Spark/ Hadoop
 	
-33. CloudFormation
+21. CloudFormation
 	a. Bạn xác định tất cả các tài nguyên mà bạn muốn AWS bật lên trong một bản thiết kế chi tiết, bấm vào một nút, và sau đó AWS sẽ thực hiện giúp bạn phần việc còn lại. Bản thiết kế này được gọi là một template trong CloudFormation. CloudFormation đảm bảo rằng các tài nguyên phụ thuộc trong template của bạn đều được tạo theo đúng thứ tự. Ví dụ, giả sử chúng ta muốn tạo record DNS Route53 và một instance EC2 có record DNS trỏ tới instance EC2. CloudFormation sẽ để cung cấp instance EC2 trước, chờ cho nó sẵn sàng được sử dụng, và sau đó tạo bản ghi DNS. AWS CloudFormation điều phối việc cung cấp các tài nguyên mong muốn. Vì vậy, thay vì phải viết script với một loạt các lời gọi API AWS, chờ vòng lặp và thử lại logic, bạn chỉ cần mô tả những gì bạn muốn và yêu cầu CloudFormation thực hiện điều đó cho bạn
 	
-34. BeanStalk
+22. BeanStalk
 	- Là 1 SaaS
 	- Khác vs Lambda tính phí theo thời gian chạy code thì BeanStalk tính phí theo resource chứa code.
 	- Nó giống với LightSail
 	- CI/CD với CodePipeline, CodeBuild lifecycle hook, CodeDeploy, Blue/Green deployment on ElasticBeanstalk…
 
-35. API Gateway
+23. API Gateway
 	- API KEYs: Tạo key -> Có mới có thể truy cập dc API Gateway
 	- Usge Plan: Tạo plan để cấp cho người dùng và thống kê khả năng sử dụng. Nhiều Api Gateway có thể sử dụng chung 1 plan
 	
-36. KMS
+24. KMS
 	Supports 2 kind of keys: master and data keys
 	- Data key: encrypt and decrypt actual data
 	- Master key: protect ( encrypt, decrypt ) data key và some data up to 4Kb
@@ -410,12 +293,12 @@ I. -----------------------------------------------------------------------------
 	Tương tự với asymmetric key. Tuy nhiên lúc ấy public key sẽ dùng để encrypt và plaintext private key dùng để decrypt
 	https://docs.aws.amazon.com/kms/latest/developerguide/concepts.html
 	
-37.  AWS Glue 
+25.  AWS Glue 
 	-> Sử dụng để phát hiện, extract và transform data
 	-> Sử dụng cho ML
 	-> Tích hợp với Athena -> SQL analytic
 	
-38. CloudFront 
+26. CloudFront 
 	- Orgin (Source) có thể là S3, EC2 hoặc ELB hoặc với bất kỳ custom HTTP nào ??
 	- Mối liên hệ giữa CloudF và API trong PWA -> Origin của CF trỏ trực tiếp đến API Gateway kèm KEYs được cung cấp
 	- Với CF, có thể sử dụng CFFunctions và Lambda@Edge để distribute HTTP Request, 
@@ -424,13 +307,13 @@ I. -----------------------------------------------------------------------------
 	- OriginShield ?? Nhanh hơn, cache xịn hơn
 	- Tại sao có thể cho phép chọn lên đến 25 origins ?? Vì tương ứng với mỗi orgin lại có 1 behaviour khác nhau
 
-39. AWS PrivateLink  (Endpoint service trong VPC)
+27. AWS PrivateLink  (Endpoint service trong VPC)
 	-> AWS PrivateLink provides private connectivity between VPCs, AWS services, and your on-premises networks, 
 	-> without exposing your traffic to the public internet
 	
-40. Resource Group: Group lại các resource (ví dụ như EC2) theo tags
+28. Resource Group: Group lại các resource (ví dụ như EC2) theo tags
 	
-41. ECS:
+29. ECS:
 	Tạo 1 ECS Cluster bao gồm có thể là:
 		- Networking Only
 		- EC2 Linux + Networking
@@ -446,15 +329,202 @@ I. -----------------------------------------------------------------------------
 	Service: Run and maitains desired number of tasks from a specified task definition
 	-> Nhân lên
 	
-42. NAT
+30. NAT
 	-> NAT-Gateway must stay in public subnet -> mà public subnet thì phải có Internet gateway 
 	-> Cái này là khi tạo NAT, phải chỉ định public subnet cho nó. Mà public subnet là thế nào thì biết rồi đấy.
 	-> Tiếp theo khi dùng thì ở route table, add NAT vào. Thường là route table của private subnet.
 	Nhiều EC2 thì cần nhiều NAT instance(s) để trỏ đến. 1 con -> gây ra bottleneck
 	
-43. 
+31. 
+
+		
+	Directory Service
 	
-II--------------------------- Monitoring
+	
+	Transfer Family
+	DHCP ko thể modify, chỉ có thể tạo 1 set mới rồi associated nó với VPCKinesis, S3, Athena -> xử lý clickstream data
+	
+	
+33. ACM
+
+34. Artifact
+
+35. Resource Access Manager
+	- Tạo ra resource để share hoặc view shared resources
+	
+II. ---------------------------------------------------------- VPC ----------------------------------------------------------
+
+1. VPC
+	a. Bảo vệ 1 nhóm AWS resource trong 1 subnet 
+	b. Load Balancer, NAT Instance nên để vào public subnet, để có thể đâm ra ngoài qua internet gateway (Sử dụng cho Lambda)
+	c. NAT Instance (khi ko muốn kết nối trực tiếp từ NAT đến internet) để trong 2 zone khác nhau, phòng trường hợp 1 cái lăn ra chết
+	d. Bastion/ VPN Instance kết nối đến các tài nguyên riêng tư từ internet, enable MFA để tăng cường bảo mật.
+	g. VPC bị giới hạn trong 1 region, tức là ko span sang 1 region khác dc.
+	h. Chọn No preference khi tạo VPC để span to AZs chứ k chỉ nằm trong 1 AZ. 
+	i. Add service endpoint khi tạo để kết nối với S3 cũng như Dynamo DB
+	k. Sự khác nhau giữa Service Endpoint và NAT (Nat đâm ra ngoài, trong khi SE kết nối với các service bên trong AWS như S3 và Dynamo để tiết kiệm)
+	l. Enable DNS hostname trong VPC
+		- Ví dụ: enable sẽ giúp 1 public EC2 có địa chỉ IP -> Public IPv4 DNS.  3.85.111.34 ->  ec2-3-85-111-34.compute-1.amazonaws.com
+	b. NACL is stateless. You can cum in and also cum out with SG, but NO if NACL say so.
+	d. Bastion host để kết nối vs các thành phần nằm trong private subnet. (Cần setting NACL inbound và outbound ?)
+	e. VPC DNS Hostname 
+	f. Mỗi instance EC2 được lưu trữ trên 1 physical machine thì được ngăn cách bởi hypervios nên ko thể làm j dc nhau và hack dc nhau 
+	g. Dữ liệu dc mã hóa mới 256 bit AES  
+	
+2. Subnet: 
+	a. (CIDR) the IPv4 block 192.168.100.0/22 represents the 1024 IPv4 addresses from 192.168.100.0 to 192.168.103.255.
+	b. IPv6 block is fixed to /56
+	c. khi đã tạo VPC rồi thì ko alter CIDR range dc, chỉ có cách tạo 1 VPC mới sau đó migrate cũ lên." 
+		-> Cũ rồi, h người ta có thể add thêm CIDR range r nhé zzz
+	d. Subnet có 3 loại: public (có internet gateway), private (có nat) và VPN-only subnet (sử dụng khi connect on-premise vs VPC, có internet gateway)
+	e. Hoặc cũng có thể tạo subnet cho từng workload (dep envr or product envr)
+	f. Subnet giới hạn trong 1 AZs -> đồng nghĩa với 1 AZs, phải khởi tạo 1 subnet riêng
+	g. Cần chú ý khi khởi tạo VPC -> subnet tạo ra chỉ giới hạn trong range của VPC
+	h. first four and last IP mỗi subnet are reserved (cannot use) 10.0.0.1,2,3 and 255.
+		
+ Example: Để có 1 public subnet
+		  + Cần 1 route table có igw 0.0.0.0/0 
+		  + Associate thằng subnet cần public đó vào
+		
+	/28 - 16
+	/27 - 32
+	/26 - 64
+	/25 - 128
+	/24 - 254
+	/23 - 510
+	/22 - 1022
+	/21 - 2046
+	/20 - 4094
+	/19 - 8190
+	/18 - 16382
+	/17 - 32766
+	/16 - 65536
+ 	
+3. Route Table:
+	a. Store route để foward packet tới 1 destination. 
+	b. The routate 0.0.0.0/0 for all IPv4 ko thể cater vs destination of all IPvs6 -> add another entry ::/0 cho IPv6
+	
+	Internet Gateway: 1 phần của VPC, allows VPC to communicate với internet
+		10.0.0.0.16 			- Local (internal routing within VPC)
+		2011:dc8:1234:1c00::/56 - Local (internal routing within VPC)
+		172.31.0.0/16			- pcx-1d2e1f2c (VPC peering, đâm sang 1 VPC khác)		
+		0.0.0.0/0 				- igw-11222 (Allowing all trafic to go to the Internet Gateway)
+	
+4. Security Group:
+	a. MySQL/ Aurora: 3306
+	b. Apply ở tầng instance, not subnet level
+	c. By default, allow all outbound traffic. Bởi vì anh là stateful, k phải stateless
+	d. Có thể đặt source của SG là 1 SG khác
+		
+5. Network Address Translation (NAT)
+	a. Open traffic to internet of an instance from private subnet (1 chiều). The internet cannot initiate a connection backward.
+	b. Nat Instance no more. 
+	
+6. Network Access Control List: (Network ACLs)
+	a. Tương tự như Security Group - tuy nhiên hoạt động ở tầng subnet như 1 firewall
+	b. Max rule là 32766
+	c. NACL là stateless inbound and outbound rules trong khi Security Groups lại là stateful. 
+	d. NACL hỗ trợ deny rule trong khi SG chỉ hỗ trợ allow (ko allow nghĩa là ko cho phép)
+	
+7. Amazon VPC Peering: 
+	a. Kết nối nhiều VPC lại với nhau (chỉ trong 1 region). Và với VPC trong tài khoản khác
+	2021 (Update)
+	b. Trong khi VPC Peering chỉ có thể kết nối 2 VPC thì transit gateway có thể kết nối đến 5 VPC, tuy nhiên giá thì VPC Peering rẻ hơn và chỉ tính theo dung lượng truyền qua chứ ko theo thời gian như VPC Peering.
+	
+
+III. ---------------------------------------------------------- VPN ----------------------------------------------------------
+
+1. Virtual Private Network
+	a. Virtual Private Gateway 
+		- Is the AmZ VPC side of VPN connection. (does not invole the internet when there is need to ensure that traffic flows through both environment)
+		- Là 1 gateway của VPN (giống như Internet Gateway) 
+		- Khi tạo xong cũng sẽ add vào 1 route table tương ứng với các subnet đc cho phép
+	b. Customer Gateway nó lại là 1 thiết bị hoặc application ở customer's side.
+		- Dynamic/ Static Routing ??
+	c. VPN Tunnel chính là khi traffic từ 2 bên được thông với nhau
+	
+	-> Multpiple CGW có thể có thể có riêng 1 VPN connection để 1 VPW (many-to-1 design)
+	-> Điều này đảm bảo tính high availability của VPN Connection  
+	
+	d. Site-to-side VPN Connection ~ VPN Connection 
+		- Chính là quy trình thiết lập VPN Tunnel bằng cách khai báo VGW và CW đã khởi tạo từ trước
+	-> Thực hành: https://www.bogotobogo.com/DevOps/AWS/aws-VPN-Connections-Virtual-Private-Gateways.php
+	
+	e. Direct Connect
+		- Thiết lập kết nối trực tiếp từ data center đến VPC 
+		- Tạo 1 connection request từ AWS
+		- Client donwload cái request này, accept -> establish connection tới AWS 
+	-> Thực hành ?
+		
+	f. Storage Gateway 
+	-> ??
+	
+2. PrivateLink ~ VPC Endpoint
+	- PrivateLink uses elastic network interfaces within the client VPC so that there are no IP address conflicts with the service provider.
+	 Types:
+	a. VPC Endpoint
+	   Enables you to privately connect your VPC to supported AWS services. Types:
+		- Gateway Endpoint
+		- Interface Endpoint
+		- Gateway Load Balancer Endpoint
+	b. Endpoint service:
+		Your own application or service in your VPC.
+	-> Thực hành: https://docs.aws.amazon.com/vpc/latest/userguide/vpc-peer-region-example.html
+		
+	- Giúp nhiều VPC trong cùng 1 account và 1 region chia sẻ 1 Direct Connect
+	
+	c. IPsec Protocol ?
+		- Internet Protocol Security (IPsec) is a secure network protocol suite that authenticates and encrypts the packets of data 
+		- To provide secure encrypted communication between two computers over an Internet Protocol network. 
+		- It is used in virtual private networks
+		
+	11. VPC Endpoint:
+	a. Hiện tại chỉ hỗ trợ cho S3 và DynamoDB. Sử dụng để kết nối đến S3 hoặc DynamoDB mà ko phải chạy ra rồi chạy ngoài
+	b. Private connect ngay bên trong AWS 
+	c. Tạo 1 entry trong route table cho private subnet -> thẳng VPC Endpoint cho S3 hoặc Dynamo
+	d. Đại khái là 1 phần tử năm trong private subnet. Route table sẽ associated subnet nào cần sử dụng đến endpoint này
+	e. VPC Enpoint always takes precedence over NAT-Gateway and Internet-gateway
+	f. VPC Endpoint Service. 
+		- Tạo luôn 1 ứng dụng trong VPC. Các AWSer khác có thể truy cập app đó qua VPC Endpoint. Và bạn là người cung cấp service - qua LB.
+
+
+IV. ---------------------------------------------------------- RDS ----------------------------------------------------------
+
+1. Aurora 
+	a. compatible with MySQL và PostgreSQL 
+	b. 6 different storage nodes in three different AZ
+	c. Ko có định nghĩa standby database -> khi primary chết thì ông read replica lên thay ngay
+	d. -> Rất nhah, gấp 5 lần SQL truyền thống vì read nó phủ thế mà
+	e. Aurora có backtrack -> quay về thời điểm thay đổi trước. Chức năng này rất tốt để test những function cần remove v...v..
+
+2. Redshift
+	a. A data warehouse
+	b. A data warehouse phân biệt đọc và phân tích dữ liệu (analytical and transaction workload) 
+	c. Data reading bigger than writing and updating.
+	d. Leader node và compute node
+	e. Ledaer node đóng vao trò như 1 endpoint
+	f. Khi nhận dc request thì leader node tiếp nhận và lên execution plan -> compute node phù hợp -> tính -> gửi ngc lại về leader node
+	g. bên ngoài ko thể connect vs compute node mà phải qua leader node, tuy nhiên compute node lại có thể  talk with sv như S3
+	h. Có 2 loại single node cluster và mutinode cluster
+	i. Hỗ trợ mirror giữa các node, vậy nên đối vs dữ liệu 6Tb chỉ cần chọn 3 node dc1.8xlarge vs dung lượng 2.56TB.
+	k. UNLOAD <> COPY
+	l. Dense Store and Dense Compute`
+	
+3. DynamoDB
+	a. For storing IOT sensor data or log ingestion
+	- Phục vụ cho mục đích phân tích dữ liệu chưa hoàn chỉnh
+	- Độ trễ thấp
+
+4. AWS Migration Service Tools
+	Migrate an existing Mysql DB on an EC2 to a RDS instance.
+
+	. Các RDS DB có thể snapshot ra S3, sau đó sử dụng Amazon Sagemaker, Amazon EMR, and Amazon Athena để phân tích dữ liệu
+	. Aurora <=64 TB while Redshift -> Immortal
+	. RDS not use to contain session
+	. Dahell is DynamoDB Stream and Application Shard MySQL 
+	. Using Redshift VPC Routing and S3 VPC Endpoint so Redshift can get data from S3 ???
+
+III. ---------------------------------------------------------- Monitoring ----------------------------------------------------------
 
 1. CloudWatch
 	a. CloudWatch Event's rule
@@ -496,44 +566,13 @@ II--------------------------- Monitoring
 	f. API, S3, Lambda 
 	g. CloudTrail, log luôn luôn dc encript
 	
-III-------------------------------------- RDS
-
-1. Aurora 
-	a. compatible with MySQL và PostgreSQL 
-	b. 6 different storage nodes in three different AZ
-	c. Ko có định nghĩa standby database -> khi primary chết thì ông read replica lên thay ngay
-	d. -> Rất nhah, gấp 5 lần SQL truyền thống vì read nó phủ thế mà
-	e. Aurora có backtrack -> quay về thời điểm thay đổi trước. Chức năng này rất tốt để test những function cần remove v...v..
-
-2. Redshift
-	a. A data warehouse
-	b. A data warehouse phân biệt đọc và phân tích dữ liệu (analytical and transaction workload) 
-	c. Data reading bigger than writing and updating.
-	d. Leader node và compute node
-	e. Ledaer node đóng vao trò như 1 endpoint
-	f. Khi nhận dc request thì leader node tiếp nhận và lên execution plan -> compute node phù hợp -> tính -> gửi ngc lại về leader node
-	g. bên ngoài ko thể connect vs compute node mà phải qua leader node, tuy nhiên compute node lại có thể  talk with sv như S3
-	h. Có 2 loại single node cluster và mutinode cluster
-	i. Hỗ trợ mirror giữa các node, vậy nên đối vs dữ liệu 6Tb chỉ cần chọn 3 node dc1.8xlarge vs dung lượng 2.56TB.
-	k. UNLOAD <> COPY
-	l. Dense Store and Dense Compute`
-	
-3. DynamoDB
-	a. For storing IOT sensor data or log ingestion
-	- Phục vụ cho mục đích phân tích dữ liệu chưa hoàn chỉnh
-	- Độ trễ thấp
-
-4. AWS Migration Service Tools
-	Migrate an existing Mysql DB on an EC2 to a RDS instance.
-
-. Các RDS DB có thể snapshot ra S3, sau đó sử dụng Amazon Sagemaker, Amazon EMR, and Amazon Athena để phân tích dữ liệu
-. Aurora <=64 TB while Redshift -> Immortal
-. RDS not use to contain session
-. Dahell is DynamoDB Stream and Application Shard MySQL 
-. Using Redshift VPC Routing and S3 VPC Endpoint so Redshift can get data from S3 ???
 
 
-IV. ------------------------------------------------------------------------------------------------------------------------------------------------ OTHER KNOWLEDGE
+VI. ---------------------------------------------------------- MIGRATION ----------------------------------------------------------
+
+
+
+VII. ---------------------------------------------------------- OTHER KNOWLEDGES ----------------------------------------------------------
 
 1. Cron expression
 	1 cron exp bao gồm 6 thành phần sau: 
@@ -556,8 +595,7 @@ IV. ----------------------------------------------------------------------------
 	- Rekognition: Nhận diện ảnh
 	- Transcribe: Speech recognition
 
-
-V. ------------------------------------------------------------------------------------------------------------------------------------------------ FAQs
+VIII. ---------------------------------------------------------- FAQs ----------------------------------------------------------
 
 1. ELB không thể point đến nhiều read to multiple replica, nhưng Route53 thì có thể
 
@@ -579,9 +617,25 @@ V. -----------------------------------------------------------------------------
 
 8. TCP là 1 phương thức kết nối giữa client và server trong khi HTTP/HTTPS là phương thức kết nối giữa client/server. Với TCP, target có thể là 1 EC2, continer hoặc IP Address
 
+9. IP
+	Địa chỉ IPv4 được chia thành 6 class khác nhau là A, B, C, D, E, Loopback mỗi class được quy định một  dải IP :
+	a. Dải IP Class A : 1.0.0.1 126.0.0.0 (có thể viết 1-126)
+	b. Dải IP Class B : 128.1.0.0 191.254.0.0(có thể viết 128 -191)
+	c. Dải IP Class C : 192.0.1.0 223.255.254.0 (có thể viết 192-223)
+	d. Dải IP Class D: 224.0.0.0 239.255.255.255(có thể viết 224-239)
+	e. Dải IP Class E : 240.0.0.0 254.255.255.255(có thể viết 240-254)
+	f. Dải IP Loopback : 127.0.0.0
+	
+	g. Tổng IP trong 1 subnet.
+	Ví dụ, để tìm khoảng IP của "/ 29" tiền tố, chúng ta trừ đi tiền tố 29 từ 32. Kết quả 3 được sử dụng như là một số của 2. Do đó, phạm vi IP bạn nhận được là "2 đến lũy thừa của 3" tức là 8 IPs.
+	
+	h. Giả sử một khối địa chỉ IP có 64 địa chỉ được chia thành ba mạng con gồm 32, 16 và 16 địa chỉ. Mặt nạ của địa chỉ sẽ là "/ 26". Tuy nhiên, các mạng con sẽ có mặt nạ mạng con riêng của chúng.
+		+ Mạng con thứ nhất gồm 32 địa chỉ sẽ có mặt nạ mạng con "/ 27" (nghĩa là 2 đến điện 5).
+		+ Mạng con thứ hai gồm 16 địa chỉ sẽ có mặt nạ mạng con "/ 28" (nghĩa là 2 đến nguồn 4).
+		+ Thứ ba subnet chứa 16 địa chỉ sẽ có subnet mask của "/ 28" (nghĩa là 2 đến sức mạnh 4).
+	Do đó, một khối địa chỉ của 64 địa chỉ IP được chia thành ba khối 32, 16 và 16 địa chỉ mỗi.
 
-
-------------------------------------------------------- PRACTICE -------------------------------------------------
+IX. ---------------------------------------------------------- PRACTICE ----------------------------------------------------------
 
 Pro 55-60 chưa làm!
 
@@ -604,10 +658,12 @@ Pro 55-60 chưa làm!
 * Lambda có thể kết hợp với EventBridge để xử lý response
 
 * Single Sign-on SSO
+
+X. ---------------------------------------------------------- GENERAL WTFs ----------------------------------------------------------
  
 AutoScale, Redshift, ,  Aurora, Elastic Transcoder, Identity Provider, Docker, Code Deploy, Virtual Tape Backup
 EC2 Image Builders
-AWS Private link
+
 Cloudwatch Alarm Action
 2. Container - chứa tất cả những thứ cần để chạy app, ko cần  
 4. Gateway Cache vs Gateway Store-volume	
@@ -617,6 +673,7 @@ Cloudwatch Alarm Action
 SSE-S3
 SSE-C
 SSE-KMS
+
 CloudHSM
 Các bước import app to AWS
 	- Sử dụng VM Import để import current VM -> ready to use EC2
@@ -626,9 +683,8 @@ Service Control Policy:
 	Ko áp dụng cho account ngoài, nên nếu set IAM cho account B ngoài organization thì nó vẫn truy cập dc vào 
 	
 Amazon BlockChain Template
-Direct Connect ?
 AssumeRole giữa nhiều account, cách switch role (Câu 6 bài 3)
-Câu 75 - VPN Tunnel
+
 
 AWS Polly Lexicon
 Application Shard MySQL
@@ -659,30 +715,19 @@ AWS SAP ???
 aWS Stream ???
 WorkDocs
 ADConnector
-DHCP ko thể modify, chỉ có thể tạo 1 set mới rồi associated nó với VPCKinesis, S3, Athena -> xử lý clickstream data
-S3 Transfer Accelerator .
-Storage Gateway
 FSx
-WAF
 Shield
 Security HUB
-Resource Access Manager
+
 Macie
 Inspector
 Guard Duty
-Directory Service
-ACM
-Artifact
-Global Accelerator
-Direct Conect
-Transfer Family
 Server Migration Service
 Migration Hub
 DataSync
 Elast Transcoder
 System Manager
 Service Catalog
-Resource Access Manager
 License Manager
 EventBridge
 Control Tower
@@ -704,11 +749,10 @@ Managed BlockChain
 Alexa
 MQ
 
-
 2. EMR
 1.QuickSight
 
-. PrivateLink uses elastic network interfaces within the client VPC so that there are no IP address conflicts with the service provider.
+
 
 
 https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ec2-instance-resize.html
@@ -733,7 +777,7 @@ n.
 o. 
 p. Redshift is not serverless ..
 x1. You can monitor the service limits for the EC2 instance through Trusted Advisor
-x2. Virtual Private Gateway is the AmZ VPC side of VPN connection. (does not invole the internet when there is need to ensure that communication acros both environment)
+
 x3. Amazon Redshift VPC Routing -> ko cho traffic flow through Internet
 x3. CloudFront access log / request sent to CloudFront API
 x4. Get-s3object -Bucketname vgc.jp -region ap-northeast-1
