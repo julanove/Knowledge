@@ -53,6 +53,8 @@ I. ---------------------------------------------------------- SERVICES ---------
 		- RAID 0: Striping. Tăng cường I/O performance, tuy nhiên I/O sẽ distribute toàn volume 1 cách đồng đều, dữ liệu cùng thế
 		- RAID 1: Mirroring. Ko tăng cường I/O performance, thay vào đó là khả năng ghi vào nhiều volume đồng thời cùng lúc. Khả năng lưu sẽ bị cắt 1 nửa vì phải lưu đến 2 bản ghi dữ liệu giống nhau cùng lúc
 		- Snapshot của 1 EBS luôn luôn dc encrypted, nếu share 1 snapshot thì cũng đồng nghĩa share luôn CMK dùng để encript của nó
+		- EBS is not ephemeral, tuy nhiên nếu terminate 1 instance thì vẫn có khả năng mất đi
+		
 	d. Nên phân biệt dc S3, EBS, EFS
 	- S3: 1 kho object, truy cập dữ liệu từ mọi region, zone, rẻ hơn so vs EBS, có thể deploy web tĩnh
 	- EBS: lưu theo 1 block, phải gắn với 1 instance EC2, chỉ tồn tại trên 1 vùng
@@ -205,6 +207,8 @@ I. ---------------------------------------------------------- SERVICES ---------
 		-> Phải trail logs từ cả 2 account
 		-> Từ account của thằng đấy sẽ phát sinh userIdenify và sharedEventID 
 		-> Từ đây có thể trail ra thằng nào đã xóa
+		
+	
 	
 12. Auto Scaling 
 	a. Phải khởi tạo 1 launch configuration trc khi tạo 1 Auto SCaling group. ASgroup sẽ chạy dựa trên launch configuration này. Khi 1 lc bị xóa (lc ko thể sửa) thì ASgroup sẽ tự động update thông tin EC2 dựa trên lc mới. ví dụ lc là 4 instance C4, sau đó xóa lc và update thành C4-extra -> Những instance EC2 từ đó về sau sinh ra sẽ chỉ dựa trên lc này.
@@ -434,21 +438,23 @@ II. ---------------------------------------------------------- VPC -------------
 		172.31.0.0/16			- pcx-1d2e1f2c (VPC peering, đâm sang 1 VPC khác)		
 		0.0.0.0/0 				- igw-11222 (Allowing all trafic to go to the Internet Gateway)
 	
-4. Security Group:
+4. Network Address Translation (NAT)
+	a. Open traffic to internet of an instance from private subnet (1 chiều). The internet cannot initiate a connection backward.
+	b. Nat Instance no more. 
+
+5. Security Group:
 	a. MySQL/ Aurora: 3306
 	b. Apply ở tầng instance, not subnet level
 	c. By default, allow all outbound traffic. Bởi vì anh là stateful, k phải stateless
 	d. Có thể đặt source của SG là 1 SG khác
-		
-5. Network Address Translation (NAT)
-	a. Open traffic to internet of an instance from private subnet (1 chiều). The internet cannot initiate a connection backward.
-	b. Nat Instance no more. 
 	
 6. Network Access Control List: (Network ACLs)
-	a. Tương tự như Security Group - tuy nhiên hoạt động ở tầng subnet như 1 firewall
+	a. Tương tự như Security Group - tuy nhiên hoạt động ở tầng subnet như 1 firewall, còn Security Group apply ở instance hoặc zone level (IP range, SG, instance v...)
 	b. Max rule là 32766
 	c. NACL là stateless inbound and outbound rules trong khi Security Groups lại là stateful. 
 	d. NACL hỗ trợ deny rule trong khi SG chỉ hỗ trợ allow (ko allow nghĩa là ko cho phép)
+	
+=> SG sẽ dùng để allow connection giữa các insntace trong khi NACL sẽ dùng để block connection giữa các subnet
 	
 7. Amazon VPC Peering: 
 	a. Kết nối nhiều VPC lại với nhau (chỉ trong 1 region). Và với VPC trong tài khoản khác
@@ -463,6 +469,10 @@ III. ---------------------------------------------------------- VPN ------------
 		- Is the AmZ VPC side of VPN connection. (does not invole the internet when there is need to ensure that traffic flows through both environment)
 		- Là 1 gateway của VPN (giống như Internet Gateway) 
 		- Khi tạo xong cũng sẽ add vào 1 route table tương ứng với các subnet đc cho phép
+		- Static hay Dynamic ? BGP (Border Gateway Protocol)
+			-> Specific dynamic nếu Customer Gateway hỗ trợ và BGP và ngược lại, static
+			-> Nên sử dụng -> tăng roburstness, hỗ trợ failover nếu 1 tunnel chớt
+			-> Thiết bị ko hỗ trợ BGP sẽ phải sử dụng healthcheck để thực hiện failover
 	b. Customer Gateway nó lại là 1 thiết bị hoặc application ở customer's side.
 		- Dynamic/ Static Routing ??
 	c. VPN Tunnel chính là khi traffic từ 2 bên được thông với nhau
@@ -801,5 +811,26 @@ Connect:
 mysql -u admin -p -h client-certified-cluster-instance-1.cl2y9htvnn64.ap-northeast-1.rds.amazonaws.com
 
 
+Organization's Authenticate service. Sử dụng khi tổ chức có quá nhiều nhân viên, sẽ qua service này để đánh giá và phân role phù hợp, đang hiểu thế...
+Học Cloud Formation
+	- CreatePolicy
+	- Wait Condition các kiểu: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-waitcondition.html
+Mesh VPN ??
 
+Practice IAM 
+https://docs.aws.amazon.com/IAM/latest/UserGuide/id_roles_providers_enable-console-saml.html
+CloudHSM
+STS https://docs.aws.amazon.com/IAM/latest/UserGuide/id_credentials_temp.html
 
+Provisioned IOPS for RDS: https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/Concepts.MultiAZ.html
+
+Khi tạo VPN, add route vào main table thì destination là IP của CustomerGateway ?
+
+Practice:
+	Ứng dụng C# bên trong Ec2. phải assumeRole hay j đó chứ k thể như thể lấy luôn quyền EC2 dc ???
+	
+S3 Retrist Access
+	https://docs.aws.amazon.com/AmazonS3/latest/dev/s3-dg.pdf
+	
+Sticky Session của ELB:
+	https://docs.aws.amazon.com/AmazonS3/latest/dev/s3-dg.pdf
