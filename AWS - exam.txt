@@ -32,7 +32,7 @@ I. ---------------------------------------------------------- SERVICES ---------
 		- Tạo 1 policy có quyền start/ stop trên IAM
 		- Tạo 1 role cho Lambda, gán policy vừa tạo vào
 		- Tạo Lambda function, gán role vừa tạo
-		- Kết nối vs Cloudwatch để execute Lambda function (pending)
+		- Kết nối vs Cloudwatch để execute Lambda function (EventBridge)
 	d. Các event có thể invoke Lambda
 		- AWS DynamoDB
 		- SQS
@@ -220,7 +220,11 @@ I. ---------------------------------------------------------- SERVICES ---------
 		- Chỉ cần chốt 1 target value, hệ thống sẽ tự động up/down để maintain cái chỉ số ấy
 	f. Chọn nhiều subnet khi tạo ASG để nó chạy sang nhiều AZs
 	g. Instance warm-up: Set thời gian để cho đến khi instance hoàn toàn dc warmup thì mới count vào metric -> scale. Kiểu mới vào cần thời gian thở ấy, ko thì ko tính.
-
+	h. Cooldown -> như skill thôi, cần cooldown xong mới scale tiếp dc. Tuy nhiên việc này chỉ áp dụng dc trong simple scale
+		-> Có thể hoàn toàn ignore cooldown bằng cách scale thủ công, schedule hoặc 1 instance trở nên unhealthy.
+	i. Add Life Cycle Hook to Auto Scaling group => Nó như 1 eventAction xảy ra khi 1 life cycle event of AutoScaling phát sinh. 
+		-> Ví dụ: put the instance into wait state before termination khi Scale in -> chặn việc loss data đồng bộ
+	
 13. Load Balancer.
 	a. Application Load Balancer is best suited for load balancing of HTTP and HTTPS traffic
 	b. Network Load Balancer is used to distribute the traffic or load using TCP/UDP protocols
@@ -380,6 +384,16 @@ I. ---------------------------------------------------------- SERVICES ---------
 	h. For an SQS FIFO queue, all the messages with the same Message Group Identifier will be delivered in order. 
 		Messages with different message group ID values might be sent and received out of order.
 		
+37. Elastic Transcoder
+	a. Transcode Video
+	b. Pipeline -> Job (Chọn Preset) -> Out
+	
+38. Organization
+	a. Service Control Policy:
+		- Chỉ áp dụng cho account bên trong organization.
+		- Ko áp dụng cho account ngoài, nên nếu set IAM cho account B ngoài organization thì nó vẫn truy cập dc vào 
+		- Sử dụng khi tổ chức có quá nhiều nhân viên, sẽ qua service này để đánh giá và phân role phù hợp, đang hiểu thế...
+	
 II. ---------------------------------------------------------- VPC ----------------------------------------------------------
 
 1. VPC
@@ -501,6 +515,9 @@ III. ---------------------------------------------------------- VPN ------------
 		- Gateway Endpoint
 		- Interface Endpoint
 		- Gateway Load Balancer Endpoint
+	-> 1 Ví dụ đơn giản, dễ hiểu là 1 instance EC2 nằm trong private subnet ko thể truy cập dc S3. 
+	-> Chỉ cần tạo 1 gateway Endpoint trỏ đến S3 và add endpoint này vào route table chung của private subnet đó -> Ez access.
+	
 	b. Endpoint service:
 		Your own application or service in your VPC.
 	-> Thực hành: https://docs.aws.amazon.com/vpc/latest/userguide/vpc-peer-region-example.html
@@ -543,6 +560,7 @@ IV. ---------------------------------------------------------- RDS -------------
 	i. Hỗ trợ mirror giữa các node, vậy nên đối vs dữ liệu 6Tb chỉ cần chọn 3 node dc1.8xlarge vs dung lượng 2.56TB.
 	k. UNLOAD <> COPY
 	l. Dense Store and Dense Compute`
+	m. Serverless service.
 	
 3. DynamoDB
 	a. For storing IOT sensor data or log ingestion
@@ -561,7 +579,7 @@ IV. ---------------------------------------------------------- RDS -------------
 III. ---------------------------------------------------------- Monitoring ----------------------------------------------------------
 
 1. CloudWatch
-	a. CloudWatch Event's rule
+	a. CloudWatch Event's rule (EventBridge's rule)
 	b. Có thể sử dụng CloudWatch hoặc Lambda để scale up/down EBS ?
 	- Dùng CloudWatch để monitor
 	- Take a snapshot for backup purpose
@@ -569,6 +587,7 @@ III. ---------------------------------------------------------- Monitoring -----
 	- Extend the file system (to take advantage of the additional storage)
 	- Check the status to make sure the volume expanded and extended correctly.
 	- Send email notification
+	c. Có thể dùng CloudWatch subcription filter để deliver logs đến Lambda, Kinesis, OpenSearch
 	
 2. Config
 	Khi config thay đổi
@@ -672,10 +691,6 @@ VIII. ---------------------------------------------------------- FAQs ----------
 
 IX. ---------------------------------------------------------- PRACTICE ----------------------------------------------------------
 
-Pro 55-60 chưa làm!
-
-
-
 * (Fargate/EC2) - Batch 
  - Batch có thể dùng để scheduly phân tích dữ liệu từ S3
  - Fargate là 1 serverless compute service để chạy container dc dùng bởi (ESC) và EKS
@@ -694,56 +709,76 @@ Pro 55-60 chưa làm!
 	- AssumeRole các kiểu
 	- SharedEventID và UserIdentify khi 1 thằng xóa bucket từ 1 thằng khác
 	- ExternalID
+	- AssumeRole giữa nhiều account, cách switch role 
+	
+* Mesh VPN ??
+
+* Practice IAM 
+	https://docs.aws.amazon.com/IAM/latest/UserGuide/id_roles_providers_enable-console-saml.html
+	
+* CloudHSM
+
+* STS 
+	https://docs.aws.amazon.com/IAM/latest/UserGuide/id_credentials_temp.html
+
+* Provisioned IOPS for RDS: https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/Concepts.MultiAZ.html
+
+* Khi tạo VPN, add route vào main table thì destination là IP của CustomerGateway ?
+
+* Practice:
+	Ứng dụng C# bên trong Ec2. phải assumeRole hay j đó chứ k thể như thể lấy luôn quyền EC2 dc ???
+	
+* S3 Retrist Access
+	https://docs.aws.amazon.com/AmazonS3/latest/dev/s3-dg.pdf
+	
+* Sticky Session của ELB:
+	https://docs.aws.amazon.com/AmazonS3/latest/dev/s3-dg.pdf
+
+
+* Học Cloud Formation & OpsWork
+	- CreatePolicy
+	- Wait Condition các kiểu: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-waitcondition.html
+	- Nên thực hành về  OpsWorks (Chef, Puppet, Stack) 
+	- Mối liên hệ giữa OpsWork và CloudFormation
+	- CloudFormation deletion policy
+	- Da hell is Cloud Formation Drift Detection drift ??
+	
+* Kinesis
+	Amazon Kinesis, build ứng dụng realtime, near realtime, troubleshoot Kinesis agent
+	
+* Migration:
+	Server Migration Service
+	Migration Hub
+	Virtual Tape Backup
+	Các bước import app to AWS
+	- Sử dụng VM Import để import current VM -> ready to use EC2
+	Migration: Application Discovery Service, phân biệt Agent-less và Agent-based, sử dụng DMS + SCT để migrate database, SMS để replicate server giảm thiểu downtime
+	
+* Global Accelerator
+	https://docs.aws.amazon.com/global-accelerator/latest/dg/getting-started.html
+	
+* CloudFront 
+	Signed URL, Signed Cookies, OAI, cách thiết lập default hoặc custom certificate, tích hợp Lambda Edge vào request lifecycle, improve cache hit ratio, troubleshoot status code khi request đến S3 origin…
+
 
 X. ---------------------------------------------------------- GENERAL WTFs ----------------------------------------------------------
  
-AutoScale 
-Redshift
-Aurora
-Elastic Transcoder
-Identity Provider
 Docker
-Virtual Tape Backup
 EC2 Image Builders
-Cloudwatch Alarm Action
-Container - chứa tất cả những thứ cần để chạy app, ko cần  
 Gateway Cache vs Gateway Store-volume	
-AWS Directory Service ??
+AWS Directory Service 
 CloudHSM
-Các bước import app to AWS
-	- Sử dụng VM Import để import current VM -> ready to use EC2
-	
-Service Control Policy:
-	Chỉ áp dụng cho account bên trong organization.
-	Ko áp dụng cho account ngoài, nên nếu set IAM cho account B ngoài organization thì nó vẫn truy cập dc vào 
-	
 Amazon BlockChain Template
-AssumeRole giữa nhiều account, cách switch role 
 AWS Polly Lexicon
 Application Shard MySQL
-AWS Organization, SCP, Resource sharing
-S3 Pre-Signed Url và Request payer
-CloudFront Signed URL, Signed Cookies, OAI, cách thiết lập default hoặc custom certificate, tích hợp Lambda Edge vào request lifecycle, improve cache hit ratio, troubleshoot status code khi request đến S3 origin…
+Resource sharing
 Amazon Workspaces và App Stream 2.0
-Migration: Application Discovery Service, phân biệt Agent-less và Agent-based, sử dụng DMS + SCT để migrate database, SMS để replicate server giảm thiểu downtime
-Disaster Recovery, chọn solution đem lại RTO và RPO theo yêu cầu, chọn DR stategy với chi phí phù hợp cho doanh nghiệp
-Amazon Kinesis, build ứng dụng realtime, near realtime, troubleshoot Kinesis agent
 Amazon ES, ELK stack
-Block IPSet với WAF, DDoS protection với AWS Shield Basic/Advanced
-CloudWatch logs  subscription filter…
-CloudFormation deletion policy
-ElastiCache
-Snowball family: Snowball, Snowmobile, cách tăng tốc độ copy trên Snowball device
-Một số security service: ACM, SSM Parameter Store…
-Một số service/feature mới sử dụng rộng rãi thời gian gần đây: S3 Batch Operation, Amazon EventBridge, AWS Global Accelerator
-Quản lý chi phí với…
-Một chút về AI/ML, SageMaker, 
-AWS Security
-organization
-Nên thực hành về  OpsWorks (Chef, Puppet, Stack) 
-Mối liên hệ giữa OpsWork và CloudFormation
-AWS SAP ???
-aWS Stream ???
+ACM, SSM Parameter Store…
+S3 Batch Operation 
+SageMaker, 
+AWS SAP
+aWS Stream 
 WorkDocs
 ADConnector
 FSx
@@ -752,14 +787,10 @@ Security HUB
 Macie
 Inspector
 Guard Duty
-Server Migration Service
-Migration Hub
 DataSync
-Elast Transcoder
 System Manager
 Service Catalog
 License Manager
-EventBridge
 Control Tower
 Config
 Compute
@@ -780,57 +811,14 @@ Alexa
 MQ
 EMR
 QuickSight
-
-
-https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ec2-instance-resize.html
-Amazon Elastic Transcoder -> MP4 -> HLS (HttpLiveStreaming)
+IAM Task - Container ????????????
+Có thể sử dụng HSM Hardware Security Module để manage top level encription keys. ?? Redshift
+x3. Amazon Redshift VPC Routing -> ko cho traffic flow through Internet
+x5. AWS Managed Microsoft AD
 
 3. IAM Task - Container
 - Tạo IAM Role cho 1 task trong 1 container.
 
-I ------------- GENERAL WTF
-
-e. Add Life Cycle Hook to Auto Scaling group -> put the instance into wait state before termination khi Scale in -> chặn việc loss data đồng bộ
-f. Auto Scaling can mix between On-Demand and Spot Instance (set ratio, vdu 20% OD và 80%SI)
-g. Da hell is Cloud Formation Drift Detection drift ??
-h. Auto Scaling cool down timers ??
-i. IAM Task - Container ????????????
-k. Có thể sử dụng HSM Hardware Security Module để manage top level encription keys. ?? Redshift
-p. Redshift is not serverless ..
-x3. Amazon Redshift VPC Routing -> ko cho traffic flow through Internet
-x5. AWS Managed Microsoft AD
-x6. S3 Server Side Encryption - encription at rest (mã hóa trc khi lưu vào hdd)
-
-dig <rds-hostname> -> lấy IP
-Cài đặt mysql trên linux":
-sudo wget https://dev.mysql.com/get/mysql57-community-release-el7-11.noarch.rpm
-sudo yum localinstall mysql57-community-release-el7-11.noarch.rpm 
-sudo yum install mysql-community-server
-systemctl start mysqld.service
-Connect:
-mysql -u admin -p -h client-certified-cluster-instance-1.cl2y9htvnn64.ap-northeast-1.rds.amazonaws.com
 
 
-Organization's Authenticate service. Sử dụng khi tổ chức có quá nhiều nhân viên, sẽ qua service này để đánh giá và phân role phù hợp, đang hiểu thế...
-Học Cloud Formation
-	- CreatePolicy
-	- Wait Condition các kiểu: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-waitcondition.html
-Mesh VPN ??
 
-Practice IAM 
-https://docs.aws.amazon.com/IAM/latest/UserGuide/id_roles_providers_enable-console-saml.html
-CloudHSM
-STS https://docs.aws.amazon.com/IAM/latest/UserGuide/id_credentials_temp.html
-
-Provisioned IOPS for RDS: https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/Concepts.MultiAZ.html
-
-Khi tạo VPN, add route vào main table thì destination là IP của CustomerGateway ?
-
-Practice:
-	Ứng dụng C# bên trong Ec2. phải assumeRole hay j đó chứ k thể như thể lấy luôn quyền EC2 dc ???
-	
-S3 Retrist Access
-	https://docs.aws.amazon.com/AmazonS3/latest/dev/s3-dg.pdf
-	
-Sticky Session của ELB:
-	https://docs.aws.amazon.com/AmazonS3/latest/dev/s3-dg.pdf
