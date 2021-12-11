@@ -24,8 +24,39 @@ I. ---------------------------------------------------------- SERVICES ---------
 		Người dùng éo care j nữa. Ví dụ là salesforce
   e. 1 region có thể bao gồm nhiều AZ
   f. Latency giữa các Az thấp hơn 1 digit nên sync repli within AZ 
-  
-2. Lambda
+		
+2. EC2: Có 3 loại instance dựa vào giá
+		- On demand: Loại mặc định, co giãn dc. 
+		- Reserved Instance: Loại biết trc cấu hình, có thể trả tiền trc hoặc ko.
+		- Spot instance: đấu giá, thằng nào nhanh tay thì lượm. 
+	a. Có thể hibernation instance, tuy nhiên phải setting điều này lúc khởi tạo. Console hay CLI đều dc 
+	b. Có thể đổi instance type, tuy nhiên phải stop service đã :))
+	c. EC2ConfigService ?
+	d. EBS - RAID (redundant array of independent disks) kĩ thuật lưu trữ dữ liệu sử dụng sự kết hợp nhiều disks
+		- RAID 0: Striping. Tăng cường I/O performance, tuy nhiên I/O sẽ distribute toàn volume 1 cách đồng đều, dữ liệu cùng thế
+		- RAID 1: Mirroring. Ko tăng cường I/O performance, thay vào đó là khả năng ghi vào nhiều volume đồng thời cùng lúc. Khả năng lưu sẽ bị cắt 1 nửa vì phải lưu đến 2 bản ghi dữ liệu giống nhau cùng lúc
+		- Snapshot của 1 EBS luôn luôn dc encrypted, nếu share 1 snapshot thì cũng đồng nghĩa share luôn CMK dùng để encript của nó
+		- EBS is not ephemeral, tuy nhiên nếu terminate 1 instance thì vẫn có khả năng mất đi
+		
+	e. Nên phân biệt dc S3, EBS, EFS
+	- S3: 1 kho object, truy cập dữ liệu từ mọi region, zone, rẻ hơn so vs EBS, có thể deploy web tĩnh
+	- EBS: lưu theo 1 block, phải gắn với 1 instance EC2, chỉ tồn tại trên 1 vùng
+	- EFS:  Vì chỉ chứa file system nên nhiều instance EC2 có thể truy cập vào 1 EFS, đắt. Chỉ hố trợ encription khi tạo. 
+	 EFS chỉ hoạt động tại 1 VPC tại 1 thời điểm
+	f. Placement Group ?
+	Chia làm 3 types:
+	- Cluster: Tăng tốc độ giữa các instance. Tối đa 10Gb cho các bé. Ko recommend mix instance's type.
+	- Partition: Hỗ trợ tối đa 7 partition trong mỗi zone (Dedicated Instances thì chỉ có 2 thôi). Số lượng EC2 instance ném vào tùy thuộc vào limit của acc. PARTITION đảm bảo instance trong 1 partition ko share underlying hardware với instance trong 1 partition khác.
+	- Spread: dễ hiểu nhất, mỗi ông 1 rack, ko lquan đến nhau về network speed hay power source. Tối đa 7 instance Spread trong mỗi zone (ví dụ trong zone A chỉ có 7 con instance trong 1 Spread. Sử dụng hoặc tạo thêm 1 spread nếu muốn apply cho hơn 8 instance. Éo ảm báo sự pread giữa các instance. Có thể mix các instance với nhau.
+	Anh em lưu ý là chỉ có thể add instance vào placement group khi khởi tạo chứ ko thể cho 1 instance đã tồn tại vào được.
+	g. SSD bao gồm 2 loại: 
+		+ General Purpose SSD (gp2)  - Có khả năng burst IO -> Tích lại credit và dùng khi cần
+			Ổ trên 1TB thường có baseline > burst performance nên thường méo cần burstmode( >3000 IOPS )
+		+ Provisioned IOPS SSD (io1) 
+		
+		"Some EC2 instance also have a local storage built in that is called the instance store. The instance storage is ephemeral -> gone whenever u terminate the instace"
+
+3. Lambda
 	a. Run code without provisioning 
 	b. Lambda is not fit for running long time- function, Tối đa 5p thôi
 	c. Hẹn giờ tắt/ mở EC2
@@ -41,38 +72,8 @@ I. ---------------------------------------------------------- SERVICES ---------
 		- API Gateway 
 		- IOT
 		- Kinesis
-		- CloudWatch Logs
-		
-3. EC2: Có 3 loại instance dựa vào giá
-		- On demand: Loại mặc định, co giãn dc. 
-		- Reserved Instance: Loại biết trc cấu hình, có thể trả tiền trc hoặc ko.
-		- Spot instance: đấu giá, thằng nào nhanh tay thì lượm. 
-	a. Có thể hibernation instance, tuy nhiên phải setting điều này lúc khởi tạo. Console hay CLI đều dc 
-	b. EC2ConfigService ?
-	c. EBS - RAID (redundant array of independent disks) kĩ thuật lưu trữ dữ liệu sử dụng sự kết hợp nhiều disks
-		- RAID 0: Striping. Tăng cường I/O performance, tuy nhiên I/O sẽ distribute toàn volume 1 cách đồng đều, dữ liệu cùng thế
-		- RAID 1: Mirroring. Ko tăng cường I/O performance, thay vào đó là khả năng ghi vào nhiều volume đồng thời cùng lúc. Khả năng lưu sẽ bị cắt 1 nửa vì phải lưu đến 2 bản ghi dữ liệu giống nhau cùng lúc
-		- Snapshot của 1 EBS luôn luôn dc encrypted, nếu share 1 snapshot thì cũng đồng nghĩa share luôn CMK dùng để encript của nó
-		- EBS is not ephemeral, tuy nhiên nếu terminate 1 instance thì vẫn có khả năng mất đi
-		
-	d. Nên phân biệt dc S3, EBS, EFS
-	- S3: 1 kho object, truy cập dữ liệu từ mọi region, zone, rẻ hơn so vs EBS, có thể deploy web tĩnh
-	- EBS: lưu theo 1 block, phải gắn với 1 instance EC2, chỉ tồn tại trên 1 vùng
-	- EFS:  Vì chỉ chứa file system nên nhiều instance EC2 có thể truy cập vào 1 EFS, đắt. Chỉ hố trợ encription khi tạo. 
-	 EFS chỉ hoạt động tại 1 VPC tại 1 thời điểm
-	e. Placement Group ?
-	Chia làm 3 types:
-	- Cluster: Tăng tốc độ giữa các instance. Tối đa 10Gb cho các bé. Ko recommend mix instance's type.
-	- Partition: Hỗ trợ tối đa 7 partition trong mỗi zone (Dedicated Instances thì chỉ có 2 thôi). Số lượng EC2 instance ném vào tùy thuộc vào limit của acc. PARTITION đảm bảo instance trong 1 partition ko share underlying hardware với instance trong 1 partition khác.
-	- Spread: dễ hiểu nhất, mỗi ông 1 rack, ko lquan đến nhau về network speed hay power source. Tối đa 7 instance Spread trong mỗi zone (ví dụ trong zone A chỉ có 7 con instance trong 1 Spread. Sử dụng hoặc tạo thêm 1 spread nếu muốn apply cho hơn 8 instance. Éo ảm báo sự pread giữa các instance. Có thể mix các instance với nhau.
-	Anh em lưu ý là chỉ có thể add instance vào placement group khi khởi tạo chứ ko thể cho 1 instance đã tồn tại vào được.
-	g. SSD bao gồm 2 loại: 
-		+ General Purpose SSD (gp2)  - Có khả năng burst IO -> Tích lại credit và dùng khi cần
-			Ổ trên 1TB thường có baseline > burst performance nên thường méo cần burstmode( >3000 IOPS )
-		+ Provisioned IOPS SSD (io1) 
-		
-		"Some EC2 instance also have a local storage built in that is called the instance store. The instance storage is ephemeral -> gone whenever u terminate the instace"
-		
+		- CloudWatch Logs	
+	
 4. LightSail
 	For small businesses, need virtual private server. low-cost
 	Launch Virtual Machine (VM)
@@ -182,6 +183,15 @@ I. ---------------------------------------------------------- SERVICES ---------
 	f. Hoặc stream video
 	g. 3 vị trí: Orgin WEB SERVER -> Regional Edge Location -> Cloud Front (nearest Edge Location)
 	h. Có thể chặn luôn quốc gia mà ko cần qua WAF
+	i. Signed URL, Signed Cookie
+		- Để sử dụng dc, phải tạo CloudFront Keypair ở Security Credetial của User (root user nhé, lom dom ko tạo dc). 
+		- Sử dụng CLI để tạo 
+		- Canned Policy
+			-> Chỉ có thể giới hạn ngày giờ tới hạn sử dụng của 1 resource
+		- Custom Policy
+			-> Ngày bắt đầu, sử dụng. IP range nào có thể sử dụng, ngày tới hạn, based-encode của policy -> link dài hơn
+			
+	cách thiết lập default hoặc custom certificate, tích hợp Lambda Edge vào request lifecycle, improve cache hit ratio 
 
 11. IAM
 	Hiểu đơn giản, 1 accout có thể thuộc 1 hoặc nhiều group, 1 group có thể có 1 hoặc nhiều policies. Policy có 1 danh sách và có thể tạo ra custom policy. End game. 		
@@ -230,11 +240,14 @@ I. ---------------------------------------------------------- SERVICES ---------
 	b. Network Load Balancer is used to distribute the traffic or load using TCP/UDP protocols
 		- Có thể route traffic tới nhiều port trên 1 instance
 		- Thích hợp với sử dụng ECS
-	c. Classic Load Balancer provides basic load balancing across multiple Amazon EC2 instances. 
-	a. Với bọn Java mất dạy hay có trò cache server IP vào DNS thì load-balancer nó sẽ ko balance cho lắm nữa. Nên từ đấy ta có thể dùng cross-zone load balancing. (chỉ cần config khi sử dụng classic LB)
-	b. Quyết định LB là external hay internal -> khai báo lúc khởi tạo LB
-	c. Application Load Balancer có thể tích hợp được với WAF để filter IP hoặc so on
+	d. Classic Load Balancer provides basic load balancing across multiple Amazon EC2 instances. 
+	e. Với bọn Java mất dạy hay có trò cache server IP vào DNS thì load-balancer nó sẽ ko balance cho lắm nữa. Nên từ đấy ta có thể dùng cross-zone load balancing. (chỉ cần config khi sử dụng classic LB)
+	f. Quyết định LB là external hay internal -> khai báo lúc khởi tạo LB
+	g. Application Load Balancer có thể tích hợp được với WAF để filter IP hoặc so on
 		- ALB chỉ hỗ trợ HTTP/ HTTPS
+	h. Sử dụng sticky session (hoặc là session affinity) để dính 1 user-session vào 1 target. Để làm đc điều này thì user cần cung cấp coookie
+		- Enable cái này ở edit attributes ở Target Group.
+	
 	
 	
 14. AWS SQS (Simple Queue Service) 
@@ -394,6 +407,11 @@ I. ---------------------------------------------------------- SERVICES ---------
 		- Ko áp dụng cho account ngoài, nên nếu set IAM cho account B ngoài organization thì nó vẫn truy cập dc vào 
 		- Sử dụng khi tổ chức có quá nhiều nhân viên, sẽ qua service này để đánh giá và phân role phù hợp, đang hiểu thế...
 	
+39. Inspector
+	a. Có 2 đánh giá là Network và Host assessment
+	b. Inspector Agent phải cài vào instance
+	
+
 II. ---------------------------------------------------------- VPC ----------------------------------------------------------
 
 1. VPC
@@ -428,19 +446,7 @@ II. ---------------------------------------------------------- VPC -------------
 		  + Cần 1 route table có igw 0.0.0.0/0 
 		  + Associate thằng subnet cần public đó vào
 		
-	/28 - 16
-	/27 - 32
-	/26 - 64
-	/25 - 128
-	/24 - 254
-	/23 - 510
-	/22 - 1022
-	/21 - 2046
-	/20 - 4094
-	/19 - 8190
-	/18 - 16382
-	/17 - 32766
-	/16 - 65536
+
  	
 3. Route Table:
 	a. Store route để foward packet tới 1 destination. 
@@ -688,20 +694,41 @@ VIII. ---------------------------------------------------------- FAQs ----------
 		+ Mạng con thứ hai gồm 16 địa chỉ sẽ có mặt nạ mạng con "/ 28" (nghĩa là 2 đến nguồn 4).
 		+ Thứ ba subnet chứa 16 địa chỉ sẽ có subnet mask của "/ 28" (nghĩa là 2 đến sức mạnh 4).
 	Do đó, một khối địa chỉ của 64 địa chỉ IP được chia thành ba khối 32, 16 và 16 địa chỉ mỗi.
+	
+	/28 - 16
+	/27 - 32
+	/26 - 64
+	/25 - 128
+	/24 - 254
+	/23 - 510
+	/22 - 1022
+	/21 - 2046
+	/20 - 4094
+	/19 - 8190
+	/18 - 16382
+	/17 - 32766
+	/16 - 65536
 
 IX. ---------------------------------------------------------- PRACTICE ----------------------------------------------------------
 
-* (Fargate/EC2) - Batch 
- - Batch có thể dùng để scheduly phân tích dữ liệu từ S3
- - Fargate là 1 serverless compute service để chạy container dc dùng bởi (ESC) và EKS
- - BeanStalk and Docker relationship ??
- 
-* Kubernetes
+* Sử dụng Resources Group để tạo các group resource và sau đấy dùng System Manager để quản lý, ví dụ như install Apache đồng loạt
 
 * Network LB vs Application LB:
- - Test HTTPS và TLS
+	- Test HTTPS và TLS
  
 * Lambda có thể kết hợp với EventBridge để xử lý response
+	- Này chính là cái CloudWatch Event' Rule để chạy Lambda hằng ngày hoặc khi cần bắn event j đó đấy ...* (Fargate/EC2) - Batch 
+	
+ 
+* Mesh VPN 
+	-> Chính là peer-to-peer network.	
+
+
+* S3 Retrist Access
+	https://docs.aws.amazon.com/AmazonS3/latest/dev/s3-dg.pdf
+	
+	
+* Kubernetes
 
 * Single Sign-on SSO
 
@@ -710,8 +737,6 @@ IX. ---------------------------------------------------------- PRACTICE --------
 	- SharedEventID và UserIdentify khi 1 thằng xóa bucket từ 1 thằng khác
 	- ExternalID
 	- AssumeRole giữa nhiều account, cách switch role 
-	
-* Mesh VPN ??
 
 * Practice IAM 
 	https://docs.aws.amazon.com/IAM/latest/UserGuide/id_roles_providers_enable-console-saml.html
@@ -721,19 +746,14 @@ IX. ---------------------------------------------------------- PRACTICE --------
 * STS 
 	https://docs.aws.amazon.com/IAM/latest/UserGuide/id_credentials_temp.html
 
-* Provisioned IOPS for RDS: https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/Concepts.MultiAZ.html
+* Provisioned IOPS for RDS: 
+	https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/Concepts.MultiAZ.html
 
 * Khi tạo VPN, add route vào main table thì destination là IP của CustomerGateway ?
 
 * Practice:
 	Ứng dụng C# bên trong Ec2. phải assumeRole hay j đó chứ k thể như thể lấy luôn quyền EC2 dc ???
 	
-* S3 Retrist Access
-	https://docs.aws.amazon.com/AmazonS3/latest/dev/s3-dg.pdf
-	
-* Sticky Session của ELB:
-	https://docs.aws.amazon.com/AmazonS3/latest/dev/s3-dg.pdf
-
 
 * Học Cloud Formation & OpsWork
 	- CreatePolicy
@@ -757,8 +777,10 @@ IX. ---------------------------------------------------------- PRACTICE --------
 * Global Accelerator
 	https://docs.aws.amazon.com/global-accelerator/latest/dg/getting-started.html
 	
-* CloudFront 
-	Signed URL, Signed Cookies, OAI, cách thiết lập default hoặc custom certificate, tích hợp Lambda Edge vào request lifecycle, improve cache hit ratio, troubleshoot status code khi request đến S3 origin…
+
+	
+3. IAM Task - Container
+- Tạo IAM Role cho 1 task trong 1 container.
 
 
 X. ---------------------------------------------------------- GENERAL WTFs ----------------------------------------------------------
@@ -785,10 +807,9 @@ FSx
 Shield
 Security HUB
 Macie
-Inspector
-Guard Duty
+ 
 DataSync
-System Manager
+
 Service Catalog
 License Manager
 Control Tower
@@ -811,13 +832,10 @@ Alexa
 MQ
 EMR
 QuickSight
-IAM Task - Container ????????????
+AWS Managed Microsoft AD
 Có thể sử dụng HSM Hardware Security Module để manage top level encription keys. ?? Redshift
-x3. Amazon Redshift VPC Routing -> ko cho traffic flow through Internet
-x5. AWS Managed Microsoft AD
-
-3. IAM Task - Container
-- Tạo IAM Role cho 1 task trong 1 container.
+- Batch có thể dùng để scheduly phân tích dữ liệu từ S3
+- BeanStalk and Docker relationship ??
 
 
 
