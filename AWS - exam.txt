@@ -325,7 +325,7 @@ I. ---------------------------------------------------------- SERVICES ---------
 	https://docs.aws.amazon.com/kms/latest/developerguide/concepts.html
 	
 25.  AWS Glue 
-	-> Sử dụng để phát hiện, extract và transform data
+	-> Sử dụng để phát hiện, extract và transform and load data (ETL)
 	-> Sử dụng cho ML
 	-> Tích hợp với Athena -> SQL analytic
 	
@@ -411,7 +411,15 @@ I. ---------------------------------------------------------- SERVICES ---------
 	a. Có 2 đánh giá là Network và Host assessment
 	b. Inspector Agent phải cài vào instance
 	
-
+40. Microsoft AD - Active Directory
+	a. Domain Controller là 1 server chạy AD 
+	b. AD là 1 service chứa các object như user hoặc computer, là 1 database chứa configuration của user và computer trong 1 AD domain
+	c. Dynamic Host Configuration Protocol (DHCP) provides a standard for passing configuration information to hosts on a TCP/IP network.
+	The options field of an DHCP message contains configuration parameters, including the domain name, domain name server, and the netbios-node-type.
+	-> Nó là 1 service, khi dc tạo ra trong VPC, thì cũng thuộc 1 dải subnet và có security group riêng.
+	d. Người dùng có thể đăng nhập vào các EC2 và user được cấp, qua DNS mà ko cần key 
+	
+	
 II. ---------------------------------------------------------- VPC ----------------------------------------------------------
 
 1. VPC
@@ -507,6 +515,7 @@ III. ---------------------------------------------------------- VPN ------------
 	e. Direct Connect
 		- Thiết lập kết nối trực tiếp từ data center đến VPC 
 		- Tạo 1 connection request từ AWS
+		- Mạng của customer phải dc cung cấp bởi 1 internet provider kết nối với AWS Direct Connect
 		- Client donwload cái request này, accept -> establish connection tới AWS 
 	-> Thực hành ?
 		
@@ -807,9 +816,7 @@ FSx
 Shield
 Security HUB
 Macie
- 
 DataSync
-
 Service Catalog
 License Manager
 Control Tower
@@ -832,7 +839,7 @@ Alexa
 MQ
 EMR
 QuickSight
-AWS Managed Microsoft AD
+
 Có thể sử dụng HSM Hardware Security Module để manage top level encription keys. ?? Redshift
 - Batch có thể dùng để scheduly phân tích dữ liệu từ S3
 - BeanStalk and Docker relationship ??
