@@ -419,7 +419,25 @@ I. ---------------------------------------------------------- SERVICES ---------
 	-> Nó là 1 service, khi dc tạo ra trong VPC, thì cũng thuộc 1 dải subnet và có security group riêng.
 	d. Người dùng có thể đăng nhập vào các EC2 và user được cấp, qua DNS mà ko cần key 
 	
+41. Kinesis
+	a. Amazon Kinesis Data Streams is a scalable and durable real-time data streaming service
 	
+		Suppose an application is running on the EC2 Instance and it is generating continuous logs.
+		Those logs will be pushed into the Kinesis Data Streams.
+		From the Kinesis Data Streams, it gets consumed through the Kinesis Firehose.
+		The data from Kinesis Firehouse is then saved into the S3 Bucket.
+	
+	b. Stream dữ liệu này sau đấy có thể dc gửi vào S3, Redshift hoặc ElasticSearch. 
+	
+	c. Kinesis Data Firehouse là 1 ETL service như Glue. Xử lý, transform dữ liệu sau đó chuyển đển S3 hoặc các dịch vụ tương ứng
+	
+	d. Kinesis Agent là 1 ứng dụng = java để gửi dữ liệu để FireHouse
+	
+		Kinesis Data Streams focuses on ingesting and storing data streams.
+		Kinesis Data Firehose focuses on delivering data streams to select destinations.
+		Both can ingest data streams but the deciding factor in which to use depends on where your streamed data should go to.
+
+
 II. ---------------------------------------------------------- VPC ----------------------------------------------------------
 
 1. VPC
@@ -786,7 +804,6 @@ IX. ---------------------------------------------------------- PRACTICE --------
 * Global Accelerator
 	https://docs.aws.amazon.com/global-accelerator/latest/dg/getting-started.html
 	
-
 	
 3. IAM Task - Container
 - Tạo IAM Role cho 1 task trong 1 container.
@@ -797,7 +814,6 @@ X. ---------------------------------------------------------- GENERAL WTFs -----
 Docker
 EC2 Image Builders
 Gateway Cache vs Gateway Store-volume	
-AWS Directory Service 
 CloudHSM
 Amazon BlockChain Template
 AWS Polly Lexicon
@@ -824,13 +840,16 @@ Config
 Compute
 Optimizer
 Backup
-SageMaker
-Lex
-Forecast
-Comprehend
+ML
+	SageMaker
+	Forecast
+	Lex
+	Comprehend
+	
 AppSync
 AppStream
-Workspaces
+AD
+	Workspaces
 Neptune
 ECR
 Outposts
@@ -838,11 +857,13 @@ Managed BlockChain
 Alexa
 MQ
 EMR
-QuickSight
+
 
 Có thể sử dụng HSM Hardware Security Module để manage top level encription keys. ?? Redshift
 - Batch có thể dùng để scheduly phân tích dữ liệu từ S3
 - BeanStalk and Docker relationship ??
+
+
 
 
 
