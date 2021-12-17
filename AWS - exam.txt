@@ -360,6 +360,11 @@ I. ---------------------------------------------------------- SERVICES ---------
 	Service: Run and maitains desired number of tasks from a specified task definition
 	-> Nhân lên
 	
+	a. To deploy applications on Amazon ECS, your application components must be architected to run in containers. 
+		A container is a standardized unit of software development that contains everything that your software application needs to run, 
+		including relevant code, runtime, system tools, and system libraries. 
+		Containers are created from a read-only template called an image.
+	
 30. NAT
 	-> NAT-Gateway must stay in public subnet -> mà public subnet thì phải có Internet gateway 
 	-> Cái này là khi tạo NAT, phải chỉ định public subnet cho nó. Mà public subnet là thế nào thì biết rồi đấy.
@@ -804,6 +809,7 @@ IX. ---------------------------------------------------------- PRACTICE --------
 * Global Accelerator
 	https://docs.aws.amazon.com/global-accelerator/latest/dg/getting-started.html
 	
+* Tại sao mặc định các subnet có thể communicate với nhau, nhưng lại cần Security Group ?
 	
 3. IAM Task - Container
 - Tạo IAM Role cho 1 task trong 1 container.
@@ -862,6 +868,11 @@ EMR
 Có thể sử dụng HSM Hardware Security Module để manage top level encription keys. ?? Redshift
 - Batch có thể dùng để scheduly phân tích dữ liệu từ S3
 - BeanStalk and Docker relationship ??
+
+Migragion
+Docker
+VPG
+CloudFormation
 
 
 
