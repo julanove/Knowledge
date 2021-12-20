@@ -365,6 +365,10 @@ I. ---------------------------------------------------------- SERVICES ---------
 		including relevant code, runtime, system tools, and system libraries. 
 		Containers are created from a read-only template called an image.
 	
+	b. Amazon Elastic Container Registry (ECR). Giống như Git, tuy nhiên lại sử dụng để quản lý image thay vì code :))
+		Có thể cài đặt, login vào ECR của 1 container -> Pull image -> Sử dụng image này để tạo Task Definition
+	
+	
 30. NAT
 	-> NAT-Gateway must stay in public subnet -> mà public subnet thì phải có Internet gateway 
 	-> Cái này là khi tạo NAT, phải chỉ định public subnet cho nó. Mà public subnet là thế nào thì biết rồi đấy.
