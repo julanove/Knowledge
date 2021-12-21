@@ -217,6 +217,7 @@ I. ---------------------------------------------------------- SERVICES ---------
 		-> Phải trail logs từ cả 2 account
 		-> Từ account của thằng đấy sẽ phát sinh userIdenify và sharedEventID 
 		-> Từ đây có thể trail ra thằng nào đã xóa
+	h. Deny luôn có độ priority lớn hơn là rõ ràng, tuy nhiên nếu ko muốn deny hoàn toàn, hãy sử dụng NotAction
 		
 	
 	
@@ -442,6 +443,16 @@ I. ---------------------------------------------------------- SERVICES ---------
 		Kinesis Data Firehose focuses on delivering data streams to select destinations.
 		Both can ingest data streams but the deciding factor in which to use depends on where your streamed data should go to.
 
+42. Amazon AppStream 2.0
+
+	a. is focused on hosting individual applications on AWS
+
+43. Amazon WorkSpaces 
+
+	a. creates virtual desktops that can be used to create entire working environments for you and your team
+	b. Images: softwares và setting của workspace đó
+	c. Bundles: bao gồm image + cấu hình hardware của workspace đó
+	d. Sau khi tạo workspace xong -> gửi invite đến người dùng -> sử dụng
 
 II. ---------------------------------------------------------- VPC ----------------------------------------------------------
 
@@ -543,7 +554,10 @@ III. ---------------------------------------------------------- VPN ------------
 	-> Thực hành ?
 		
 	f. Storage Gateway 
-	-> ??
+	-> Đại khái là ổ ảo mà on-premise cũng có thể truy cập được
+		- cached mode: lưu dữ liệu chính trên s3 và những dữ liệu thường xuyên sẽ dc lưu ở cache (locally)
+		- stored mode: lưu dữ liệu chính ở locally, trong khi async backed up to AWS
+	
 	
 2. PrivateLink ~ VPC Endpoint
 	- PrivateLink uses elastic network interfaces within the client VPC so that there are no IP address conflicts with the service provider.
@@ -567,7 +581,7 @@ III. ---------------------------------------------------------- VPN ------------
 		- To provide secure encrypted communication between two computers over an Internet Protocol network. 
 		- It is used in virtual private networks
 		
-	11. VPC Endpoint:
+3. VPC Endpoint:
 	a. Hiện tại chỉ hỗ trợ cho S3 và DynamoDB. Sử dụng để kết nối đến S3 hoặc DynamoDB mà ko phải chạy ra rồi chạy ngoài
 	b. Private connect ngay bên trong AWS 
 	c. Tạo 1 entry trong route table cho private subnet -> thẳng VPC Endpoint cho S3 hoặc Dynamo
@@ -575,6 +589,12 @@ III. ---------------------------------------------------------- VPN ------------
 	e. VPC Enpoint always takes precedence over NAT-Gateway and Internet-gateway
 	f. VPC Endpoint Service. 
 		- Tạo luôn 1 ứng dụng trong VPC. Các AWSer khác có thể truy cập app đó qua VPC Endpoint. Và bạn là người cung cấp service - qua LB.
+	g. Sử dụng TLS
+	
+4. Site-to-site VPN vs Client VPN Endpoint
+	a. 1 cái là site-to-site (1-1), 1 cái là client to site (n-1)
+	b. Với sts thì cả 2 bên có thể communicate với nhau và có fixed IP
+	c. Trong khi client thì chỉ là 1 client ví dụ như 1 laptop connect đến AWS và ko có 1 địa chỉ IP cố định
 
 
 IV. ---------------------------------------------------------- RDS ----------------------------------------------------------
@@ -758,6 +778,23 @@ IX. ---------------------------------------------------------- PRACTICE --------
 
 * S3 Retrist Access
 	https://docs.aws.amazon.com/AmazonS3/latest/dev/s3-dg.pdf
+	- Ví dụ dễ hiểu nhất là userA muốn truy cập S3 bucket trong account của userB
+	-> Có 2 cách để thực hiện điều này:
+		+ userA assume role của userB -> userA phải giveup toàn bộ quyền của userA trong khi assuming role của userB 
+		+ S3 bucket của userB có bucketPoilicy allow userA có thể truy cập I/O (resource base policies) 
+	
+
+	
+* Practice IAM 
+	https://docs.aws.amazon.com/IAM/latest/UserGuide/id_roles_providers_enable-console-saml.html
+	
+	STS 
+	https://docs.aws.amazon.com/IAM/latest/UserGuide/id_credentials_temp.html
+	-> gọi API assumeRole lên STS
+	- How to switch role ?
+	- MFA có thể add vào 1 role
+	Sử dụng external ID để chặn confused deputy attach (Mạo danh ARN của accound cung cấp resource)
+	
 	
 	
 * Kubernetes
@@ -770,13 +807,7 @@ IX. ---------------------------------------------------------- PRACTICE --------
 	- ExternalID
 	- AssumeRole giữa nhiều account, cách switch role 
 
-* Practice IAM 
-	https://docs.aws.amazon.com/IAM/latest/UserGuide/id_roles_providers_enable-console-saml.html
-	
 * CloudHSM
-
-* STS 
-	https://docs.aws.amazon.com/IAM/latest/UserGuide/id_credentials_temp.html
 
 * Provisioned IOPS for RDS: 
 	https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/Concepts.MultiAZ.html
@@ -817,18 +848,16 @@ IX. ---------------------------------------------------------- PRACTICE --------
 
 X. ---------------------------------------------------------- GENERAL WTFs ----------------------------------------------------------
  
-Docker
+
 EC2 Image Builders
-Gateway Cache vs Gateway Store-volume	
 CloudHSM
 Amazon BlockChain Template
 AWS Polly Lexicon
 Application Shard MySQL
 Resource sharing
-Amazon Workspaces và App Stream 2.0
+
 Amazon ES, ELK stack
 ACM, SSM Parameter Store…
-S3 Batch Operation 
 SageMaker, 
 AWS SAP
 aWS Stream 
@@ -846,6 +875,7 @@ Config
 Compute
 Optimizer
 Backup
+Docker 
 ML
 	SageMaker
 	Forecast
@@ -871,7 +901,6 @@ Có thể sử dụng HSM Hardware Security Module để manage top level encrip
 
 Migragion
 Docker
-VPG
 CloudFormation
 
 
