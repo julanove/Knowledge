@@ -4,6 +4,7 @@ Railgun
 Index
 Tsugumomo
 Mushouku Tensei
+Bakemonogatari 
 Dungeon Meshi
 My Hero Academia
 Shuumatsu No Valikyrie
@@ -22,4 +23,16 @@ systemctl start mysqld.service
 Connect:
 mysql -u admin -p -h client-certified-cluster-instance-1.cl2y9htvnn64.ap-northeast-1.rds.amazonaws.com
 
+-- 
+
+
 Học Scrum -> Làm cái băng băng j đó.
+
+
+--
+
+window.navigator.appVersion -> trên firefox chỉ đẻ ra dc mỗi 5.0 (Windows)
+
+'5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/96.0.4664.93 Safari/537.36'
+'5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/96.0.4664.93 Safari/537.36'
+'5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/96.0.0.0 Safari/537.36'

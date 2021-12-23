@@ -1,0 +1,99 @@
+$(document).on('click','#validate-lab',function(){
+        $(".loader").show();
+        $.ajax({
+            type: 'post',
+            url:baseUrl + '/task/validate_lab',
+            data: {'task_id':task_id,'fk_user_id':fk_user_id},
+            success: function (data) {
+              console.log(data);
+              $(".loader").hide();
+              $(".labValOutput").empty();
+              var obj = JSON.parse(data);
+              var error_flag = obj.error_flag;
+              //Check error occured or not
+              if (error_flag==1)
+              {
+                var error_message = obj.message;
+                swal({
+                  title: error_message.message,
+                  text: error_message.message_detail,
+                  button: "OK",
+                  icon: "info",
+                  dangerMode: true,
+                });
+                return false;
+              }
+              else
+              {
+                var result = obj.result;
+                if(result != null){
+                    $(".labValOutput").append(result);
+                    $('#labValidationModal').modal('show');
+                }
+                return false;
+              }
+            }
+        });
+
+});
+
+$(document).on('click','#validate-lab-az',function(){
+  $(".loader").show();
+  $.ajax({
+      type: 'post',
+      url:baseUrl + '/azurelabs/validate_lab',
+      data: {'task_id':task_id,'fk_user_id':fk_user_id},
+      success: function (data) {
+        console.log(data);
+        $(".loader").hide();
+        $(".labValOutput").empty();
+        var obj = JSON.parse(data);
+        var error_flag = obj.error_flag;
+        //Check error occured or not
+        if (error_flag==1)
+        {
+          var error_message = obj.message;
+          swal({
+            title: error_message.message,
+            text: error_message.message_detail,
+            button: "OK",
+            icon: "info",
+            dangerMode: true,
+          });
+          return false;
+        }
+        else
+        {
+          var result = obj.result;
+          if(result != null){
+              $(".labValOutput").append(result);              
+              $('#labValidationModal').modal('show');
+          }
+          return false;
+        }
+      }
+  });
+
+});
+
+$(document).on('click','#validate-lab-gcp',function(){
+        $(".loader").show();
+        $.ajax({
+            type: 'post',
+            url:baseUrl + '/gcp/validate_lab',
+            data: {'task_id':task_id,'fk_user_id':fk_user_id},
+            success: function (data) {
+              console.log(data);
+              $(".loader").hide();
+              $(".labValOutput").empty();
+              var obj = JSON.parse(data);
+              var result = obj.result;
+              if(result != null){
+                  $(".labValOutput").append(result);
+                  $('#labValidationModal').modal('show');
+              }
+              return false;
+            }
+        });
+
+});

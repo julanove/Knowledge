@@ -1,0 +1,17 @@
+$(document).on('click','#instance-terminal',function(){
+    $(".loader").show();
+    $.ajax({
+        type: 'post',
+        url:baseUrl + '/task/start_instant_terminal',
+        data: {'task_id':task_id,'fk_user_id':fk_user_id},
+        success: function (data) {
+          //console.log(data);
+          $(".loader").hide();
+          var obj = JSON.parse(data);
+          var url = obj.url;
+          window.open(url,'_blank');
+          return false;
+        }
+    });
+
+});

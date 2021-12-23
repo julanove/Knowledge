@@ -248,6 +248,14 @@ I. ---------------------------------------------------------- SERVICES ---------
 		- ALB chỉ hỗ trợ HTTP/ HTTPS
 	h. Sử dụng sticky session (hoặc là session affinity) để dính 1 user-session vào 1 target. Để làm đc điều này thì user cần cung cấp coookie
 		- Enable cái này ở edit attributes ở Target Group.
+		
+	i. When you use HTTPS or SSL for your front-end listener, you must deploy an SSL certificate on your load balancer. 
+	The load balancer uses the certificate to terminate the connection and then decrypt requests from clients before sending them to the instances.
+	You must also specify a security policy. Elastic Load Balancing provides security policies that have predefined SSL negotiation configurations, 
+	or you can create your own custom security policy. If you configured HTTPS/SSL on the back-end connection, you can enable authentication of your instances.
+	
+	-> Deploy SSL ở load balancer level -> OK sẽ giúp web có https tuy nhiên nó sẽ terminate connection, decript request và gửi về instance.
+	-> Nếu muốn config SSL ở backend connection thì có thể enable backend authen và phải cung cấp cert -> Cái này chỉ mới thấy ở classic LB, chưa thấy ở Application
 	
 	
 	
@@ -273,7 +281,7 @@ I. ---------------------------------------------------------- SERVICES ---------
 			-> User signin qua Cognito
 			-> User pool redirect post back này tới các Federating IDP khác (Google, Facebook)
 			-> Trả về authen token cho người dùng 
-			-> Người dùng sử dụng token này để truy cập vào API Gateway các kiểu
+			-> Người dùng sử dụng token này để (exchange với identiy pool) truy cập vào API Gateway các kiểu
 			
 	c. Sync data between many device of 1 user
 	
@@ -324,6 +332,7 @@ I. ---------------------------------------------------------- SERVICES ---------
 	6. encrypted data key được lưu trữ và bắn về lại KMS khi cần decrypt dữ liệu
 	Tương tự với asymmetric key. Tuy nhiên lúc ấy public key sẽ dùng để encrypt và plaintext private key dùng để decrypt
 	https://docs.aws.amazon.com/kms/latest/developerguide/concepts.html
+	a. KMS hỗ trợ encript tối đa là 4Kb, nếu nhiều hơn thì sử dụng Envelope Encription
 	
 25.  AWS Glue 
 	-> Sử dụng để phát hiện, extract và transform and load data (ETL)
@@ -332,12 +341,19 @@ I. ---------------------------------------------------------- SERVICES ---------
 	
 26. CloudFront 
 	- Orgin (Source) có thể là S3, EC2 hoặc ELB hoặc với bất kỳ custom HTTP nào ??
+		
 	- Mối liên hệ giữa CloudF và API trong PWA -> Origin của CF trỏ trực tiếp đến API Gateway kèm KEYs được cung cấp
 	- Với CF, có thể sử dụng CFFunctions và Lambda@Edge để distribute HTTP Request, 
 		+ CFFunctions thì chỉ có thể sử dụng Java	
 		+ Lambda@Edge thì Node.js và Python
 	- OriginShield ?? Nhanh hơn, cache xịn hơn
+
 	- Tại sao có thể cho phép chọn lên đến 25 origins ?? Vì tương ứng với mỗi orgin lại có 1 behaviour khác nhau
+	- Origin Protocol:
+		+ HTTPS
+		+ HTTP
+		+ Match Viewer: HTTP or HTTPS
+		
 
 27. AWS PrivateLink  (Endpoint service trong VPC)
 	-> AWS PrivateLink provides private connectivity between VPCs, AWS services, and your on-premises networks, 
@@ -416,6 +432,10 @@ I. ---------------------------------------------------------- SERVICES ---------
 		- Chỉ áp dụng cho account bên trong organization.
 		- Ko áp dụng cho account ngoài, nên nếu set IAM cho account B ngoài organization thì nó vẫn truy cập dc vào 
 		- Sử dụng khi tổ chức có quá nhiều nhân viên, sẽ qua service này để đánh giá và phân role phù hợp, đang hiểu thế...
+		- Ko áp dụng dc cho master account 
+		
+	b. Organization UNIT (OU)
+		- Set SCP cho UNIT level thì nó sẽ áp dụng cho tất cả account bên trong ấy với higher priority
 	
 39. Inspector
 	a. Có 2 đánh giá là Network và Host assessment
@@ -428,6 +448,19 @@ I. ---------------------------------------------------------- SERVICES ---------
 	The options field of an DHCP message contains configuration parameters, including the domain name, domain name server, and the netbios-node-type.
 	-> Nó là 1 service, khi dc tạo ra trong VPC, thì cũng thuộc 1 dải subnet và có security group riêng.
 	d. Người dùng có thể đăng nhập vào các EC2 và user được cấp, qua DNS mà ko cần key 
+	Có 3 loại AD:
+	e. Simple AD
+	f. Microsoft Managed AD
+		- Deploy qua VPC, và Multi A-z đảm bảo high availability 
+		- Có thể intergate với các service khác dc, seemless join EC2 instance 
+		- Có thể intergate với on-premise sử dụng two way forest trust và Direct Connect
+		- AD Replication 
+			-> Cách duy nhất là setup 1 AD on EC2 windows instance trung gian giữa on premise và MM AD 
+	g. AD Connector 
+		- 1 gateway để on-premise access AD trên AWS như các gateway khác
+		- bắt buộc phải có VPN hoặc Direct Connect
+		- Ko thể seemless join, cache hoặc MFA
+	
 	
 41. Kinesis
 	a. Amazon Kinesis Data Streams is a scalable and durable real-time data streaming service
@@ -559,8 +592,8 @@ III. ---------------------------------------------------------- VPN ------------
 		
 	f. Storage Gateway 
 	-> Đại khái là ổ ảo mà on-premise cũng có thể truy cập được
-		- cached mode: lưu dữ liệu chính trên s3 và những dữ liệu thường xuyên sẽ dc lưu ở cache (locally)
-		- stored mode: lưu dữ liệu chính ở locally, trong khi async backed up to AWS
+		- cached mode: lưu dữ liệu chính trên s3 và những dữ liệu thường xuyên sẽ dc lưu ở cache (locally). Max là 1024 TB
+		- stored mode: lưu dữ liệu chính ở locally, trong khi async backed up to AWS. max là 512TB
 	
 	
 2. PrivateLink ~ VPC Endpoint
@@ -764,6 +797,15 @@ VIII. ---------------------------------------------------------- FAQs ----------
 	/18 - 16382
 	/17 - 32766
 	/16 - 65536
+	
+10. HSM - Hardware Security Module
+	1 hệ thống phần cứng dùng để tạo ra, quản lý và bảo vệ key. 
+	
+11. HTTPS 
+	- Có thể đăng kí SSL certificate từ các nhà cung cấp, hoặc tự tạo ra.
+	-> Tuy nhiên browser sẽ ko xác định được SSL này, nên sẽ hiển thị cảnh bảo và người dùng có muốn chấp nhận rủi ro khi truy cập ko!
+	- 
+	
 
 IX. ---------------------------------------------------------- PRACTICE ----------------------------------------------------------
 
@@ -804,6 +846,7 @@ IX. ---------------------------------------------------------- PRACTICE --------
 * Kubernetes
 
 * Single Sign-on SSO
+	Kết hợp với AD
 
 * Share resource qua cross account
 	- AssumeRole các kiểu
@@ -829,6 +872,7 @@ IX. ---------------------------------------------------------- PRACTICE --------
 	- Mối liên hệ giữa OpsWork và CloudFormation
 	- CloudFormation deletion policy
 	- Da hell is Cloud Formation Drift Detection drift ??
+	- CloudFormation StackSet ? -> tạo role cho target account trong Organization
 	
 * Kinesis
 	Amazon Kinesis, build ứng dụng realtime, near realtime, troubleshoot Kinesis agent
@@ -846,8 +890,10 @@ IX. ---------------------------------------------------------- PRACTICE --------
 	
 * Tại sao mặc định các subnet có thể communicate với nhau, nhưng lại cần Security Group ?
 	
-3. IAM Task - Container
-- Tạo IAM Role cho 1 task trong 1 container.
+* IAM Task - Container
+	 Tạo IAM Role cho 1 task trong 1 container.
+	 
+* 
 
 
 X. ---------------------------------------------------------- GENERAL WTFs ----------------------------------------------------------
@@ -908,7 +954,6 @@ Docker
 CloudFormation
 
 
-
-
-
+AWS Data Lifecycle Management
+Hadoop
 

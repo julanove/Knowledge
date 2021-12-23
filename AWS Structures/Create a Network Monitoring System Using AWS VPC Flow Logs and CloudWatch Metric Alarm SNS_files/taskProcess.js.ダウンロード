@@ -1,0 +1,2699 @@
+//console.log(labStatus);
+
+var clock = $('.clock').FlipClock(duration, {
+    autoStart: false,
+    countdown: true
+
+});
+
+$(function() {
+    $('[data-toggle="tooltip"]').tooltip()
+})
+
+$(document).ready(function() {
+    //aws labs
+    if (lab_type == 1) {
+        //console.log(labStatus);    
+        if (labStatus == 0 || labStatus == 3) {
+            $('#start-lab').show();
+
+            $('#stop-lab').hide();
+            $('.aws_auth_details').hide();
+
+            clock.stop();
+        } else if (labStatus == 2) {
+            $('#start-lab').hide();
+
+            $('#stop-lab').show();
+            $('.aws_auth_details').show();
+            setInterval(getTaskEndTimeForUser, 10000);
+            setInterval(getLabEndTime, 80000); //run in every less then 2 minute
+
+            $.ajax({
+                type: 'post',
+                url: baseUrl + '/task/fetch_task_for_user',
+                data: { 'session_id': session_id, 'task_id': task_id, 'fk_user_id': fk_user_id },
+                success: function(data) {
+                    var obj = JSON.parse(data);
+                    var response = obj.response;
+                    //console.log(response);
+                    if (response == 'true') {
+                        var log = obj.log;
+                        var login_link = log.login_link;
+                        var username = log.username;
+                        var password = log.password;
+                        var accesskey = log.accesskey;
+                        var secretkey = log.secretkey;
+
+                        clock.start();
+
+                        $("a.login_link").attr("href", login_link);
+                        $("#username").val(username);
+                        $("#password").val(password);
+                        $("#accesskey").val(accesskey);
+                        $("#secretkey").val(secretkey);
+                    }
+                }
+            });
+        }
+    }
+    //azure labs
+    else if (lab_type == 2) {
+        //console.log(labStatus);
+        if (labStatus == 0 || labStatus == 3) {
+            $('#start-lab-az').show();
+            $('#console_deactive').show();
+
+            $('#stop-lab-az').hide();
+            $('#console_active').hide();
+            $('.azure_auth_details label').hide();
+            $('.azure_auth_details').hide();
+            //$('#validation-section').hide();
+
+            clock.stop();
+        } else if (labStatus == 2) {
+            $('#console_active').show();
+            $('#stop-lab-az').show();
+            $('.azure_auth_details label').show();
+            $('.azure_auth_details').show();
+            //$('#validation-section').show();
+
+            $('#start-lab-az').hide();
+            $('#console_deactive').hide();
+            setInterval(getTaskEndTimeForUser, 10000);
+
+            $.ajax({
+                type: 'post',
+                url: baseUrl + '/azurelabs/fetch_task_for_user',
+                data: { 'session_id': session_id, 'task_id': task_id, 'fk_user_id': fk_user_id },
+                success: function(data) {
+
+                    var obj = JSON.parse(data);
+                    var response = obj.response;
+                    //console.log(response);
+                    var log = obj.log;
+                    if (response == 'true') {
+                        var log = obj.log;
+                        var login_link = log.login_link;
+                        var username = log.username;
+                        var password = log.password;
+
+                        clock.start();
+
+                        $("a.login_link").attr("href", login_link);
+                        $("#username").val(username);
+                        $("#password").val(password);
+                    }
+                }
+            });
+        }
+    }
+    //gcp labs
+    else if (lab_type == 3) {
+        //console.log(labStatus);
+        if (labStatus == 0 || labStatus == 3) {
+
+            $('#stop-lab').hide();
+            $('#stop-lab-az').hide();
+            $('#stop-lab-gcp').hide();
+            clock.stop();
+
+            $('#start-lab').show();
+            $('#start-lab-az').show();
+
+            $('#start-lab-gcp').show();
+            $('#console_active').hide();
+            $('#console_deactive').show();
+            $('#console_active').hide();
+            $('#loadContent1').show();
+            $('#loadContent').hide();
+            $('#validation-section').hide();
+
+        } else if (labStatus == 2) {
+
+            $('#stop-lab-gcp').show();
+            $('#start-lab-gcp').hide();
+            $('#loadContent1').hide();
+            $('#loadContent').show();
+            $('#console_active').show();
+            $('#start-lab').hide();
+            $('#start-lab-az').hide();
+            $('#start-lab-gcp').hide();
+            $('#stop-lab').show();
+            $('#stop-lab-az').show();
+            $('#stop-lab-gcp').show();
+            $('#console_deactive').hide();
+            $('#validation-section').show();
+            setInterval(getTaskEndTimeForUser, 1000);
+
+            $.ajax({
+                type: 'post',
+                url: baseUrl + '/gcp/fetch_task_for_user',
+                data: {
+                    'session_id': session_id,
+                    'task_id': task_id,
+                    'fk_user_id': fk_user_id,
+                },
+                success: function(data) {
+
+                    var obj = JSON.parse(data);
+                    var response = obj.response;
+                    //console.log(response);
+                    if (response == 'true') {
+                        var log = obj.log;
+                        //  var login_link = log.login_link;
+                        var email = log.email;
+                        var pass = log.pass;
+
+                        var project_id = log.project_id;
+                        var project_name = log.project_name;
+                        var login_link = "https://console.cloud.google.com/home/dashboard?project=" + project_id;
+
+                        clock.start();
+                        $("a.login_link").attr("href", login_link);
+
+                        $('input[name="email"]').val(email);
+                        $('input[name="pass"]').val(pass);
+                        $('input[name="project_id"]').val(project_id);
+                        $('input[name="project_name"]').val(project_name);
+                        $("a.login_link").attr("href", login_link);
+                        $("#username").val(username);
+                        $("#password").val(password);
+                        /*var end_time=log.end_time;
+                        var currentUTCtime=js_yyyy_mm_dd_hh_mm_ss();
+                        console.log(currentUTCtime);
+                        console.log(end_time);
+                        var x = new Date(end_time);
+                        var y = new Date(currentUTCtime);
+                        var diffSec=(x - y)/1000;
+                        console.log(diffSec);*/
+
+                    }
+                }
+            });
+        }
+    }
+
+
+    else if (lab_type == 4) {
+        //console.log(labStatus);
+        if (labStatus == 0 || labStatus == 3) {
+
+            $('#stop-lab-py').hide();
+            clock.stop();
+            $('#start-lab-py').show();
+            $('#console_active').hide();
+            $('#console_deactive').hide();
+            $('#loadContent1').hide();
+            $('#loadContent2').hide();
+            $('#loadContent').hide();
+
+        } else if (labStatus == 2) {
+
+
+            $('#stop-lab-py').show();
+            $('#start-lab-py').hide();
+            $('#loadContent1').hide();
+            $('#loadContent').hide();
+            $('#console_active').show();
+            $('#console_deactive').hide();
+            $('#validation-section').show();
+            $('#loadContent2').hide();
+            setInterval(getTaskEndTimeForUser, 10000);
+
+            $.ajax({
+                type: 'post',
+                url: baseUrl + '/py/fetch_task_for_user',
+                data: {
+                    'session_id': session_id,
+                    'task_id': task_id,
+                    'fk_user_id': fk_user_id,
+                    'quest_id': quest_id
+                },
+                success: function(data) {
+
+                    var obj = JSON.parse(data);
+                    var response = obj.response;
+                    //console.log(response);
+                    if (response == 'true') {
+                        var log = obj.log;
+                       
+                        if (location.hostname == 'play.whizlabs.com') {
+                            var host_url = 'https://play.whizlabs.com/site/py_compiler?lab_type=4&&task_id='+task_id+'&&quest_id='+quest_id +'&&lms_user_id='+fk_user_id;
+                        } else if(location.hostname == 'play.whizlabs.org') {
+                            var host_url = 'https://play.whizlabs.org/site/py_compiler?lab_type=4&&task_id='+task_id+'&&quest_id='+quest_id +'&&lms_user_id='+fk_user_id;
+                        }
+                        else {
+                            var host_url = 'http://localhost:8888/whizlabs-labs-development-repo/site/py_compiler?lab_type=4&&task_id='+task_id+'&&quest_id='+quest_id +'&&lms_user_id='+fk_user_id;
+                        }
+
+                        var account = log.account;
+                        var id = log.id;
+                        var api_key = log.api_key;
+                        var login_link = host_url;
+                        var source = $('#source').val();
+                        var input = $('#input').val();
+
+                        clock.start();
+                        $("a.login_link").attr("href", login_link);
+
+                        $('input[name="account"]').val(account);
+                        $('input[name="api_key"]').val(api_key);
+                        $("a.login_link").attr("href", login_link);
+
+                        $.ajax({
+                            type: 'post',
+                            url: baseUrl + '/py/fetch_validation_code',
+                            data: { 'id':id, 'session_id': session_id, 'task_id': task_id, 'fk_user_id': fk_user_id },
+                            success: function(data) {
+                                var obj = JSON.parse(data);
+                                var response = obj.response;
+                                var source = obj.log.task_result;
+                                var input = obj.log.input;
+
+                                if(input=='Null'){
+                                    input = ''
+                                }
+                                
+                                if(!source){
+                                    source = ''
+                                }
+                                $('textarea[name="source"]').val(source);
+                               // $('textarea[name="input"]').val(input);
+                                $('#input').val(input);
+            
+                              //  console.log(source);
+                                $(".loader").hide();
+             
+            
+                            }
+                        }); 
+                       
+                    }
+                }
+            });
+        }
+    }
+
+
+    $(".loader").hide();
+
+}); //document.ready ends
+
+function sleep(delay) {
+    var start = new Date().getTime();
+    while (new Date().getTime() < start + delay);
+}
+
+//Start Lab - AWS
+$(document).on('click', '#start-lab', function() {
+
+    $(".loader").show();
+
+    var val_task_id = $('#task_id').val();
+    var val_quest_id = $('#quest_id').val();
+
+    if (location.hostname == 'play.whizlabs.com') {
+        var host_url = 'https://env.whizlabs.com';
+    } else {
+        var host_url = 'https://env.whizlabs.org';
+    }
+
+    $.ajax({
+        type: 'get',
+        url: baseUrl + '/task/store_auth_token',
+        data: { 'task_id': task_id, 'user_id': fk_user_id, 'quest_id': quest_id },
+        success: function(token) {
+            // check if auth-token is empty or not
+            if (token != '') {
+                $.ajax({
+                    type: 'get',
+                    url: host_url + '/task/run_shell',
+                    data: { 'session_id': session_id, 'task_id': task_id, 'fk_user_id': fk_user_id, 'quest_id': quest_id, 'auth_token': token, 'duration': duration },
+                    success: function(data) {
+
+                        var obj = JSON.parse(data);
+
+                        //condition for check Authentication - START
+                        if (typeof obj.auth_status !== 'undefined' && obj.auth_status == 0) {
+                            $(".loader").hide();
+
+                            swal("Authentication Failed", "Authentication Failed, please try again!", "error");
+                            return false;
+                        }
+                        // condition for check Authentication - END
+
+                        //var obj1 =obj.data;
+                        var error_id = obj.error_id;
+                        var error_flag = obj.error_flag;
+                        if (error_flag == 1) {
+                            $(".loader").hide();
+
+                            //var userqueststatus = obj.get_running_labs_details.user_quest_status;
+
+                            var error_message = obj.message;
+                            if (error_id == 10) {
+                                get_running_labs_details = obj.get_running_labs_details;
+                                swal({
+                                        title: error_message.message,
+                                        text: error_message.message_detail,
+                                        buttons: ["Cancel", "Goto Running Lab"],
+                                        icon: "info",
+                                        dangerMode: true,
+                                    })
+                                    .then((willDelete) => {
+                                        if (willDelete) {
+                                            var redirect = baseUrl + "/site/task_details?lab_type=" + get_running_labs_details.lab_type + "&task_id=" + get_running_labs_details.fk_task_id + "&quest_id=" + get_running_labs_details.fk_quest_id
+                                            window.location.replace(redirect);
+                                        }
+                                    });
+                                return false;
+                            } else if (error_id == 13) {
+                                var running_task_id = obj.get_running_labs_details.fk_task_id;
+                                swal({
+                                    title: error_message.message,
+                                    text: error_message.message_detail,
+                                    icon: "warning",
+                                    buttons: ["Cancel", "Yes, Unlock!"],
+                                    dangerMode: true,
+                                }).then((willDelete) => {
+                                    if (!willDelete) return;
+                                    if (willDelete) swal("Please wait a few seconds until the page reloads.", { icon: "success", });
+                                    $(".loader").show();
+                                    //sleep(10000);
+                                    setTimeout(function() {
+                                        $.ajax({
+                                            type: 'post',
+                                            url: baseUrl + '/task/end_lab',
+                                            data: { 'session_id': session_id, 'fk_user_id': fk_user_id, 'task_id': running_task_id, 'error_id': error_id, 'type': 'unlock-lab' },
+                                            success: function(data) {
+                                                //console.log(data);
+                                                $(".loader").hide();
+                                                $('#myModal').modal('show');
+
+                                                $('#myModal').on('hidden.bs.modal', function() {
+                                                    location.reload();
+                                                })
+                                                return false;
+                                            },
+                                            error: function(request, error) {
+                                                $(".loader").hide();
+                                                $('#myModal').modal('show');
+
+                                                $('#myModal').on('hidden.bs.modal', function() {
+                                                    location.reload();
+                                                })
+                                                return false;
+                                            }
+                                        });
+                                    }, 5000);
+                                });
+                            } else if (error_id == 1 || error_id == 2 || error_id == 3 || error_id == 4 || error_id == 5) {
+                                var running_task_id = obj.task_id;
+                                swal({
+                                    title: error_message.message,
+                                    text: error_message.message_detail,
+                                    icon: "info",
+                                    dangerMode: true,
+                                    button: "OK",
+                                }).then((willDelete) => {
+                                    if (!willDelete) return false;
+                                    $(".loader").show();
+                                    $.ajax({
+                                        type: 'post',
+                                        url: baseUrl + '/task/end_lab',
+                                        data: { 'session_id': session_id, 'fk_user_id': fk_user_id, 'task_id': running_task_id, 'error_id': error_id, 'type': 'error-unlock-lab' },
+                                        success: function(data) {
+                                            //console.log(data);
+                                            $(".loader").hide();
+                                            $('#myModal').modal('show');
+
+                                            $('#myModal').on('hidden.bs.modal', function() {
+                                                location.reload();
+                                            })
+                                            return false;
+                                        },
+                                        error: function(request, error) {
+                                            $(".loader").hide();
+                                            $('#myModal').modal('show');
+
+                                            $('#myModal').on('hidden.bs.modal', function() {
+                                                location.reload();
+                                            })
+                                            return false;
+                                        }
+                                    });
+                                });
+                            }
+                        } else {
+                            var UniqueRoleId = obj.UniqueRoleId;
+                            var org_id = obj.org_id;
+
+                            var login_url = obj.login_url;
+                            var user_name = obj.user_name;
+                            var password = obj.password;
+                            var access_key = obj.access_key;
+                            var secret_key = obj.secret_key;
+
+                            if (api_origin) {
+                                var deduct_api = api_origin + '/labs/deduct-points'
+                            } else {
+                                var deduct_api = baseUrl + '/site/deduct_creditpoints'
+                            }
+
+                            // Credit Points Deduction
+                            $.ajax({
+                                type: 'post',
+                                url: deduct_api,
+                                data: {
+                                    'task_id': val_task_id,
+                                    'quest_id': val_quest_id,
+                                    //define in main task file 
+                                    course_id: course_id_whiz3,
+                                    lab_id: lab_id_whiz3
+                                },
+                                headers: {
+                                    'authorization': jwt_whiz3_token
+                                },
+                                success: function(data) {
+                                    // if data==1 means credit points deducted.
+                                    if (data.status == 1) {
+                                        //db opration
+                                        $.ajax({
+                                            type: 'POST',
+                                            url: baseUrl + '/task/update_task_user',
+                                            cache: false,
+                                            async: 'asynchronous',
+                                            dataType: 'json',
+                                            data: { 'org_id': org_id, 'UniqueRoleId': UniqueRoleId, 'task_id': task_id, 'fk_user_id': fk_user_id, 'quest_id': quest_id, 'duration': duration, 'login_link': login_url },
+                                            success: function(dataN) {
+
+                                                $('#start-lab').hide();
+                                                //IAM User username and password
+                                                $("#username").val(user_name);
+                                                $("#password").val(password);
+
+                                                //IAM User access key and secret key
+                                                $("#accesskey").val(access_key);
+                                                $("#secretkey").val(secret_key);
+
+                                                //IAM user login url
+                                                $("a.login_link").attr("href", login_url);
+
+                                                $('.aws_auth_details').show();
+                                                $('#stop-lab').show();
+
+                                                $(".loader").hide();
+                                                clock.start();
+
+                                                swal({
+                                                    title: "Success!",
+                                                    text: "Lab Started Successfully.",
+                                                    icon: "success",
+                                                    button: "OK",
+                                                });
+                                                return false;
+                                            }
+                                        });
+                                    } else {
+                                        var credit_points_data = data.message;
+                                        var error_id = 12;
+                                        $.ajax({
+                                            url: baseUrl + '/task/update_org',
+                                            type: 'POST',
+                                            data: { 'org_id': org_id, 'is_available': '1', 'UniqueRoleId': UniqueRoleId, 'flag': 'delete', 'message': credit_points_data, 'task_id': task_id, 'fk_user_id': fk_user_id, 'quest_id': quest_id, 'error_id': error_id },
+                                            success: function(data) {
+
+                                                $(".loader").hide();
+
+                                                var lab_error_info = credit_points_data;
+                                                swal({
+                                                    title: "Not Enough Lab Credit Points",
+                                                    text: lab_error_info,
+                                                    icon: "info",
+                                                    dangerMode: true,
+                                                    button: "OK",
+                                                });
+                                            },
+                                            error: function(request, error) {
+                                                $(".loader").hide();
+
+                                                var lab_error_info = 'Not Enough Lab Credit Points';
+                                                swal({
+                                                    title: "Not Enough Lab Credit Points",
+                                                    text: lab_error_info,
+                                                    icon: "info",
+                                                    dangerMode: true,
+                                                    button: "OK",
+                                                });
+                                            }
+                                        });
+                                        return false;
+                                    }
+                                }
+                            });
+                        }
+                        setInterval(getTaskEndTimeForUser, 10000);
+                        setInterval(getLabEndTime, 80000); //run in every less then 2 minute
+                    },
+                    error: function(request, error) {
+
+                        var message = 'RunShell Failed';
+                        var org_id = 0;
+                        var UniqueRoleId = 0;
+                        var error_id = 7;
+
+                        $.ajax({
+                            url: baseUrl + '/task/update_org',
+                            type: 'POST',
+                            data: { 'org_id': org_id, 'is_available': '1', 'UniqueRoleId': UniqueRoleId, 'flag': 'delete', 'message': message, 'task_id': task_id, 'fk_user_id': fk_user_id, 'quest_id': quest_id, 'error_id': error_id },
+                            success: function(data) {
+
+                                $(".loader").hide();
+
+                                var lab_error_info = 'Error Code #7. Account initialization Failed. please try again!';
+                                swal({
+                                    title: "Account Initialization Issue",
+                                    text: lab_error_info,
+                                    icon: "info",
+                                    dangerMode: true,
+                                    button: "OK",
+                                });
+                            },
+                            error: function(request, error) {
+                                $(".loader").hide();
+
+                                var lab_error_info = 'Info : The application failed to initialize your credentials, please try again!';
+                                swal({
+                                    title: "Environment Initialization Incomplete",
+                                    text: lab_error_info,
+                                    icon: "info",
+                                    dangerMode: true,
+                                    button: "OK",
+                                });
+                                return false;
+                            }
+                        });
+                        return false;
+                    }
+                });
+            } else {
+                var errorflag = 1;
+                var UniqueRoleId = 0;
+                var error_id = 8;
+                var org_id = 0;
+
+                var message = 'store auth token incorrect';
+
+                $.ajax({
+                    url: baseUrl + '/task/log_error',
+                    type: 'POST',
+                    data: { 'task_id': task_id, 'fk_user_id': fk_user_id, 'quest_id': quest_id, 'UniqueRoleId': UniqueRoleId, 'errorflag': errorflag, 'message': message, 'org_id': org_id, 'error_id': error_id },
+                    success: function(data) {
+
+                        $(".loader").hide();
+
+                        var lab_error_info = 'Error Code #8. Account initialization Failed. please try again!';
+                        swal({
+                            title: "Account Initialization Issue",
+                            text: lab_error_info,
+                            icon: "info",
+                            dangerMode: true,
+                            button: "OK",
+                        });
+                    },
+                    error: function(request, error) {
+                        $(".loader").hide();
+
+                        var lab_error_info = 'Info : The application failed to initialize your credentials, please try again!';
+                        swal({
+                            title: "Environment Initialization Incomplete",
+                            text: lab_error_info,
+                            icon: "info",
+                            dangerMode: true,
+                            button: "OK",
+                        });
+                        return false;
+                    }
+                });
+                return false;
+            }
+        },
+        error: function(request, error) {
+
+            var errorflag = 1;
+            var message = 'store auth token Failed';
+            var org_id = 0;
+            var UniqueRoleId = 0;
+            var error_id = 9;
+
+            $.ajax({
+                url: baseUrl + '/task/log_error',
+                type: 'POST',
+                data: { 'task_id': task_id, 'fk_user_id': fk_user_id, 'quest_id': quest_id, 'UniqueRoleId': UniqueRoleId, 'errorflag': errorflag, 'message': message, 'org_id': org_id, 'error_id': error_id },
+                success: function(data) {
+
+                    $(".loader").hide();
+
+                    var lab_error_info = 'Error Code #9. Account initialization Failed. please try again!';
+                    swal({
+                        title: "Account Initialization Issue",
+                        text: lab_error_info,
+                        icon: "info",
+                        dangerMode: true,
+                        button: "OK",
+                    });
+                },
+                error: function(request, error) {
+                    $(".loader").hide();
+
+                    var lab_error_info = 'Info : The application failed to initialize your credentials, please try again!';
+                    swal({
+                        title: "Environment Initialization Incomplete",
+                        text: lab_error_info,
+                        icon: "info",
+                        dangerMode: true,
+                        button: "OK",
+                    });
+                    return false;
+                }
+            });
+            return false;
+        }
+    });
+    return false;
+});
+
+//Stop Lab - AWS
+$(document).on('click', '#stop-lab', function() {
+    $('#stop-lab').hide();
+    $('#console_deactive').show();
+    $('#start-lab').show();
+    $('#console_active').hide();
+
+    clock.stop();
+
+    $(".loader").show();
+    var error_id = 0;
+    $.ajax({
+        type: 'post',
+        url: baseUrl + '/task/end_lab',
+        data: { 'session_id': session_id, 'fk_user_id': fk_user_id, 'task_id': task_id, 'error_id': error_id, 'type': 'stop-lab' },
+        success: function(data) {
+            //console.log(data);
+            $(".loader").hide();
+            $('.aws_auth_details').hide();
+
+            $('#myModal').modal('show');
+            $('#myModal').on('hidden.bs.modal', function() {
+                location.reload();
+            })
+            return false;
+        },
+        error: function(request, error) {
+            $(".loader").hide();
+            $('.aws_auth_details').hide();
+
+            $('#myModal').modal('show');
+            $('#myModal').on('hidden.bs.modal', function() {
+                location.reload();
+            })
+            return false;
+        }
+    });
+});
+//Stop Lab Before Start New Lab - AWS
+$(document).on('click', '#stop-lab-before-start-new-lab', function() {
+    $('#stop-lab').hide();
+    $('#console_deactive').show();
+    $('#start-lab').show();
+    $('#console_active').hide();
+    $(".loader").show();
+    var error_id = 0;
+    $.ajax({
+        type: 'post',
+        url: baseUrl + '/task/end_lab',
+        data: { 'session_id': session_id, 'fk_user_id': fk_user_id, 'task_id': task_id, 'error_id': error_id, 'type': 'stop-lab-from-other-lab' },
+        success: function(data) {
+            //console.log(data);
+            $(".loader").hide();
+            $('#myModal').modal('show');
+            $('#myModal').on('hidden.bs.modal', function() {
+                location.reload();
+            })
+            return false;
+        },
+        error: function(request, error) {
+            $(".loader").hide();
+
+            $('#myModal').modal('show');
+            $('#myModal').on('hidden.bs.modal', function() {
+                location.reload();
+            })
+            return false;
+        }
+    });
+});
+
+//Start Lab - AZURE
+$(document).on('click', '#start-lab-az', function() {
+    $(".loader").show();
+
+    var val_task_id = $('#task_id').val();
+    var val_quest_id = $('#quest_id').val();
+
+    if (location.hostname == 'play.whizlabs.com') {
+        var host_url = 'https://env.whizlabs.com';
+    } else if (location.hostname == 'play.whizlabs.org') {
+        var host_url = 'https://env.whizlabs.org';
+    } else {
+        var host_url = 'http://labs.local'; // local system url
+    }
+
+    $.ajax({
+        type: 'get',
+        url: baseUrl + '/azurelabs/store_auth_token',
+        data: { 'task_id': task_id, 'user_id': fk_user_id, 'quest_id': quest_id },
+        success: function(token) {
+            if (token != '') {
+                $.ajax({
+                    type: 'get',
+                    url: host_url + '/azurelabs/run_shell',
+                    data: {
+                        'session_id': session_id,
+                        'task_id': task_id,
+                        'fk_user_id': fk_user_id,
+                        'quest_id': quest_id,
+                        'auth_token': token,
+                        'user_id': fk_user_id
+                    },
+                    success: function(data) {
+                        var obj = JSON.parse(data);
+
+                        // condition for check Authentication - START
+                        if (typeof obj.auth_status !== 'undefined' && obj.auth_status == 0) {
+                            $(".loader").hide();
+                            $('#console_active').hide();
+                            $('#console_deactive').show();
+                            $('#stop-lab-az').hide();
+                            $('#start-lab-az').show();
+                            clock.stop();
+                            swal("Authentication Failed", "Authentication Failed, please try again!", "error");
+                            return false;
+                        }
+                        // condition for check Authentication - END
+                        if (obj.data == 'false') {
+                            $(".loader").hide();
+                            $('#console_active').hide();
+                            $('#console_deactive').show();
+                            $('#stop-lab-az').hide();
+                            $('#start-lab-az').show();
+                            clock.stop();
+                            swal("Not Available!", "Internal server error, please try again!", "error");
+                            return false;
+                        } else {
+                            var obj1 = obj.data; //is_running_labs
+                            var UniqueRoleId = obj.UniqueRoleId;
+                            if (UniqueRoleId == 0) {
+                                $(".loader").hide();
+                                $('#console_active').hide();
+                                $('#console_deactive').show();
+                                $('#stop-lab-az').hide();
+                                $('#start-lab-az').show();
+                                clock.stop();
+                                var objvalues = JSON.parse(obj1);
+                                var data_obj = objvalues.existingLabData;
+                                var exist_lab_error = 'You have another running lab, please end running lab to launch new one!';
+
+                                if (objvalues.lab_exist) {
+                                    swal({
+                                            title: "Another Lab Running",
+                                            text: exist_lab_error,
+                                            icon: "error",
+                                            dangerMode: true,
+                                            button: {
+                                                text: "Goto running lab",
+                                                closeModal: false,
+                                            },
+                                        })
+                                        .then(willDelete => {
+                                            if (willDelete) {
+                                                var redirect = baseUrl + "/site/task_details_az?lab_type=" + data_obj.lab_type + "&task_id=" + data_obj.fk_task_id + "&quest_id=" + data_obj.fk_quest_id
+                                                window.location.replace(redirect);
+                                            }
+                                        });
+                                } else {
+                                    swal({
+                                        title: "Not Available!",
+                                        text: "Azure User Lab Environement Creation Unsuccessful. Please Try Again",
+                                        icon: "error",
+                                        dangerMode: true,
+                                    });
+                                }
+                                return false;
+                            } else if (UniqueRoleId == 1) {
+                                $(".loader").hide();
+                                $('#console_active').hide();
+                                $('#console_deactive').show();
+                                $('#stop-lab-az').hide();
+                                $('#start-lab-az').show();
+                                clock.stop();
+
+                                swal("Azure Environment Creation Issue", "Azure User Lab Environement Creation Unsuccessful. Please Try Again", "error");
+                                return false;
+                            } else if (UniqueRoleId == 2 || UniqueRoleId == 3 || UniqueRoleId == 4) {
+                                $(".loader").hide();
+                                $('#console_active').hide();
+                                $('#console_deactive').show();
+                                $('#stop-lab-az').hide();
+                                $('#start-lab-az').show();
+                                clock.stop();
+                                swal("Azure Resources Creation Issue", "Azure Lab Resources Environement Creation Unsuccessful. Please Try Again", " error");
+                                return false;
+                            } else {
+
+                                if (api_origin) {
+                                    var deduct_api = api_origin + '/labs/deduct-points'
+                                } else {
+                                    var deduct_api = baseUrl + '/site/deduct_creditpoints'
+                                }
+
+                                var login_link = "https://portal.azure.com/";
+                                // for deduct the credit points
+                                $.ajax({
+                                    type: 'post',
+                                    url: deduct_api,
+                                    data: {
+                                        'task_id': val_task_id,
+                                        'quest_id': val_quest_id,
+                                        //define in main task file 
+                                        course_id: course_id_whiz3,
+                                        lab_id: lab_id_whiz3
+                                    },
+                                    headers: {
+                                        'authorization': jwt_whiz3_token
+
+                                    },
+                                    success: function(data) {
+                                        // if data==1 means credit points deducted.
+                                        if (data.status == 1) {
+                                            var subscription_id = obj.subscription_id;
+                                            var username = obj.username;
+                                            var password = obj.password;
+                                            var s_id = obj.s_id;
+                                            var resourcegroup = obj.resourcegroup;
+
+                                            $('#stop-lab-az').show();
+                                            $('.azure_auth_details').show();
+                                            $('#start-lab-az').hide();
+                                            $("#username").val(username);
+                                            $("#password").val(password);
+                                            clock.start();
+                                            $('#console_active').show();
+                                            $('#console_deactive').hide();
+                                            //$("#res_group").val(obj1.resourcegroup);
+                                            $(".login_link").attr('href', "https://portal.azure.com/");
+
+                                            //db opration
+                                            $.ajax({
+                                                type: 'POST',
+                                                url: baseUrl + '/azurelabs/add_azure_task_user',
+                                                cache: false,
+                                                async: 'asynchronous',
+                                                dataType: 'json',
+                                                data: {
+                                                    's_id': s_id,
+                                                    'resourcegroup': resourcegroup,
+                                                    'UniqueRoleId': UniqueRoleId,
+                                                    'task_id': task_id,
+                                                    'fk_user_id': fk_user_id,
+                                                    'quest_id': quest_id,
+                                                    'duration': duration,
+                                                    'subscription_id': subscription_id,
+                                                    'username': username,
+                                                    'password': password,
+                                                    'auth_token': token,
+                                                    'user_id': fk_user_id,
+                                                    'login_link': login_link
+                                                },
+                                                success: function(dataN) {
+                                                    setInterval(getTaskEndTimeForUser, 10000);
+                                                    $(".loader").hide();
+                                                    swal("Success!", data.message, "success");
+                                                    return false;
+                                                }
+                                            });
+                                        } else {
+                                            credit_points_data = data.message;
+                                            $(".loader").hide();
+                                            $('#console_active').hide();
+                                            $('#console_deactive').show();
+                                            $('#stop-lab').hide();
+                                            $('#start-lab').show();
+                                            clock.stop();
+
+                                            var lab_error_info = credit_points_data;
+                                            swal({
+                                                title: "Not Enough Lab Credit Points",
+                                                text: lab_error_info,
+                                                icon: "info",
+                                                dangerMode: true,
+                                            });
+                                            return false;
+                                        }
+                                    }
+                                });
+                            }
+                        }
+                    }
+                });
+            } else {
+                $(".loader").hide();
+                $('#console_active').hide();
+                $('#console_deactive').show();
+                $('#stop-lab-az').hide();
+                $('#start-lab-az').show();
+                clock.stop();
+                swal("Authentication Failed", "Token Not Found. Authentication Failed, please try again!", "error");
+                return false;
+            }
+        }
+    });
+    //console.log(data);
+});
+
+//Stop Azure Labs
+$(document).on('click', '#stop-lab-az', function() {
+    $('#stop-lab-az').hide();
+    $('#start-lab-az').show();
+    $(".loader").show();
+
+    clock.stop();
+
+    $.ajax({
+        type: 'post',
+        url: baseUrl + '/azurelabs/end_lab',
+        data: { 'session_id': session_id, 'fk_user_id': fk_user_id, 'task_id': task_id },
+        success: function(data) {
+            //console.log(data);            
+            $(".loader").hide();
+            $('#console_active').hide();
+            $('#console_deactive').show();
+
+            $('#myModal').modal('show');
+
+            $('#myModal').on('hidden.bs.modal', function() {
+                location.reload();
+            })
+
+            return false;
+        }
+    });
+});
+
+//gcp labS
+$(document).on('click', '#start-lab-gcp', function() {
+    $(".loader").show();
+
+
+    var val_task_id = $('#task_id').val();
+    var val_quest_id = $('#quest_id').val();
+
+    if (location.hostname == 'play.whizlabs.com') {
+        var host_url = 'https://env.whizlabs.com';
+    } else {
+        var host_url = 'https://env.whizlabs.org';
+    }
+
+
+    $.ajax({
+        type: 'get',
+        url: baseUrl + '/gcp/store_auth_token',
+        data: {
+            'task_id': task_id,
+            'fk_user_id': fk_user_id,
+            'quest_id': quest_id
+        },
+        dataType: "html",
+        success: function(token) {
+                if (token !== '') {
+                    $.ajax({
+                        type: 'get',
+                        url: baseUrl + '/gcp/run_shell',
+                        data: {
+                            'session_id': session_id,
+                            'task_id': task_id,
+                            'fk_user_id': fk_user_id,
+                            'quest_id': quest_id,
+                            'auth_token': token
+                        },
+                        success: function(data) {
+                            var obj = JSON.parse(data);
+                            /* condition for check Authentication - START */
+                            if (typeof obj.auth_status !== 'undefined' && obj.auth_status == 0) {
+                                $(".loader").hide();
+                                $('#stop-lab').hide();
+                                $('#start-lab').show();
+                                $('#validation-section').hide();
+                                clock.stop();
+                                swal("Authentication Failed", "Authentication Failed, please try again!", "error");
+                                return false;
+                            }
+                            /* condition for check Authentication - END */
+
+                            var obj1 = obj.data;
+                            var random = obj.random;
+                            var UniqueRoleId = obj.UniqueRoleId;
+                            var email = obj.email;
+                            var pass = obj.pass;
+                            var project_id = obj.project_id;
+                            var project_name = obj.project_name;
+                            var gcloud = obj.gcloud;
+                            var login_link = "https://console.cloud.google.com/home/dashboard?project=" + project_id;
+
+
+
+                            if (UniqueRoleId == 0) {
+                                $.ajax({
+                                    url: baseUrl + '/gcp/update_project',
+                                    type: 'POST',
+                                    data: {
+                                        'project_id': project_id,
+                                        'is_available': '1'
+                                    },
+                                    success: function(data) {
+
+                                        $(".loader").hide();
+                                        $('#console_active').hide();
+                                        $('#console_deactive').show();
+                                        $('#stop-lab-gcp').hide();
+                                        $('#start-lab-gcp').show();
+                                        $('#loadContent1').show();
+                                        $('#loadContent').hide();
+                                        $('#validation-section').hide();
+
+
+                                        clock.stop();
+
+                                        var div = document.getElementById('task_error');
+                                        //div.innerHTML += 'Error : You have another running lab, please end running lab to launch new one!';
+                                        var data_obj = JSON.parse(data);
+                                        var exist_lab_error = 'You have another running lab, please end running lab to launch new one!';
+
+                                        if (data_obj.lab_exisit) {
+                                            swal({
+                                                    title: "Not Available!",
+                                                    text: exist_lab_error,
+                                                    icon: "error",
+                                                    dangerMode: true,
+                                                    button: {
+                                                        text: "Go to running lab",
+                                                        closeModal: false,
+                                                    },
+
+                                                })
+                                                .then(willDelete => {
+                                                    if (willDelete) {
+                                                        var redirect = baseUrl + "/site/task_details_gcp?lab_type=3&task_id=" + data_obj.data.fk_task_id + "&quest_id=" + data_obj.data.fk_quest_id
+                                                        window.location.replace(redirect);
+                                                    }
+                                                });
+
+                                        } else {
+
+                                            swal({
+                                                title: "Not Available!",
+                                                text: "No Slot Available",
+                                                icon: "error",
+                                                dangerMode: true,
+
+                                            });
+                                        }
+                                    },
+                                    error: function(request, error) {
+                                        //alert("Request: "+JSON.stringify(request));
+
+                                        $(".loader").hide();
+                                        $('#console_active').hide();
+                                        $('#console_deactive').show();
+                                        $('#stop-lab-gcp').hide();
+                                        $('#start-lab-gcp').show();
+                                        $('#loadContent1').show();
+                                        $('#loadContent').hide();
+                                        $('#validation-section').hide();
+                                        clock.stop();
+
+                                        var div = document.getElementById('task_error');
+                                        //div.innerHTML += 'Error : You have another running lab, please end running lab to launch new one!';
+                                        swal("Not Authorized!", "You have another running lab, please end running lab to launch new one!", "error");
+                                    }
+                                });
+                                return false;
+                            } else if (UniqueRoleId == 1) {
+                                $.ajax({
+                                    url: baseUrl + '/gcp/update_project',
+                                    type: 'POST',
+                                    data: {
+                                        'project_id': project_id,
+                                        'is_available': '1'
+                                    },
+                                    success: function(data) {
+                                        //alert('Data: '+data);
+
+                                        $(".loader").hide();
+                                        $('#console_active').hide();
+                                        $('#console_deactive').show();
+                                        $('#stop-lab-gcp').hide();
+                                        $('#start-lab-gcp').show();
+                                        $('#loadContent1').show();
+                                        $('#loadContent').hide();
+                                        $('#validation-section').hide();
+                                        clock.stop();
+                                        var data_obj = JSON.parse(data);
+                                        var div = document.getElementById('task_error');
+                                        //div.innerHTML += 'Error : You have another running lab, please end running lab to launch new one!';
+                                        var exist_lab_error = 'You have another running lab, please end running lab to launch new one!';
+
+                                        if (data_obj.lab_exisit) {
+                                            swal({
+                                                    title: "Not Available!",
+                                                    text: exist_lab_error,
+                                                    icon: "error",
+                                                    dangerMode: true,
+                                                    button: {
+                                                        text: "Go to running lab",
+                                                        closeModal: false,
+                                                    },
+
+                                                })
+                                                .then(willDelete => {
+                                                    if (willDelete) {
+                                                        var redirect = baseUrl + "/site/task_details_gcp?lab_type=3&task_id=" + data_obj.data.fk_task_id + "&quest_id=" + data_obj.data.fk_quest_id
+                                                        window.location.replace(redirect);
+                                                    }
+                                                });
+
+                                        } else {
+
+                                            swal({
+                                                title: "Not Available!",
+                                                text: "No Slot",
+                                                icon: "error",
+                                                dangerMode: true,
+
+                                            });
+                                        }
+                                    },
+                                    error: function(request, error) {
+                                        //alert("Request: "+JSON.stringify(request));
+
+                                        $(".loader").hide();
+                                        $('#console_active').hide();
+                                        $('#console_deactive').show();
+                                        $('#stop-lab-gcp').hide();
+                                        $('#start-lab-gcp').show();
+                                        $('#loadContent1').show();
+                                        $('#loadContent').hide();
+                                        $('#validation-section').hide();
+                                        clock.stop();
+
+                                        var div = document.getElementById('task_error');
+
+                                        //div.innerHTML += 'Error : You have another running lab, please end running lab to launch new one!';
+
+                                        swal("Not Available!", "No slot available for this lab, please try after sometime !", "error");
+                                    }
+                                });
+                                return false;
+                            } else if (UniqueRoleId == 2) {
+                                $.ajax({
+                                    url: baseUrl + '/gcp/update_project_back',
+                                    type: 'POST',
+                                    data: {
+                                        'project_id': project_id,
+                                        'is_available': '1'
+                                    },
+                                    success: function(data) {
+                                        //alert('Data: '+data);
+
+                                        $(".loader").hide();
+                                        $('#console_active').hide();
+                                        $('#console_deactive').show();
+                                        $('#stop-lab-gcp').hide();
+                                        $('#start-lab-gcp').show();
+                                        $('#loadContent1').show();
+                                        $('#loadContent').hide();
+                                        $('#validation-section').hide();
+                                        clock.stop();
+                                        var data_obj = JSON.parse(data);
+                                        var div = document.getElementById('task_error');
+                                        //div.innerHTML += 'Error : You have another running lab, please end running lab to launch new one!';
+                                        var exist_lab_error = 'You lab access is blocked because You did not follow lab instruction properly. Contact Administrator if you think its done by mistake!';
+
+                                        if (data_obj.is_blocked == 1) {
+                                            swal({
+                                                title: "Access Blocked!",
+                                                text: exist_lab_error,
+                                                icon: "error",
+                                                dangerMode: true,
+
+                                            })
+
+                                        } else {
+
+                                            swal({
+                                                title: "Error!",
+                                                text: "Please Try again",
+                                                icon: "error",
+                                                dangerMode: true,
+
+                                            });
+                                        }
+                                    },
+                                    error: function(request, error) {
+                                        //alert("Request: "+JSON.stringify(request));
+
+                                        $(".loader").hide();
+                                        $('#console_active').hide();
+                                        $('#console_deactive').show();
+                                        $('#stop-lab-gcp').hide();
+                                        $('#start-lab-gcp').show();
+                                        $('#loadContent1').show();
+                                        $('#loadContent').hide();
+                                        $('#validation-section').hide();
+                                        clock.stop();
+
+                                        var div = document.getElementById('task_error');
+
+                                        //div.innerHTML += 'Error : You have another running lab, please end running lab to launch new one!';
+
+                                        swal("Error!", "Please try after sometime !", "error");
+                                    }
+                                });
+                                return false;
+                            } else {
+
+                                sleep(7000);
+                                $("a.login_link").attr("href", login_link);
+
+
+                                if (api_origin) {
+                                    var deduct_api = api_origin + '/labs/deduct-points'
+                                } else {
+                                    var deduct_api = baseUrl + '/site/deduct_creditpoints'
+                                }
+
+
+                                $.ajax({
+                                    type: 'post',
+                                    url: deduct_api,
+                                    data: {
+                                        'task_id': val_task_id,
+                                        'quest_id': val_quest_id,
+                                        //define in main task file 
+                                        course_id: course_id_whiz3,
+                                        lab_id: lab_id_whiz3
+                                    },
+                                    headers: {
+                                        'authorization': jwt_whiz3_token
+                                    },
+                                    success: function(dataC) {
+                                        // if data==1 means credit points deducted.
+                                        if (dataC.status == 1) {
+                                            //db opration
+                                            $.ajax({
+                                                type: 'POST',
+                                                url: baseUrl + '/gcp/add_task_user',
+                                                cache: false,
+                                                async: 'asynchronous',
+                                                dataType: 'json',
+                                                data: {
+                                                    'UniqueRoleId': UniqueRoleId,
+                                                    'task_id': task_id,
+                                                    'fk_user_id': fk_user_id,
+                                                    'quest_id': quest_id,
+                                                    'duration': duration,
+                                                    'project_id': project_id,
+                                                    'project_name': project_name,
+                                                    'email': email,
+                                                    'pass': pass,
+                                                    'random': random
+                                                },
+                                                success: function(dataN) {
+                                                    //console.log(dataN);
+                                                    //return false;
+
+
+                                                    $(".loader").hide();
+                                                    swal("Success!", dataC.message, "success");
+                                                    clock.start();
+                                                    $('#console_active').show();
+                                                    $('#console_deactive').hide();
+                                                    $('#stop-lab-gcp').show();
+                                                    $('#start-lab-gcp').hide();
+                                                    $('input[name="email"]').val(email);
+                                                    $('input[name="pass"]').val(pass);
+                                                    $('input[name="project_id"]').val(project_id);
+                                                    $('input[name="project_name"]').val(project_name);
+                                                    $('#loadContent1').hide();
+                                                    $('#loadContent').show();
+                                                    $('#validation-section').show();
+                                                    setInterval(getTaskEndTimeForUser, 1000);
+
+                                                    return false;
+
+
+                                                    //       $("#responsecontainer").html(gcloud);
+
+
+
+
+                                                }
+                                            });
+                                        } else {
+                                            $('#loadContent1').show();
+                                            $('#loadContent').hide();
+
+                                            $('#stop-lab-gcp').hide();
+                                            $('#start-lab-gcp').show();
+                                            $('#validation-section').hide();
+                                            $(".loader").hide();
+                                            swal("Failed!", data.message, "error");
+                                            return false;
+                                        }
+
+
+                                    }
+                                });
+                                //=========end of secound ajax======
+                            }
+
+                            /* condition for check Authentication - START */
+
+                        }
+
+
+                    });
+
+
+                } else {
+                    $(".loader").hide();
+                    $('#stop-lab-gcp').hide();
+                    $('#start-lab-gcp').show();
+                    $('#validation-section').hide();
+                    $('#loadContent1').show();
+                    $('#loadContent').hide();
+                    clock.stop();
+                    swal("Authentication Failed", "Token Not Found. Authentication Failed, please try again!", "error");
+                    return false;
+                }
+
+                // swal("Authentication Failed", "Authentication Failed, please try again11!", "error");
+            }
+            //console.log(data);
+    });
+
+    return false;
+});
+//gcb labs end
+
+
+
+$('.wrap').on('click', '.textcopyicongcp', function() {
+    var $temp = $("<div id='toCopy'>");
+    var brRegex = /<br\s*[\/]?>/gi;
+    $("body").append($temp);
+    $temp.attr("contenteditable", true)
+        .html($(this).nextAll('.clickToCopy:first').html());
+    selectText("toCopy");
+    document.execCommand("copy");
+    $('<span class="printMessage" style=color:white;margin-top:10px;>Copied to Clipboard</span>').insertAfter(this);
+    $('.printMessage').fadeOut(2000);
+    $temp.remove();
+});
+
+//end gcp labS
+$(document).on('click', '#stop-lab-gcp', function() {
+    $('#stop-lab').hide();
+    $('#start-lab').show();
+    $(".loader").show();
+    $.ajax({
+        type: 'post',
+        url: baseUrl + '/gcp/end_lab',
+        data: {
+            'session_id': session_id,
+            'fk_user_id': fk_user_id,
+            'task_id': task_id
+        },
+        success: function(data) {
+
+            var obj = JSON.parse(data);
+
+            var project_id = obj.project_id;
+
+
+            console.log(project_id);
+            $(".loader").hide();
+            $('#console_active').hide();
+            $('#console_deactive').show();
+            $('#myModal').modal('show');
+            clock.stop();
+            $('#start-lab-gcp').show();
+            $('#stop-lab-gcp').hide();
+
+            $('#loadContent1').show();
+            $('#loadContent').hide();
+            $('#myModal').on('hidden.bs.modal', function() {
+                location.reload();
+            })
+
+            return false;
+
+        },
+        error: function() {
+            alert("Error!");
+        }
+
+
+    });
+});
+//end gcp labs
+
+
+
+
+//python lab start
+$(document).on('click', '#start-lab-py', function() {
+    $(".loader").show();
+
+
+    var val_task_id = $('#task_id').val();
+    var val_quest_id = $('#quest_id').val();
+
+    if (location.hostname == 'play.whizlabs.com') {
+        var host_url = 'https://env.whizlabs.com';
+    } else {
+        var host_url = 'https://env.whizlabs.org';
+    }
+
+
+    $.ajax({
+        type: 'get',
+        url: baseUrl + '/py/store_auth_token',
+        data: {
+            'task_id': task_id,
+            'fk_user_id': fk_user_id,
+            'quest_id': quest_id
+        },
+        dataType: "html",
+        success: function(token) {
+                if (token !== '') {
+                    $.ajax({
+                        type: 'get',
+                        url: baseUrl + '/py/run_shell',
+                        data: {
+                            'session_id': session_id,
+                            'task_id': task_id,
+                            'fk_user_id': fk_user_id,
+                            'quest_id': quest_id,
+                            'auth_token': token
+                        },
+                        success: function(data) {
+                            var obj = JSON.parse(data);
+                            /* condition for check Authentication - START */
+                            if (typeof obj.auth_status !== 'undefined' && obj.auth_status == 0) {
+                                $(".loader").hide();
+                                $('#stop-lab-py').hide();
+                                $('#start-lab-py').show();
+                                $('#validation-section').hide();
+                                clock.stop();
+                                swal("Authentication Failed", "Authentication Failed, please try again!", "error");
+                                return false;
+                            }
+                            /* condition for check Authentication - END */
+
+                            var obj1 = obj.data;
+                            var random = obj.random;
+                            var UniqueRoleId = obj.UniqueRoleId;
+                            var account = obj.account;
+                            var api_key = obj.api_key;
+                            
+                            if (location.hostname == 'play.whizlabs.com') {
+                                var host_url = 'https://play.whizlabs.com/site/py_compiler?lab_type=4&&task_id='+task_id+'&&quest_id='+quest_id +'&&lms_user_id='+fk_user_id;
+                            } else if(location.hostname == 'play.whizlabs.org') {
+                                var host_url = 'https://play.whizlabs.org/site/py_compiler?lab_type=4&&task_id='+task_id+'&&quest_id='+quest_id +'&&lms_user_id='+fk_user_id;
+                            }
+                            else {
+                                var host_url = 'http://localhost:8888/whizlabs-labs-development-repo/site/py_compiler?lab_type=4&&task_id='+task_id+'&&quest_id='+quest_id +'&&lms_user_id='+fk_user_id;
+                            }
+    
+                            var login_link = host_url;
+
+
+
+                            if (UniqueRoleId == 0) {
+                                $.ajax({
+                                    url: baseUrl + '/py/update_account',
+                                    type: 'POST',
+                                    data: {
+                                        'account': acount,
+                                        'is_available': '1'
+                                    },
+                                    success: function(data) {
+
+                                        $(".loader").hide();
+                                        $('#console_active').hide();
+                                        $('#console_deactive').show();
+                                        $('#stop-lab-py').hide();
+                                        $('#start-lab-py').show();
+                                        $('#loadContent1').hide();
+                                        $('#loadContent2').hide();
+                                        $('#loadContent').hide();
+                                        $('#validation-section').hide();
+
+
+                                        clock.stop();
+
+                                        var div = document.getElementById('task_error');
+                                        //div.innerHTML += 'Error : You have another running lab, please end running lab to launch new one!';
+                                        var data_obj = JSON.parse(data);
+                                        var exist_lab_error = 'You have another running lab, please end running lab to launch new one!';
+
+                                        if (data_obj.lab_exisit) {
+                                            swal({
+                                                    title: "Not Available!",
+                                                    text: exist_lab_error,
+                                                    icon: "error",
+                                                    dangerMode: true,
+                                                    button: {
+                                                        text: "Go to running lab",
+                                                        closeModal: false,
+                                                    },
+
+                                                })
+                                                .then(willDelete => {
+                                                    if (willDelete) {
+                                                        var redirect = baseUrl + "/site/task_details_py?lab_type=4&task_id=" + data_obj.data.fk_task_id + "&quest_id=" + data_obj.data.fk_quest_id
+                                                        window.location.replace(redirect);
+                                                    }
+                                                });
+
+                                        } else {
+
+                                            swal({
+                                                title: "Not Available!",
+                                                text: "No Slot Available",
+                                                icon: "error",
+                                                dangerMode: true,
+
+                                            });
+                                        }
+                                    },
+                                    error: function(request, error) {
+                                        //alert("Request: "+JSON.stringify(request));
+
+                                        $(".loader").hide();
+                                        $('#console_active').hide();
+                                        $('#console_deactive').show();
+                                        $('#stop-lab-py').hide();
+                                        $('#start-lab-py').show();
+                                        $('#loadContent1').hide();
+                                        $('#loadContent2').hide();
+                                        $('#loadContent').hide();
+                                        $('#validation-section').hide();
+                                        clock.stop();
+
+                                        var div = document.getElementById('task_error');
+                                        //div.innerHTML += 'Error : You have another running lab, please end running lab to launch new one!';
+                                        swal("Not Authorized!", "You have another running lab, please end running lab to launch new one!", "error");
+                                    }
+                                });
+                                return false;
+                            } else if (UniqueRoleId == 1) {
+                                $.ajax({
+                                    url: baseUrl + '/py/update_account',
+                                    type: 'POST',
+                                    data: {
+                                        'account': account,
+                                        'is_available': '1'
+                                    },
+                                    success: function(data) {
+                                        //alert('Data: '+data);
+
+                                        $(".loader").hide();
+                                        $('#console_active').hide();
+                                        $('#console_deactive').show();
+                                        $('#stop-lab-py').hide();
+                                        $('#start-lab-py').show();
+                                        $('#loadContent1').hide();
+                                        $('#loadContent2').hide();
+                                        $('#loadContent').hide();
+                                        $('#validation-section').hide();
+                                        clock.stop();
+                                        var data_obj = JSON.parse(data);
+                                        var div = document.getElementById('task_error');
+                                        //div.innerHTML += 'Error : You have another running lab, please end running lab to launch new one!';
+                                        var exist_lab_error = 'You have another running lab, please end running lab to launch new one!';
+
+                                        if (data_obj.lab_exisit) {
+                                            swal({
+                                                    title: "Not Available!",
+                                                    text: exist_lab_error,
+                                                    icon: "error",
+                                                    dangerMode: true,
+                                                    button: {
+                                                        text: "Go to running lab",
+                                                        closeModal: false,
+                                                    },
+
+                                                })
+                                                .then(willDelete => {
+                                                    if (willDelete) {
+                                                        var redirect = baseUrl + "/site/task_details_py?lab_type=3&task_id=" + data_obj.data.fk_task_id + "&quest_id=" + data_obj.data.fk_quest_id
+                                                        window.location.replace(redirect);
+                                                    }
+                                                });
+
+                                        } else {
+
+                                            swal({
+                                                title: "Not Available!",
+                                                text: "No Slot",
+                                                icon: "error",
+                                                dangerMode: true,
+
+                                            });
+                                        }
+                                    },
+                                    error: function(request, error) {
+                                        //alert("Request: "+JSON.stringify(request));
+
+                                        $(".loader").hide();
+                                        $('#console_active').hide();
+                                        $('#console_deactive').show();
+                                        $('#stop-lab-py').hide();
+                                        $('#start-lab-py').show();
+                                        $('#loadContent1').hide();
+                                        $('#loadContent').hide();
+                                        $('#validation-section').hide();
+                                        clock.stop();
+
+                                        var div = document.getElementById('task_error');
+
+                                        //div.innerHTML += 'Error : You have another running lab, please end running lab to launch new one!';
+
+                                        swal("Not Available!", "No slot available for this lab, please try after sometime !", "error");
+                                    }
+                                });
+                                return false;
+                            } else if (UniqueRoleId == 2) {
+                                $.ajax({
+                                    url: baseUrl + '/py/update_account_back',
+                                    type: 'POST',
+                                    data: {
+                                        'account': account,
+                                        'is_available': '1'
+                                    },
+                                    success: function(data) {
+                                        //alert('Data: '+data);
+
+                                        $(".loader").hide();
+                                        $('#console_active').hide();
+                                        $('#console_deactive').show();
+                                        $('#stop-lab-py').hide();
+                                        $('#start-lab-py').show();
+                                        $('#loadContent1').hide();
+                                        $('#loadContent2').hide();
+                                        $('#loadContent').hide();
+                                        $('#validation-section').hide();
+                                        clock.stop();
+                                        var data_obj = JSON.parse(data);
+                                        var div = document.getElementById('task_error');
+                                        //div.innerHTML += 'Error : You have another running lab, please end running lab to launch new one!';
+                                        var exist_lab_error = 'You lab access is blocked because You did not follow lab instruction properly. Contact Administrator if you think its done by mistake!';
+
+                                        if (data_obj.is_blocked == 1) {
+                                            swal({
+                                                title: "Access Blocked!",
+                                                text: exist_lab_error,
+                                                icon: "error",
+                                                dangerMode: true,
+
+                                            })
+
+                                        } else {
+
+                                            swal({
+                                                title: "Error!",
+                                                text: "Please Try again",
+                                                icon: "error",
+                                                dangerMode: true,
+
+                                            });
+                                        }
+                                    },
+                                    error: function(request, error) {
+                                        //alert("Request: "+JSON.stringify(request));
+
+                                        $(".loader").hide();
+                                        $('#console_active').hide();
+                                        $('#console_deactive').show();
+                                        $('#stop-lab-py').hide();
+                                        $('#start-lab-py').show();
+                                        $('#loadContent1').hide();
+                                        $('#loadContent2').hide();
+                                        $('#loadContent').hide();
+                                        $('#validation-section').hide();
+                                        clock.stop();
+
+                                        var div = document.getElementById('task_error');
+
+                                        //div.innerHTML += 'Error : You have another running lab, please end running lab to launch new one!';
+
+                                        swal("Error!", "Please try after sometime !", "error");
+                                    }
+                                });
+                                return false;
+                            } else {
+
+                                sleep(7000);
+                                $("a.login_link").attr("href", login_link);
+
+
+                                if (api_origin) {
+                                    var deduct_api = api_origin + '/labs/deduct-points'
+                                } else {
+                                    var deduct_api = baseUrl + '/site/deduct_creditpoints'
+                                }
+
+
+                                $.ajax({
+                                    type: 'post',
+                                    url: deduct_api,
+                                    data: {
+                                        'task_id': val_task_id,
+                                        'quest_id': val_quest_id,
+                                        //define in main task file 
+                                        course_id: course_id_whiz3,
+                                        lab_id: lab_id_whiz3
+                                    },
+                                    headers: {
+                                        'authorization': jwt_whiz3_token
+                                    },
+                                    success: function(dataC) {
+                                        // if data==1 means credit points deducted.
+                                        if (dataC.status == 1) {
+                                            //db opration
+                                            $.ajax({
+                                                type: 'POST',
+                                                url: baseUrl + '/py/add_task_user',
+                                                cache: false,
+                                                async: 'asynchronous',
+                                                dataType: 'json',
+                                                data: {
+                                                    'UniqueRoleId': UniqueRoleId,
+                                                    'task_id': task_id,
+                                                    'fk_user_id': fk_user_id,
+                                                    'quest_id': quest_id,
+                                                    'duration': duration,
+                                                    'account': account,
+                                                    'api_key': api_key,
+                                                    'random': random
+                                                },
+                                                success: function(dataN) {
+                                                    //console.log(dataN);
+                                                    //return false;
+
+
+                                                    $(".loader").hide();
+                                                    swal("Success!", dataC.message, "success");
+                                                    clock.start();
+                                                    $('#console_active').show();
+                                                    $('#console_deactive').hide();
+                                                    $('#stop-lab-py').show();
+                                                    $('#start-lab-py').hide();
+                                                    $('input[name="account"]').val(account);
+                                                    $('input[name="api_key"]').val(api_key);
+                                                    $('#loadContent1').hide();
+                                                    $('#loadContent2').hide();
+                                                    $('#loadContent').hide();
+                                                    $('#validation-section').show();
+                                                    setInterval(getTaskEndTimeForUser, 10000);
+
+                                                    $.ajax({
+                                                        type: 'post',
+                                                        url: baseUrl + '/py/store_code',
+                                                        data: {
+                                                        
+                                                            'session_id': session_id,
+                                                            'fk_user_id': fk_user_id,
+                                                            'task_id': task_id,
+                                                            'quest_id': quest_id
+                                                        },
+                                                        success: function(data) {
+                                                
+                                                            $(".loader").hide();
+                                                        
+
+
+                                                            return false;
+                                                
+                                                        },
+                                                        error: function() {
+                                                            alert("Error!");
+                                                        }
+                                                
+                                                
+                                                
+                                                
+                                                    });
+                                                    return false;
+
+
+                                                    //       $("#responsecontainer").html(gcloud);
+
+
+
+
+                                                }
+                                            });
+                                        } else {
+                                            $('#loadContent1').hide();
+                                            $('#loadContent2').hide();
+                                            $('#loadContent').hide();
+
+                                            $('#stop-lab-py').hide();
+                                            $('#start-lab-py').show();
+                                            $('#validation-section').hide();
+                                            $(".loader").hide();
+                                            swal("Failed!", data.message, "error");
+                                            return false;
+                                        }
+
+
+                                    }
+                                });
+                                //=========end of secound ajax======
+                            }
+
+                            /* condition for check Authentication - START */
+
+                        }
+
+
+                    });
+
+
+                } else {
+                    $(".loader").hide();
+                    $('#stop-lab-py').hide();
+                    $('#start-lab-py').show();
+                    $('#validation-section').hide();
+                    $('#loadContent1').hide();
+                    $('#loadContent2').hide();
+                    $('#loadContent').hide();
+                    clock.stop();
+                    swal("Authentication Failed", "Token Not Found. Authentication Failed, please try again!", "error");
+                    return false;
+                }
+
+                // swal("Authentication Failed", "Authentication Failed, please try again11!", "error");
+            }
+            //console.log(data);
+    });
+
+    return false;
+});
+//gcb labs end
+
+
+
+$('.wrap').on('click', '.textcopyiconpy', function() {
+    var $temp = $("<div id='toCopy'>");
+    var brRegex = /<br\s*[\/]?>/gi;
+    $("body").append($temp);
+    $temp.attr("contenteditable", true)
+        .html($(this).nextAll('.clickToCopy:first').html());
+    selectText("toCopy");
+    document.execCommand("copy");
+    $('<span class="printMessage" style=color:white;margin-top:10px;>Copied to Clipboard</span>').insertAfter(this);
+    $('.printMessage').fadeOut(2000);
+    $temp.remove();
+});
+
+//end py labS
+$(document).on('click', '#stop-lab-py', function() {
+    $('#stop-lab').hide();
+    $('#start-lab').show();
+    $(".loader").show();
+    $.ajax({
+        type: 'post',
+        url: baseUrl + '/py/end_lab',
+        data: {
+            'session_id': session_id,
+            'fk_user_id': fk_user_id,
+            'task_id': task_id
+        },
+        success: function(data) {
+
+            var obj = JSON.parse(data);
+
+            var account = obj.account;
+
+
+            console.log(account);
+            $(".loader").hide();
+            $('#console_active').hide();
+            $('#console_deactive').show();
+            $('#myModal').modal('show');
+            clock.stop();
+            $('#start-lab-py').show();
+            $('#stop-lab-py').hide();
+
+            $('#loadContent1').hide();
+            $('#loadContent2').hide();
+                                        $('#loadContent').hide();
+            $('#myModal').on('hidden.bs.modal', function() {
+                location.reload();
+            })
+
+            
+
+            return false;
+
+        },
+        error: function() {
+            alert("Error!");
+        }
+
+
+    });
+});
+//end python labs
+
+
+//end py labS
+$(document).on('click', '#run', function() {
+
+    if (labStatus == 2 && duration >= 0) {
+        //  location.href = "http://google.nl";
+               
+        $(".loader").show();
+    var source = $('#source').val();
+    var input = $('#input').val();
+    
+
+
+
+    $.ajax({
+        type: 'post',
+        url: baseUrl + '/py/fetch_task_for_user',
+        data: { 'session_id': session_id, 'task_id': task_id, 'fk_user_id': fk_user_id },
+        success: function(data) {
+            var obj = JSON.parse(data);
+            var response = obj.response;
+            var id = obj.log.id;
+            
+
+            $.ajax({
+                type: 'post',
+                url: baseUrl + '/py/update_code',
+                data: {
+                    'id':id,
+                    'source': source,
+                    'input': input,
+                    'session_id': session_id,
+                    'fk_user_id': fk_user_id,
+                    'task_id': task_id,
+                    'quest_id': quest_id
+                },
+                success: function(data) {
+        
+                    var obj = JSON.parse(data); 
+                    
+                    $.ajax({
+                        type: 'post',
+                        url: baseUrl + '/py/compile_code',
+                        data: {
+                            'id':id,
+                            'source': source,
+                            'input': input,
+                            'session_id': session_id,
+                            'fk_user_id': fk_user_id,
+                            'task_id': task_id,
+                            'quest_id': quest_id
+                        },
+                        success: function(data) {
+                
+                            var obj = JSON.parse(data);
+                            var out = obj.result;
+                            
+                            $("#output").val(out);
+                            
+                            
+                            
+                            $(".loader").hide();
+                            return false;
+                
+                        },
+                        error: function() {
+                            swal({
+                                title: "Lab Not Started!",
+                                text: "You do not have any running lab, please start the lab to launch the IDE!",
+                                icon: "error",
+                                dangerMode: true,
+                                
+                            });
+                        }
+                
+                
+                
+                
+                    });
+
+                    
+                    $(".loader").hide();
+                    
+        
+                },
+                error: function() {
+                    alert("Error!");
+                }
+        
+        
+        
+        
+            });
+        
+        
+        }
+    });
+    
+    }
+    else if(duration<=0){
+                
+    
+        swal({
+                title: "Lab Time Over!",
+                text: "Your lab time is over, please restart the lab to launch the IDE!",
+                icon: "error",
+                dangerMode: true,
+                
+            });
+        
+
+     
+// location.href = "http://abc.nl";
+// swal("", "", "error");
+}
+
+   
+   
+    else {
+                
+    
+                                                swal({
+                                                        title: "Lab Not Started!",
+                                                        text: "You do not have any running lab, please start the lab to launch the IDE!",
+                                                        icon: "error",
+                                                        dangerMode: true,
+                                                        
+                                                    });
+                                                
+    
+  
+            }
+    
+
+
+
+    
+	
+    
+});
+
+
+$(document).on('click', '#run-sandbox', function() {
+
+    if (labStatus == 2 && duration >= 0) {
+        //  location.href = "http://google.nl";
+               
+        $(".loader").show();
+    var source = $('#source').val();
+    var input = $('#input').val();
+    
+
+
+
+    $.ajax({
+        type: 'post',
+        url: baseUrl + '/py/fetch_task_for_user',
+        data: { 'session_id': session_id, 'task_id': task_id, 'fk_user_id': fk_user_id },
+        success: function(data) {
+            var obj = JSON.parse(data);
+            var response = obj.response;
+            var id = obj.log.id;
+            
+
+            $.ajax({
+                type: 'post',
+                url: baseUrl + '/py/update_code',
+                data: {
+                    'id':id,
+                    'source': source,
+                    'input': input,
+                    'session_id': session_id,
+                    'fk_user_id': fk_user_id,
+                    'task_id': task_id,
+                    'quest_id': quest_id
+                },
+                success: function(data) {
+        
+                    var obj = JSON.parse(data); 
+                    
+                    $.ajax({
+                        type: 'post',
+                        url: baseUrl + '/py/compile_code',
+                        data: {
+                            'id':id,
+                            'source': source,
+                            'input': input,
+                            'session_id': session_id,
+                            'fk_user_id': fk_user_id,
+                            'task_id': task_id,
+                            'quest_id': quest_id
+                        },
+                        success: function(data) {
+                
+                            var obj = JSON.parse(data);
+                            var out = obj.result;
+                            
+                            $("#output").val(out);
+                            
+                            
+                            
+                            $(".loader").hide();
+                            return false;
+                
+                        },
+                        error: function() {
+                            swal({
+                                title: "Sandbox Not Started!",
+                                text: "You do not have any running Sandbox!",
+                                icon: "error",
+                                dangerMode: true,
+                                
+                            });
+                        }
+                
+                
+                
+                
+                    });
+
+                    
+                    $(".loader").hide();
+                    
+        
+                },
+
+                error: function() {
+                    swal({
+                        title: "Compilation Error",
+                        text: "Please read the Rules Carefully!",
+                        icon: "error",
+                        dangerMode: true,
+                        
+                    });
+
+                    window.location.reload();
+                    
+                }
+                
+        
+        
+        
+        
+            });
+            
+        
+        }
+    });
+    
+    }
+    else if(duration<=0){
+                
+    
+        swal({
+                title: "Sandbox Time Over!",
+                text: "Your Sandbox time is over!",
+                icon: "error",
+                dangerMode: true,
+                
+            });
+        
+
+     
+// location.href = "http://abc.nl";
+// swal("", "", "error");
+}
+
+   
+   
+    else {
+                
+    
+                                                swal({
+                                                    title: "Sandbox Not Started!",
+                                                    text: "You do not have any running Sandbox!",
+                                                    icon: "error",
+                                                        dangerMode: true,
+                                                        
+                                                    });
+                                                
+    
+  
+            }
+    
+
+
+
+    
+	
+    
+});
+
+
+
+//end py labS
+$(document).on('click', '#validate-lab-py', function() {
+    if (labStatus == 2 && duration >= 0) {
+
+    $(".loader").show();
+    var source = $('#source').val();
+    var input = $('#input').val();
+
+    $.ajax({
+        type: 'post',
+        url: baseUrl + '/py/fetch_task_for_user',
+        data: { 'session_id': session_id, 'task_id': task_id, 'fk_user_id': fk_user_id },
+        success: function(data) {
+            var obj = JSON.parse(data);
+            var response = obj.response;
+            var id = obj.log.id;
+            console.log(id);
+            
+            $.ajax({
+                type: 'post',
+                url: baseUrl + '/py/fetch_validation_code',
+                data: { 'id':id, 'session_id': session_id, 'task_id': task_id, 'fk_user_id': fk_user_id },
+                success: function(data) {
+                    var obj = JSON.parse(data);
+                    var response = obj.response;
+                    var source = obj.log.task_result;
+                    var input = obj.log.input;
+
+                    console.log(source);
+                    $(".loader").hide();
+                    $(".loader").show();
+    $.ajax({
+        type: 'post',
+        url:baseUrl + '/py/validate_lab',
+        data: {'id':id, 'source':source ,'input': input, 'task_id':task_id,'fk_user_id':fk_user_id},
+        success: function (data) {
+          console.log(data);
+          $(".loader").hide();
+          $(".labValOutput").empty();
+          var obj = JSON.parse(data);
+          var result = obj.result;
+          if(result != null){
+              $(".labValOutput").append(result);
+              $('#labValidationModal').modal('show');
+          }
+          return false;
+        }
+    });
+
+
+
+                },
+                        error: function() {
+                            swal({
+                                title: "Lab Not Started!",
+                                text: "You do not have any running lab, please start the lab to launch the IDE!",
+                                icon: "error",
+                                dangerMode: true,
+                                
+                            });
+                        
+                        }
+            });  
+            $(".loader").hide();
+        
+        }
+    });
+}
+else if(duration<=0) {
+    
+    swal({
+            title: "Lab Time Over!",
+            text: "Your lab time is over, please restart the lab to launch the IDE!",
+            icon: "error",
+            dangerMode: true,
+            
+        });
+
+}
+
+else  {
+    
+    swal({
+            title: "Lab Not Started!",
+            text: "You do not have any running lab, please start the lab to launch the IDE!",
+            icon: "error",
+            dangerMode: true,
+            
+        });
+
+}
+    
+
+
+});
+
+// Auto End Lab Based on Counter
+function getTaskEndTimeForUser() {
+    //aws labs
+    if (lab_type == 1) {
+        $.ajax({
+            type: 'post',
+            url: baseUrl + '/task/fetch_task_for_user',
+            data: { 'session_id': session_id, 'task_id': task_id, 'fk_user_id': fk_user_id },
+            success: function(data) {
+                var obj = JSON.parse(data);
+                var response = obj.response;
+
+                if (response == 'true') {
+                    var log = obj.log,
+                        end_time = log.end_time,
+                        user_quest_status = log.user_quest_status,
+                        currentUTCtime = obj.currentDateTime;
+
+                    if (currentUTCtime >= end_time) {
+                        clock.stop();
+                        $(".loader").show();
+
+                        $.ajax({
+                            type: 'post',
+                            url: baseUrl + '/task/end_lab',
+                            data: { 'session_id': session_id, 'fk_user_id': fk_user_id, 'task_id': task_id, 'type': 'lab-expired' },
+                            success: function(data) {
+                                $('#stop-lab').hide();
+                                $('#start-lab').show();
+                                $('.aws_auth_details').hide();
+                                $(".loader").hide();
+                                // condition for opening feedback modal popup
+                                $('#myModal').modal('show');
+                                $('#myModal').on('hidden.bs.modal', function() {
+                                    location.reload();
+                                });
+                                return false;
+                            },
+                            error: function() {
+                                $(".loader").hide();
+                                //condition for opening feedback modal popup
+                                $('#myModal').modal('show');
+                                $('#myModal').on('hidden.bs.modal', function() {
+                                    location.reload();
+                                });
+                            }
+                        });
+
+                        //window.location.reload();
+                        //return false;
+                    }
+                } else {
+                    var val_quest_id = $('#quest_id').val();
+                    $.ajax({
+                        type: 'post',
+                        url: baseUrl + '/task/update_user_lock',
+                        data: { 'fk_user_id': fk_user_id, 'fk_task_id': task_id, 'fk_quest_id': val_quest_id },
+                        success: function(data) {
+                            var obj = JSON.parse(data);
+                            var response = obj.lock_update;
+                            if (response) {
+                                location.reload();
+                            }
+                        }
+                    });
+                }
+            }
+        });
+    } else if (lab_type == 2) {
+        $.ajax({
+            type: 'post',
+            url: baseUrl + '/azurelabs/fetch_task_for_user',
+            data: { 'session_id': session_id, 'task_id': task_id, 'fk_user_id': fk_user_id },
+            success: function(data) {
+                var obj = JSON.parse(data);
+                var response = obj.response;
+                //console.log(response);
+
+                if (response == 'true') {
+                    var log = obj.log,
+                        end_time = log.end_time,
+                        user_quest_status = log.user_quest_status,
+                        currentUTCtime = obj.currentDateTime;
+                    //var currentUTCtime = js_yyyy_mm_dd_hh_mm_ss();
+
+                    if (currentUTCtime >= end_time) {
+
+                        $.ajax({
+                            type: 'post',
+                            url: baseUrl + '/azurelabs/end_lab',
+                            data: { 'session_id': session_id, 'fk_user_id': fk_user_id, 'task_id': task_id },
+                            success: function(data) {
+                                //console.log(data);
+                                $(".loader").hide();
+                                $('#console_active').hide();
+                                $('#console_deactive').show();
+
+                                // condition for opening feedback modal popup
+                                $('#myModal').modal('show');
+                                $('#myModal').on('hidden.bs.modal', function() {
+                                    location.reload();
+                                });
+
+                                return false;
+                            },
+                            error: function() {
+                                $(".loader").hide();
+                                //condition for opening feedback modal popup
+                                $('#myModal').modal('show');
+                                $('#myModal').on('hidden.bs.modal', function() {
+                                    location.reload();
+                                });
+                            }
+                        });
+                    }
+                } else {
+
+                    $('#myModal').modal('show');
+                    $('#myModal').on('hidden.bs.modal', function() {
+                        location.reload();
+                    });
+                    return false;
+                }
+            }
+        });
+    }
+    // gcp labs
+    else if (lab_type == 3) {
+        $.ajax({
+            type: 'post',
+            url: baseUrl + '/gcp/fetch_task_for_user',
+            data: {
+                'session_id': session_id,
+                'task_id': task_id,
+                'fk_user_id': fk_user_id
+            },
+            success: function(data) {
+                var obj = JSON.parse(data);
+                var response = obj.response;
+                //console.log(response);
+
+                if (response == 'true') {
+                    var log = obj.log;
+                    var end_time = log.end_time;
+                    var user_quest_status = log.user_quest_status;
+                    var currentUTCtime = js_yyyy_mm_dd_hh_mm_ss();
+
+                    //console.log(user_quest_status);
+                    //console.log(currentUTCtime);
+                    //console.log(end_time);
+
+                    if (currentUTCtime >= end_time) {
+                        $('#myModal').modal('show');
+                        $('#myModal').on('hidden.bs.modal', function() {
+                            location.reload();
+                        })
+
+                        $.ajax({
+                            type: 'post',
+                            url: baseUrl + '/gcp/end_lab',
+                            data: {
+                                'session_id': session_id,
+                                'fk_user_id': fk_user_id,
+                                'task_id': task_id
+                            },
+                            success: function(data) {
+                                //console.log(data);
+                                $(".loader").hide();
+                                $('#console_active').hide();
+                                $('#console_deactive').show();
+
+                                // condition for opening feedback modal popup
+                                $('#myModal').modal('show');
+                                $('#myModal').on('hidden.bs.modal', function() {
+                                    location.reload();
+                                });
+
+                                return false;
+                            }
+                        });
+
+                        //window.location.reload();
+                        //return false;
+
+                    }
+                }
+            }
+        });
+
+    }
+
+    else if (lab_type == 4) {
+        $.ajax({
+            type: 'post',
+            url: baseUrl + '/py/fetch_task_for_user',
+            data: {
+                'session_id': session_id,
+                'task_id': task_id,
+                'fk_user_id': fk_user_id
+            },
+            success: function(data) {
+                var obj = JSON.parse(data);
+                var response = obj.response;
+                //console.log(response);
+
+                if (response == 'true') {
+                    var log = obj.log;
+                    var end_time = log.end_time;
+                    var user_quest_status = log.user_quest_status;
+                    var currentUTCtime = js_yyyy_mm_dd_hh_mm_ss();
+
+                    //console.log(user_quest_status);
+                    //console.log(currentUTCtime);
+                    //console.log(end_time);
+
+                    if (currentUTCtime >= end_time) {
+                        $('#myModal').modal('show');
+                        $('#myModal').on('hidden.bs.modal', function() {
+                            location.reload();
+                        })
+
+                        $.ajax({
+                            type: 'post',
+                            url: baseUrl + '/py/end_lab',
+                            data: {
+                                'session_id': session_id,
+                                'fk_user_id': fk_user_id,
+                                'task_id': task_id
+                            },
+                            success: function(data) {
+                                //console.log(data);
+                                $(".loader").hide();
+                                $('#console_active').hide();
+                                $('#console_deactive').show();
+
+                                // condition for opening feedback modal popup
+                                $('#myModal').modal('show');
+                                $('#myModal').on('hidden.bs.modal', function() {
+                                    location.reload();
+                                });
+
+                                return false;
+                            }
+                        });
+
+                        //window.location.reload();
+                        //return false;
+
+                    }
+                }
+            }
+        });
+
+    }
+}
+
+//timer issue.
+function getLabEndTime() {
+    $.ajax({
+        type: 'post',
+        url: baseUrl + '/task/fetch_lab_end_time',
+        data: { 'fk_user_id': fk_user_id, 'task_id': task_id },
+        success: function(data) {
+            var obj = JSON.parse(data),
+                response = obj.response;
+
+            if (response == 'true') {
+
+                clock = $('.clock').FlipClock(obj.duration, {
+                    autoStart: false,
+                    countdown: true
+
+                })
+                clock.start();
+
+            } else {
+                clock.stop();
+            }
+
+        },
+        error: function(data) {
+            clock.stop();
+        }
+    });
+
+}
+
+function js_yyyy_mm_dd_hh_mm_ss() {
+
+    var now = new Date();
+    //var now=currentTime.toGMTString();
+    year = "" + now.getUTCFullYear();
+    month = "" + (now.getUTCMonth() + 1);
+    if (month.length == 1) { month = "0" + month; }
+    day = "" + now.getUTCDate();
+    if (day.length == 1) { day = "0" + day; }
+    hour = "" + now.getUTCHours();
+    if (hour.length == 1) { hour = "0" + hour; }
+    minute = "" + now.getUTCMinutes();
+    if (minute.length == 1) { minute = "0" + minute; }
+    second = "" + now.getUTCSeconds();
+    if (second.length == 1) { second = "0" + second; }
+    return year + "-" + month + "-" + day + " " + hour + ":" + minute + ":" + second;
+}
+
+$('.wrap').on('click', '.textcopyicon', function() {
+    var $temp = $("<div id='toCopy'>");
+    $("body").append($temp);
+    $temp.attr("contenteditable", true)
+        .html($(this).nextAll('.clickToCopy:first').html());
+    selectText("toCopy");
+    document.execCommand("copy");
+    $('<span class="printMessage" style=color:green>Copied</span>').insertAfter(this);
+    $('.printMessage').fadeOut(600);
+    $temp.remove();
+});
