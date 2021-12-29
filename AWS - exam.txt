@@ -146,6 +146,8 @@ I. ---------------------------------------------------------- SERVICES ---------
 			-> TTL: Value cache giá trị của NS trên DNS, bình thường là 2 ngày. Sau khi change NS ổn định (test bằng cách để TTL thấp ~60) -> chuyển sang 2 ngày
 			-> Khi chuyển NS, thì các record của tên miền sẽ mặc định nằm trên máy chủ của DNS mới
 			https://docs.aws.amazon.com/Route53/latest/DeveloperGuide/domain-name-servers-glue-records.html
+			
+	g. Sử dụng Route 53 resolver để foward queries via Direct Connect đến On-premise DNS server. Sử dụng khi cần để connect instance trên on-premise với instance của VPC
 	
 8. WAF
 	OWASP ?? 
@@ -191,7 +193,8 @@ I. ---------------------------------------------------------- SERVICES ---------
 		- Custom Policy
 			-> Ngày bắt đầu, sử dụng. IP range nào có thể sử dụng, ngày tới hạn, based-encode của policy -> link dài hơn
 			
-	cách thiết lập default hoặc custom certificate, tích hợp Lambda Edge vào request lifecycle, improve cache hit ratio 
+		cách thiết lập default hoặc custom certificate, tích hợp Lambda Edge vào request lifecycle, improve cache hit ratio 
+	k. U can make the on-premise load balancer as the custom origin of the CL distribution
 
 11. IAM
 	Hiểu đơn giản, 1 accout có thể thuộc 1 hoặc nhiều group, 1 group có thể có 1 hoặc nhiều policies. Policy có 1 danh sách và có thể tạo ra custom policy. End game. 		
@@ -256,7 +259,10 @@ I. ---------------------------------------------------------- SERVICES ---------
 	
 	-> Deploy SSL ở load balancer level -> OK sẽ giúp web có https tuy nhiên nó sẽ terminate connection, decript request và gửi về instance.
 	-> Nếu muốn config SSL ở backend connection thì có thể enable backend authen và phải cung cấp cert -> Cái này chỉ mới thấy ở classic LB, chưa thấy ở Application
+	https://docs.aws.amazon.com/elasticloadbalancing/latest/classic/elb-create-https-ssl-load-balancer.html#create-https-lb-console
 	
+	g. SNI - Server Name Indicator: handle separate SSL cert for each device plaform
+	- Có thể add nhiều cert vào 1 ELB
 	
 	
 14. AWS SQS (Simple Queue Service) 
@@ -308,6 +314,9 @@ I. ---------------------------------------------------------- SERVICES ---------
 	
 21. CloudFormation
 	a. Bạn xác định tất cả các tài nguyên mà bạn muốn AWS bật lên trong một bản thiết kế chi tiết, bấm vào một nút, và sau đó AWS sẽ thực hiện giúp bạn phần việc còn lại. Bản thiết kế này được gọi là một template trong CloudFormation. CloudFormation đảm bảo rằng các tài nguyên phụ thuộc trong template của bạn đều được tạo theo đúng thứ tự. Ví dụ, giả sử chúng ta muốn tạo record DNS Route53 và một instance EC2 có record DNS trỏ tới instance EC2. CloudFormation sẽ để cung cấp instance EC2 trước, chờ cho nó sẵn sàng được sử dụng, và sau đó tạo bản ghi DNS. AWS CloudFormation điều phối việc cung cấp các tài nguyên mong muốn. Vì vậy, thay vì phải viết script với một loạt các lời gọi API AWS, chờ vòng lặp và thử lại logic, bạn chỉ cần mô tả những gì bạn muốn và yêu cầu CloudFormation thực hiện điều đó cho bạn
+	- stacks ?
+	- layer (1 for java, 1 for node.js)
+	- recipe (for DynamoDB)
 	
 22. BeanStalk
 	- Là 1 SaaS
@@ -403,6 +412,8 @@ I. ---------------------------------------------------------- SERVICES ---------
 	
 	
 33. ACM
+	- Chỉ intergate dc với các service của AWS, ko download dc (down dc, dùng CLI, tuy nhiên ko có private key) nên ko xài dc cho các dịch vụ ngoài, tiêu biểu như ngnix
+	
 
 34. Artifact
 
@@ -450,6 +461,7 @@ I. ---------------------------------------------------------- SERVICES ---------
 	d. Người dùng có thể đăng nhập vào các EC2 và user được cấp, qua DNS mà ko cần key 
 	Có 3 loại AD:
 	e. Simple AD
+		- Used to back up via daily automated snapshot with point-in-time recovery enabled.
 	f. Microsoft Managed AD
 		- Deploy qua VPC, và Multi A-z đảm bảo high availability 
 		- Có thể intergate với các service khác dc, seemless join EC2 instance 
@@ -491,6 +503,21 @@ I. ---------------------------------------------------------- SERVICES ---------
 	c. Bundles: bao gồm image + cấu hình hardware của workspace đó
 	d. Sau khi tạo workspace xong -> gửi invite đến người dùng -> sử dụng
 
+44. Database Migragion Service
+	a. Flow:
+	-> Allocate a replication instance có trách nhiệm process quá trình migration này (allocate chứ ko phải tạo 1 EC2 nhé)
+	-> Chỉ định sourve và target database
+	-> Tạo task hoặc set of task để định nghĩa bảng hoặc quy trình chuyển
+	
+45. IPv6
+	a. Các bước để thêm IPv6 vào 1 VPC đã có sẵn
+	-> Thêm Ipv6 CIDR Block vào VPC và Subnet
+	-> Update Route table
+	-> Change instance type
+	-> Gán IPv6 vào instance
+	-> 
+	
+
 II. ---------------------------------------------------------- VPC ----------------------------------------------------------
 
 1. VPC
@@ -521,11 +548,9 @@ II. ---------------------------------------------------------- VPC -------------
 	g. Cần chú ý khi khởi tạo VPC -> subnet tạo ra chỉ giới hạn trong range của VPC
 	h. first four and last IP mỗi subnet are reserved (cannot use) 10.0.0.1,2,3 and 255.
 		
- Example: Để có 1 public subnet
+	Example: Để có 1 public subnet
 		  + Cần 1 route table có igw 0.0.0.0/0 
 		  + Associate thằng subnet cần public đó vào
-		
-
  	
 3. Route Table:
 	a. Store route để foward packet tới 1 destination. 
@@ -540,6 +565,7 @@ II. ---------------------------------------------------------- VPC -------------
 4. Network Address Translation (NAT)
 	a. Open traffic to internet of an instance from private subnet (1 chiều). The internet cannot initiate a connection backward.
 	b. Nat Instance no more. 
+	c. NAT chỉ hỗ trợ IPv4
 
 5. Security Group:
 	a. MySQL/ Aurora: 3306
@@ -554,6 +580,9 @@ II. ---------------------------------------------------------- VPC -------------
 	d. NACL hỗ trợ deny rule trong khi SG chỉ hỗ trợ allow (ko allow nghĩa là ko cho phép)
 	
 => SG sẽ dùng để allow connection giữa các insntace trong khi NACL sẽ dùng để block connection giữa các subnet
+=> TỐI QUAN TRỌNG: Mặc định các subnet nằm trong route table đã dc route có thể communicate dc với nhau (10.0.0.16 - local)
+   Tuy nhiên nếu ko mở security group thì cho dù 2 instance nằm trong cùng 1 subnet cũng ko thể communicate dc với nhau. 
+
 	
 7. Amazon VPC Peering: 
 	a. Kết nối nhiều VPC lại với nhau (chỉ trong 1 region). Và với VPC trong tài khoản khác
@@ -742,6 +771,11 @@ VII. ---------------------------------------------------------- OTHER KNOWLEDGES
 4. ML's services:
 	- Translation: Dịch
 	- Rekognition: Nhận diện ảnh
+		+ Ngoài API SearchFaces, còn có API RecoginizeCelebrities to detect celeb - vãi lòn :v
+		+ Flow của Rekognition sẽ là dư lày
+		-> Kinesis Video Stream gửi streaming video tới Rekognition Video
+		-> Rekognition Video sẽ xử lý cái stream này
+		-> 1 Kinesis data stream consumer để phân tích kết quả mà Rekognition gửi đến Kinesis Data stream
 	- Transcribe: Speech recognition
 
 VIII. ---------------------------------------------------------- FAQs ----------------------------------------------------------
@@ -806,6 +840,17 @@ VIII. ---------------------------------------------------------- FAQs ----------
 	-> Tuy nhiên browser sẽ ko xác định được SSL này, nên sẽ hiển thị cảnh bảo và người dùng có muốn chấp nhận rủi ro khi truy cập ko!
 	- 
 	
+12. IDS/ IPS
+	- Intrusion detection system / Intrusion prevention system
+	-> 1 cái phát hiện và 1 cái take action (deny hoặc allow)
+	
+13. TCP và HTTPS
+	- TCP listener relay request to the backend instance với nguyên trạng.
+	- Trong khi HTTPS thì connection dc terminated ở ELB khi chưa kịp đến webserver.
+	
+14. 
+	integrity: tính chính xác của thông tin
+	promiscuous: lăng nhằng
 
 IX. ---------------------------------------------------------- PRACTICE ----------------------------------------------------------
 
@@ -841,6 +886,13 @@ IX. ---------------------------------------------------------- PRACTICE --------
 	- MFA có thể add vào 1 role
 	Sử dụng external ID để chặn confused deputy attach (Mạo danh ARN của accound cung cấp resource)
 	
+	1 flow:
+		a. Login vào application (identity broker)
+		b. Nhận được IAM role tương ứng (Cognito)
+		c. Call đến STS (Security Token Service) để assume that role
+		4. Nhận được temporary credential từ STS 
+		5. Login vào AWS 
+		
 	
 	
 * Kubernetes
@@ -902,10 +954,9 @@ X. ---------------------------------------------------------- GENERAL WTFs -----
 EC2 Image Builders
 CloudHSM
 Amazon BlockChain Template
-AWS Polly Lexicon
-Application Shard MySQL
+AWS Polly Lexicon 
 Resource sharing
-
+Application Shard MySQL
 Amazon ES, ELK stack
 ACM, SSM Parameter Store…
 SageMaker, 
@@ -943,13 +994,17 @@ Managed BlockChain
 Alexa
 MQ
 EMR
+Sing Work Flow ?
+G3 instance (high graphical processing server with low latency network) 
+C3 instance (ngược lại với đồ họa thì đây là instance tối ưu compute)
+
 
 
 Có thể sử dụng HSM Hardware Security Module để manage top level encription keys. ?? Redshift
 - Batch có thể dùng để scheduly phân tích dữ liệu từ S3
 - BeanStalk and Docker relationship ??
 
-Migragion
+
 Docker
 CloudFormation
 
