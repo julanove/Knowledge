@@ -26,27 +26,17 @@ I. ---------------------------------------------------------- SERVICES ---------
   f. Latency giữa các Az thấp hơn 1 digit nên sync repli within AZ 
 		
 2. EC2: Có 3 loại instance dựa vào giá
-		- On demand: Loại mặc định, co giãn dc. 
-		- Reserved Instance: Loại biết trc cấu hình, có thể trả tiền trc hoặc ko.
+		- On demand: Loại mặc định, co giãn dc, nhưng mà mắc
+		- Reserved Instance: Loại biết trc cấu hình, nhu cầu tăng giảm 1 cách cụ thể vào thời gian nào, có thể trả tiền trc hoặc ko.
 		- Spot instance: đấu giá, thằng nào nhanh tay thì lượm. 
 	a. Có thể hibernation instance, tuy nhiên phải setting điều này lúc khởi tạo. Console hay CLI đều dc 
 	b. Có thể đổi instance type, tuy nhiên phải stop service đã :))
 	c. EC2ConfigService ?
-	d. EBS - RAID (redundant array of independent disks) kĩ thuật lưu trữ dữ liệu sử dụng sự kết hợp nhiều disks
-		- RAID 0: Striping. Tăng cường I/O performance, tuy nhiên I/O sẽ distribute toàn volume 1 cách đồng đều, dữ liệu cùng thế
-		- RAID 1: Mirroring. Ko tăng cường I/O performance, thay vào đó là khả năng ghi vào nhiều volume đồng thời cùng lúc. Khả năng lưu sẽ bị cắt 1 nửa vì phải lưu đến 2 bản ghi dữ liệu giống nhau cùng lúc
-		- Snapshot của 1 EBS luôn luôn dc encrypted, nếu share 1 snapshot thì cũng đồng nghĩa share luôn CMK dùng để encript của nó
-		- EBS is not ephemeral, tuy nhiên nếu terminate 1 instance thì vẫn có khả năng mất đi
-		
-	e. Nên phân biệt dc S3, EBS, EFS
-	- S3: 1 kho object, truy cập dữ liệu từ mọi region, zone, rẻ hơn so vs EBS, có thể deploy web tĩnh
-	- EBS: lưu theo 1 block, phải gắn với 1 instance EC2, chỉ tồn tại trên 1 vùng
-	- EFS:  Vì chỉ chứa file system nên nhiều instance EC2 có thể truy cập vào 1 EFS, đắt. Chỉ hố trợ encription khi tạo. 
-	 EFS chỉ hoạt động tại 1 VPC tại 1 thời điểm
+	
 	f. Placement Group ?
 	Chia làm 3 types:
-	- Cluster: Tăng tốc độ giữa các instance. Tối đa 10Gb cho các bé. Ko recommend mix instance's type.
-	- Partition: Hỗ trợ tối đa 7 partition trong mỗi zone (Dedicated Instances thì chỉ có 2 thôi). Số lượng EC2 instance ném vào tùy thuộc vào limit của acc. PARTITION đảm bảo instance trong 1 partition ko share underlying hardware với instance trong 1 partition khác.
+	- Cluster: Tăng tốc độ giữa các instance. Tối đa 10Gb cho các bé. Ko recommend mix instance's type. -> chỉ nằm trong 1 AZ
+	- Partition: Hỗ trợ tối đa 7 partition trong mỗi zone (Dedicated Instances thì chỉ có 2 thôi). Số lượng EC2 instance ném vào tùy thuộc vào limit của acc. PARTITION đảm bảo instance trong 1 partition ko share underlying hardware với instance trong 1 partition khác. -> span over AZ
 	- Spread: dễ hiểu nhất, mỗi ông 1 rack, ko lquan đến nhau về network speed hay power source. Tối đa 7 instance Spread trong mỗi zone (ví dụ trong zone A chỉ có 7 con instance trong 1 Spread. Sử dụng hoặc tạo thêm 1 spread nếu muốn apply cho hơn 8 instance. Éo ảm báo sự pread giữa các instance. Có thể mix các instance với nhau.
 	Anh em lưu ý là chỉ có thể add instance vào placement group khi khởi tạo chứ ko thể cho 1 instance đã tồn tại vào được.
 	g. SSD bao gồm 2 loại: 
@@ -55,6 +45,7 @@ I. ---------------------------------------------------------- SERVICES ---------
 		+ Provisioned IOPS SSD (io1) 
 		
 		"Some EC2 instance also have a local storage built in that is called the instance store. The instance storage is ephemeral -> gone whenever u terminate the instace"
+	h. 1 EC2 có thể có nhiều IPs
 
 3. Lambda
 	a. Run code without provisioning 
@@ -83,8 +74,25 @@ I. ---------------------------------------------------------- SERVICES ---------
 	Setup the DNS
 	Create the static IP
 	
-5. Clou9
-	- Xài để code 
+5. EBS, EFS
+	a. EBS - RAID (redundant array of independent disks) kĩ thuật lưu trữ dữ liệu sử dụng sự kết hợp nhiều disks
+		- RAID 0: Striping. Tăng cường I/O performance, tuy nhiên I/O sẽ distribute toàn volume 1 cách đồng đều, dữ liệu cùng thế
+		- RAID 1: Mirroring. Ko tăng cường I/O performance, thay vào đó là khả năng ghi vào nhiều volume đồng thời cùng lúc. Khả năng lưu sẽ bị cắt 1 nửa vì phải lưu đến 2 bản ghi dữ liệu giống nhau cùng lúc
+		- Snapshot của 1 EBS luôn luôn dc encrypted, nếu share 1 snapshot thì cũng đồng nghĩa share luôn CMK dùng để encript của nó
+		- EBS is not ephemeral, tuy nhiên nếu terminate 1 instance thì vẫn có khả năng mất đi
+		
+		
+	b. Nên phân biệt dc S3, EBS, EFS
+	- S3: 1 kho object, truy cập dữ liệu từ mọi region, zone, rẻ hơn so vs EBS, có thể deploy web tĩnh
+	- EBS: lưu theo 1 block, phải gắn với 1 instance EC2, chỉ tồn tại trên 1 vùng
+	- EFS:  Vì chỉ chứa file system nên nhiều instance EC2 có thể truy cập vào 1 EFS, đắt. Chỉ hố trợ encription khi tạo. 
+	 EFS chỉ hoạt động tại 1 VPC tại 1 thời điểm
+	 
+	c. Muốn chuyển định dang 1 EBS (io, gp, sc, st)
+	- Thì ko cần phải stop instance.
+	- Tuy nhiên nếu là root volume thì phải dừng
+	
+	A gp2 volume that is attached to an instance as a root volume can't be modified to an st1 or sc1 volume. If detached and modified to st1 or sc1, it can't be re-attached to an instance as the root volume.
 	
 6. AWS Firewall Manager / AWS Shield
 	- Quản lý connect đến Gateway API, CloudFront hay LoadBalancer.
@@ -148,6 +156,7 @@ I. ---------------------------------------------------------- SERVICES ---------
 			https://docs.aws.amazon.com/Route53/latest/DeveloperGuide/domain-name-servers-glue-records.html
 			
 	g. Sử dụng Route 53 resolver để foward queries via Direct Connect đến On-premise DNS server. Sử dụng khi cần để connect instance trên on-premise với instance của VPC
+	h. Nếu ko bỏ healthcheck, thì Route53 vẫn tiếp tục forward đến các endpoint cũ (dù cho bỏ đi hay ko). Healthcheck dc tạo riêng và associate với record set khi tạo.
 	
 8. WAF
 	OWASP ?? 
@@ -238,8 +247,13 @@ I. ---------------------------------------------------------- SERVICES ---------
 		-> Có thể hoàn toàn ignore cooldown bằng cách scale thủ công, schedule hoặc 1 instance trở nên unhealthy.
 	i. Add Life Cycle Hook to Auto Scaling group => Nó như 1 eventAction xảy ra khi 1 life cycle event of AutoScaling phát sinh. 
 		-> Ví dụ: put the instance into wait state before termination khi Scale in -> chặn việc loss data đồng bộ
+	k. Suspend Process. Cơ chế hủy bỏ 1 AG khi fail to tạo instance quá 24h 
+		AZRebalance
+		- Cân bằng số lượng instance các EC2 giữa các A-Z
+		Health check
+		...
 	
-13. Load Balancer.
+13. Elastic Load Balancer.
 	a. Application Load Balancer is best suited for load balancing of HTTP and HTTPS traffic
 	b. Network Load Balancer is used to distribute the traffic or load using TCP/UDP protocols
 		- Có thể route traffic tới nhiều port trên 1 instance
@@ -263,6 +277,7 @@ I. ---------------------------------------------------------- SERVICES ---------
 	
 	g. SNI - Server Name Indicator: handle separate SSL cert for each device plaform
 	- Có thể add nhiều cert vào 1 ELB
+	h. Khi 1 con AMI mới đc tạo và add vào ELB có vấn đề, việc cần làm là health check kĩ, tiếp đến là nếu ko ổn thì associate lại với launch configuration cũ.
 	
 	
 14. AWS SQS (Simple Queue Service) 
@@ -290,6 +305,8 @@ I. ---------------------------------------------------------- SERVICES ---------
 			-> Người dùng sử dụng token này để (exchange với identiy pool) truy cập vào API Gateway các kiểu
 			
 	c. Sync data between many device of 1 user
+	
+	d. Cách 1 API Gateway integrate với Cognito https://awskarthik82.medium.com/part-1-securing-aws-api-gateway-using-aws-cognito-oauth2-scopes-410e7fb4a4c0
 	
 16. Batch
 	
@@ -347,6 +364,7 @@ I. ---------------------------------------------------------- SERVICES ---------
 	-> Sử dụng để phát hiện, extract và transform and load data (ETL)
 	-> Sử dụng cho ML
 	-> Tích hợp với Athena -> SQL analytic
+	a. Có sẵn Glue Data Catalog để phân tích dữ liệu.
 	
 26. CloudFront 
 	- Orgin (Source) có thể là S3, EC2 hoặc ELB hoặc với bất kỳ custom HTTP nào ??
@@ -517,7 +535,30 @@ I. ---------------------------------------------------------- SERVICES ---------
 	-> Gán IPv6 vào instance
 	-> 
 	
+46. Element MediaLive, MediaPackage
+	- xử lý live video và tạo các video stream formated để có thể chạy dc trên các thiết bị như TV, smartphone v..v..
+	
+47. Kinesis Video Streaming
+	- Sử dụng GetMedia để lấy Kinesis Video Stream, tuy nhiên đối với các 3rd party player thì sử dụng GetHLSStreamingSession
+	- 
 
+48. Backup 
+	Các dịch vụ có thể sử dụng:
+	AWS Backup supports Amazon S3 (Preview), 
+	Amazon EBS, 
+	Amazon RDS including Amazon Aurora, Amazon DynamoDB, 
+	Amazon Neptune, Amazon DocumentDB (with MongoDB compatibility), 
+	Amazon EFS, 
+	Amazon FSx for Lustre and 
+	Windows File Server, 
+	Amazon EC2, and 
+	AWS Storage Gateway, enabling you to back up key data stores, such as your buckets (preview) and volumes, databases, and file systems
+
+49. Managed BlockChain 
+	a. Khi mới tạo thì có tk initial、add mem mới bằng cách send invitation.
+	
+	
+	
 II. ---------------------------------------------------------- VPC ----------------------------------------------------------
 
 1. VPC
@@ -618,6 +659,7 @@ III. ---------------------------------------------------------- VPN ------------
 		- Mạng của customer phải dc cung cấp bởi 1 internet provider kết nối với AWS Direct Connect
 		- Client donwload cái request này, accept -> establish connection tới AWS 
 	-> Thực hành ?
+		- Direct Connect có thể reuse để sử dụng cho nhiều VPC của nhiều region khác nhau, chỉ việc tạo VPN Gateway để nó trỏ vào là dc
 		
 	f. Storage Gateway 
 	-> Đại khái là ổ ảo mà on-premise cũng có thể truy cập được
@@ -690,6 +732,7 @@ IV. ---------------------------------------------------------- RDS -------------
 	a. For storing IOT sensor data or log ingestion
 	- Phục vụ cho mục đích phân tích dữ liệu chưa hoàn chỉnh
 	- Độ trễ thấp
+	b. Dynamo sử dụng Gateway Endpoint
 
 4. AWS Migration Service Tools
 	Migrate an existing Mysql DB on an EC2 to a RDS instance.
@@ -851,7 +894,24 @@ VIII. ---------------------------------------------------------- FAQs ----------
 14. 
 	integrity: tính chính xác của thông tin
 	promiscuous: lăng nhằng
+	
+15. 
+	G3 instance (high graphical processing server with low latency network) 
+	C3 instance (ngược lại với đồ họa thì đây là instance tối ưu compute)
+	
+16. 
+	Pipeline: Thường đi với automated accesssment
+	Step Function: Có thể có human interaction dây vào.
+	
+17. Single Root I/O: SR I/O - The short answer is that SR-IOV is a specification that allows a PCIe device to appear to be multiple separate physical PCIe devices
+	Nôm na, sử dung SR I/O có thể archive dc higher network throughput.
 
+18. X-forward-for: 1 header chứa IP từ original
+	X-forward-Proto: Xác định protocol
+	
+19. State Manager và Maintenance Window có thể sử dụng để install script lên các instance 
+
+20
 IX. ---------------------------------------------------------- PRACTICE ----------------------------------------------------------
 
 * Sử dụng Resources Group để tạo các group resource và sau đấy dùng System Manager để quản lý, ví dụ như install Apache đồng loạt
@@ -945,7 +1005,10 @@ IX. ---------------------------------------------------------- PRACTICE --------
 * IAM Task - Container
 	 Tạo IAM Role cho 1 task trong 1 container.
 	 
-* 
+* Method Request và Integration Request trong API Gateway
+
+* HVM. Hardware 
+  PVM. Ảo hóa
 
 
 X. ---------------------------------------------------------- GENERAL WTFs ----------------------------------------------------------
@@ -975,7 +1038,7 @@ Control Tower
 Config
 Compute
 Optimizer
-Backup
+
 Docker 
 ML
 	SageMaker
@@ -990,14 +1053,15 @@ AD
 Neptune
 ECR
 Outposts
-Managed BlockChain
+
 Alexa
 MQ
 EMR
 Sing Work Flow ?
-G3 instance (high graphical processing server with low latency network) 
-C3 instance (ngược lại với đồ họa thì đây là instance tối ưu compute)
 
+RTO ?  Recovery Time Objective
+RPO ? Recovery Point Objective - How much data/time loss can u afford ? 
+file-level restore ?
 
 
 Có thể sử dụng HSM Hardware Security Module để manage top level encription keys. ?? Redshift
@@ -1012,3 +1076,5 @@ CloudFormation
 AWS Data Lifecycle Management
 Hadoop
 
+3.5
+5
