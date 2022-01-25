@@ -33,19 +33,20 @@ I. ---------------------------------------------------------- SERVICES ---------
 	b. Có thể đổi instance type, tuy nhiên phải stop service đã :))
 	c. EC2ConfigService ?
 	
-	f. Placement Group ?
-	Chia làm 3 types:
-	- Cluster: Tăng tốc độ giữa các instance. Tối đa 10Gb cho các bé. Ko recommend mix instance's type. -> chỉ nằm trong 1 AZ
-	- Partition: Hỗ trợ tối đa 7 partition trong mỗi zone (Dedicated Instances thì chỉ có 2 thôi). Số lượng EC2 instance ném vào tùy thuộc vào limit của acc. PARTITION đảm bảo instance trong 1 partition ko share underlying hardware với instance trong 1 partition khác. -> span over AZ
-	- Spread: dễ hiểu nhất, mỗi ông 1 rack, ko lquan đến nhau về network speed hay power source. Tối đa 7 instance Spread trong mỗi zone (ví dụ trong zone A chỉ có 7 con instance trong 1 Spread. Sử dụng hoặc tạo thêm 1 spread nếu muốn apply cho hơn 8 instance. Éo ảm báo sự pread giữa các instance. Có thể mix các instance với nhau.
-	Anh em lưu ý là chỉ có thể add instance vào placement group khi khởi tạo chứ ko thể cho 1 instance đã tồn tại vào được.
+	f. Placement Group 
+		Chia làm 3 types:
+			+ Cluster: Tăng tốc độ giữa các instance. Tối đa 10Gb cho các bé. Ko recommend mix instance's type. -> chỉ nằm trong 1 AZ
+			+ Partition: Hỗ trợ tối đa 7 partition trong mỗi zone (Dedicated Instances thì chỉ có 2 thôi). Số lượng EC2 instance ném vào tùy thuộc vào limit của acc. PARTITION đảm bảo instance trong 1 partition ko share underlying hardware với instance trong 1 partition khác. -> span over AZ
+			+ Spread: dễ hiểu nhất, mỗi ông 1 rack, ko lquan đến nhau về network speed hay power source. Tối đa 7 instance Spread trong mỗi zone (ví dụ trong zone A chỉ có 7 con instance trong 1 Spread. Sử dụng hoặc tạo thêm 1 spread nếu muốn apply cho hơn 8 instance. Éo ảm báo sự pread giữa các instance. Có thể mix các instance với nhau.
+		- Anh em lưu ý là chỉ có thể add instance vào placement group khi khởi tạo chứ ko thể cho 1 instance đã tồn tại vào được.
 	g. SSD bao gồm 2 loại: 
 		+ General Purpose SSD (gp2)  - Có khả năng burst IO -> Tích lại credit và dùng khi cần
 			Ổ trên 1TB thường có baseline > burst performance nên thường méo cần burstmode( >3000 IOPS )
 		+ Provisioned IOPS SSD (io1) 
-		
-		"Some EC2 instance also have a local storage built in that is called the instance store. The instance storage is ephemeral -> gone whenever u terminate the instace"
-	h. 1 EC2 có thể có nhiều IPs
+	
+	h. 1 vài EC2 instance đã có sẵn local storage built-in gọi là instance store. Data trong instance store này là ephemeral -> terminate instance cái là đi luôn.
+
+	i. 1 EC2 có thể có nhiều IPs sử dụng nhiều Network Interface
 
 3. Lambda
 	a. Run code without provisioning 
@@ -64,6 +65,7 @@ I. ---------------------------------------------------------- SERVICES ---------
 		- IOT
 		- Kinesis
 		- CloudWatch Logs	
+		- S3
 	
 4. LightSail
 	For small businesses, need virtual private server. low-cost
@@ -79,14 +81,13 @@ I. ---------------------------------------------------------- SERVICES ---------
 		- RAID 0: Striping. Tăng cường I/O performance, tuy nhiên I/O sẽ distribute toàn volume 1 cách đồng đều, dữ liệu cùng thế
 		- RAID 1: Mirroring. Ko tăng cường I/O performance, thay vào đó là khả năng ghi vào nhiều volume đồng thời cùng lúc. Khả năng lưu sẽ bị cắt 1 nửa vì phải lưu đến 2 bản ghi dữ liệu giống nhau cùng lúc
 		- Snapshot của 1 EBS luôn luôn dc encrypted, nếu share 1 snapshot thì cũng đồng nghĩa share luôn CMK dùng để encript của nó
-		- EBS is not ephemeral, tuy nhiên nếu terminate 1 instance thì vẫn có khả năng mất đi
-		
+		- EBS is not ephemeral, tuy nhiên nếu terminate 1 instance thì vẫn có khả năng mất đi ?
 		
 	b. Nên phân biệt dc S3, EBS, EFS
 	- S3: 1 kho object, truy cập dữ liệu từ mọi region, zone, rẻ hơn so vs EBS, có thể deploy web tĩnh
 	- EBS: lưu theo 1 block, phải gắn với 1 instance EC2, chỉ tồn tại trên 1 vùng
 	- EFS:  Vì chỉ chứa file system nên nhiều instance EC2 có thể truy cập vào 1 EFS, đắt. Chỉ hố trợ encription khi tạo. 
-	 EFS chỉ hoạt động tại 1 VPC tại 1 thời điểm
+		+ EFS chỉ hoạt động tại 1 VPC tại 1 thời điểm
 	 
 	c. Muốn chuyển định dang 1 EBS (io, gp, sc, st)
 	- Thì ko cần phải stop instance.
@@ -309,7 +310,7 @@ I. ---------------------------------------------------------- SERVICES ---------
 	d. Cách 1 API Gateway integrate với Cognito https://awskarthik82.medium.com/part-1-securing-aws-api-gateway-using-aws-cognito-oauth2-scopes-410e7fb4a4c0
 	
 16. Batch
-	
+	Batch sử dụng job queue thay vì SQS
 
 	
 17. AWS SNS (Simple Notification Service)
@@ -323,7 +324,7 @@ I. ---------------------------------------------------------- SERVICES ---------
 	a. Chef
 	b. Stacks
 	c. Puppet
-	Nếu manually gắn 1 EC2 vào ELB thì có thể break communication.
+	
 	
 20. Mapreduce 
 	-> Distribute the computation of data over multiple Amazon EC2 instance
@@ -663,8 +664,9 @@ III. ---------------------------------------------------------- VPN ------------
 		
 	f. Storage Gateway 
 	-> Đại khái là ổ ảo mà on-premise cũng có thể truy cập được
-		- cached mode: lưu dữ liệu chính trên s3 và những dữ liệu thường xuyên sẽ dc lưu ở cache (locally). Max là 1024 TB
-		- stored mode: lưu dữ liệu chính ở locally, trong khi async backed up to AWS. max là 512TB
+		+ cached mode: lưu dữ liệu chính trên s3 và những dữ liệu thường xuyên sẽ dc lưu ở cache (locally). Max là 1024 TB
+		+ stored mode: lưu dữ liệu chính ở locally, trong khi async backed up to AWS. max là 512TB
+		+ Gateway virtual tape library: chuyên sử dụng đẻ backup và cost-effective vl.
 	
 	
 2. PrivateLink ~ VPC Endpoint
@@ -707,6 +709,9 @@ III. ---------------------------------------------------------- VPN ------------
 
 IV. ---------------------------------------------------------- RDS ----------------------------------------------------------
 
+0. RDS MySQL
+	a. Standby instance (ko thể access dc) 
+
 1. Aurora 
 	a. compatible with MySQL và PostgreSQL 
 	b. 6 different storage nodes in three different AZ
@@ -733,7 +738,9 @@ IV. ---------------------------------------------------------- RDS -------------
 	- Phục vụ cho mục đích phân tích dữ liệu chưa hoàn chỉnh
 	- Độ trễ thấp
 	b. Dynamo sử dụng Gateway Endpoint
-
+	c. Dynamo hỗ trợ tạo multi-active DB ở multi region
+	d. Có thể kết hợp với DynamoDB Accelerator DAX để cache table request, tương tự như ElasticSearch
+	
 4. AWS Migration Service Tools
 	Migrate an existing Mysql DB on an EC2 to a RDS instance.
 
@@ -777,6 +784,9 @@ III. ---------------------------------------------------------- Monitoring -----
 		- Performance
 		- Service Limits
 	g. Cách ez nhất để view Billing là xuất ra S3 hết, ko có API hay SNS j xài dc ở đây cả.
+		- Format của billing report là csv, ko có json j ở đây cả
+		- Về report data thì billing có thể integrate với Athena, Redshift hoặc Quicksight để phân tích
+		
 
 6. CloudTrail.
 	a. Who made the request
@@ -911,7 +921,12 @@ VIII. ---------------------------------------------------------- FAQs ----------
 	
 19. State Manager và Maintenance Window có thể sử dụng để install script lên các instance 
 
-20
+20. Nếu manually gắn 1 EC2 vào ELB thì có thể break communication.
+
+21. 
+	RTO ?  Recovery Time Objective - How much time loss can u afford ?
+	RPO ? Recovery Point Objective - How much time loss can u afford ? 
+
 IX. ---------------------------------------------------------- PRACTICE ----------------------------------------------------------
 
 * Sử dụng Resources Group để tạo các group resource và sau đấy dùng System Manager để quản lý, ví dụ như install Apache đồng loạt
@@ -986,6 +1001,11 @@ IX. ---------------------------------------------------------- PRACTICE --------
 	- Da hell is Cloud Formation Drift Detection drift ??
 	- CloudFormation StackSet ? -> tạo role cho target account trong Organization
 	
+Lúc nào cũng đã có 2 tunnel giữa customer gateway và virtual private gateway ?
+
+CloudFormation
+	Intrinsic funtion: Assign value to properties mà hiện tại chưa có until runtime.
+	
 * Kinesis
 	Amazon Kinesis, build ứng dụng realtime, near realtime, troubleshoot Kinesis agent
 	
@@ -1009,11 +1029,25 @@ IX. ---------------------------------------------------------- PRACTICE --------
 
 * HVM. Hardware 
   PVM. Ảo hóa
+  
+* Mongo là partner của AWS. Nên có thể migrate lên AWS sử dụng
+	https://aws.amazon.com/quickstart/architecture/mongodb-atlas/
 
+* RDS on VMWare
+	- Để sử dụng RDS trên VMWare
+	-> Tạo 1 custom AZ 
+	-> Tạo RDS trên custom AZ này (on premise)
+	-> Từ Console, có thể tạo read replica cho RDS này 
+	
+* EBS encryption 
+	- 1 kiểu mã hóa gắn vào EBS đảm bảo những dữ liệu sau đây sẽ dc mã hóa bao gồm:
+		+ data at rest (trong EBS)
+		+ data transit between EBS và instance
+		+ snapshot tạo ra từ volume
+		+ volume tạo ra từ snapshot
 
 X. ---------------------------------------------------------- GENERAL WTFs ----------------------------------------------------------
  
-
 EC2 Image Builders
 CloudHSM
 Amazon BlockChain Template
@@ -1038,14 +1072,12 @@ Control Tower
 Config
 Compute
 Optimizer
-
 Docker 
 ML
 	SageMaker
 	Forecast
 	Lex
 	Comprehend
-	
 AppSync
 AppStream
 AD
@@ -1053,28 +1085,15 @@ AD
 Neptune
 ECR
 Outposts
-
 Alexa
 MQ
 EMR
 Sing Work Flow ?
-
-RTO ?  Recovery Time Objective
-RPO ? Recovery Point Objective - How much data/time loss can u afford ? 
 file-level restore ?
-
-
 Có thể sử dụng HSM Hardware Security Module để manage top level encription keys. ?? Redshift
 - Batch có thể dùng để scheduly phân tích dữ liệu từ S3
 - BeanStalk and Docker relationship ??
-
-
 Docker
 CloudFormation
-
-
 AWS Data Lifecycle Management
 Hadoop
-
-3.5
-5
