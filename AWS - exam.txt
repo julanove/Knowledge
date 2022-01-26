@@ -95,6 +95,8 @@ I. ---------------------------------------------------------- SERVICES ---------
 	
 	A gp2 volume that is attached to an instance as a root volume can't be modified to an st1 or sc1 volume. If detached and modified to st1 or sc1, it can't be re-attached to an instance as the root volume.
 	
+	d. Khi start/stop thì dữ liệu trên EBS sẽ ko mất. Tuy nhiên nếu ko setting DeleteOnTermination thì khi terminate/ reboot nó sẽ teo!!
+	
 6. AWS Firewall Manager / AWS Shield
 	- Quản lý connect đến Gateway API, CloudFront hay LoadBalancer.
 	- Với WAF có thể chặn dc IP, value từ request header, SQL, number request v...v...
@@ -256,7 +258,7 @@ I. ---------------------------------------------------------- SERVICES ---------
 	
 13. Elastic Load Balancer.
 	a. Application Load Balancer is best suited for load balancing of HTTP and HTTPS traffic
-	b. Network Load Balancer is used to distribute the traffic or load using TCP/UDP protocols
+	b. Network Load Balancer is used to distribute the traffic or load using TCP/UDP/TLS protocols
 		- Có thể route traffic tới nhiều port trên 1 instance
 		- Thích hợp với sử dụng ECS
 	d. Classic Load Balancer provides basic load balancing across multiple Amazon EC2 instances. 
@@ -288,6 +290,21 @@ I. ---------------------------------------------------------- SERVICES ---------
 	c. FIFO: First In, First Out. 300 transaction per/ sec 
 	d. Tối đa 1 tin là 256Kb
 	e. Delivery Delay. Thời gian gửi chậm đến consumer sau khi vào queue. Ko ảnh hưởng đến standard, tuy nhiên affect hoàn toàn FIFO
+	
+	f. SQS cũng là một topic sẽ được hỏi nhiều thứ chi tiết liên quan đến DelaySeconds, hay 
+	g. Gửi từ SNS -> SQS (SQS hỗ trợ chức năng subscribe ngược)
+	h. SQS ko encript data by default, muốn dùng phải enable lên 
+	i. Receive message Wait Time ~ Long Polling
+		-> Long polling -> Chờ đến khi nào có mess để gửi thì thôi.
+	k. VisibilityTimeout. 
+		-> Basically the time taken by the consumer to process the message -> Khó hiểu vãi lol
+		-> Thay vì thế, chỉ cần nói là sau khi message này được nhận, nó sẽ bị ẩn 1 tgian là VisibilityTimeout cho đến khi hiện lại để cho thằng consumer khác poll
+	l. DeliveryDelay.
+		-> Ẩn message sau khi gửi cho đến khi hết delaySecond -> Thì người dùng mới có thể poll dc 
+	m. For an SQS FIFO queue, all the messages with the same Message Group Identifier will be delivered in order. 
+		Messages with different message group ID values might be sent and received out of order.
+	n. Có thể sử dụng JAVA SDK để config visibility timeout cho riêng 1 vài message ??
+	
 	
 15. Cognito 
 	Có 2 thứ
@@ -439,19 +456,7 @@ I. ---------------------------------------------------------- SERVICES ---------
 35. Resource Access Manager
 	- Tạo ra resource để share hoặc view shared resources
 	
-36. SQS 
-	a. SQS cũng là một topic sẽ được hỏi nhiều thứ chi tiết liên quan đến DelaySeconds, hay 
-	b. Gửi từ SNS -> SQS (SQS hỗ trợ chức năng subscribe ngược)
-	d. SQS ko encript data by default, muốn dùng phải enable lên 
-	e. Receive message Wait Time ~ Long Polling
-		-> Long polling -> Chờ đến khi nào có mess để gửi thì thôi.
-	f. VisibilityTimeout. 
-		-> Basically the time taken by the consumer to process the message -> Khó hiểu vãi lol
-		-> Thay vì thế, chỉ cần nói là sau khi message này được nhận, nó sẽ bị ẩn 1 tgian là VisibilityTimeout cho đến khi hiện lại
-	g. DeliveryDelay.
-		-> Ẩn message sau khi gửi cho đến khi hết delaySecond -> Thì người dùng mới có thể poll dc 
-	h. For an SQS FIFO queue, all the messages with the same Message Group Identifier will be delivered in order. 
-		Messages with different message group ID values might be sent and received out of order.
+
 		
 37. Elastic Transcoder
 	a. Transcode Video
@@ -558,8 +563,9 @@ I. ---------------------------------------------------------- SERVICES ---------
 49. Managed BlockChain 
 	a. Khi mới tạo thì có tk initial、add mem mới bằng cách send invitation.
 	
-	
-	
+50. Athena
+	a. Chỉ chơi vs S3
+
 II. ---------------------------------------------------------- VPC ----------------------------------------------------------
 
 1. VPC
@@ -916,8 +922,10 @@ VIII. ---------------------------------------------------------- FAQs ----------
 17. Single Root I/O: SR I/O - The short answer is that SR-IOV is a specification that allows a PCIe device to appear to be multiple separate physical PCIe devices
 	Nôm na, sử dung SR I/O có thể archive dc higher network throughput.
 
-18. X-forward-for: 1 header chứa IP từ original
-	X-forward-Proto: Xác định protocol
+18. 
+	HTTP HEADER:
+		+ X-forward-for: 1 header chứa IP từ original
+		+ X-forward-Proto: Xác định protocol
 	
 19. State Manager và Maintenance Window có thể sử dụng để install script lên các instance 
 
@@ -925,9 +933,14 @@ VIII. ---------------------------------------------------------- FAQs ----------
 
 21. 
 	RTO ?  Recovery Time Objective - How much time loss can u afford ?
-	RPO ? Recovery Point Objective - How much time loss can u afford ? 
+	RPO ? Recovery Point Objective - How much time loss can u afford ?
+	
+22. Khi 1 application chạy trong 1 EC2 (EC2 này đã dc assign role để access 1 resource j đó, S3 chẳng hạn). Để application có thể execute code tương tác với resource thì nó phải nhận temporary security credential từ EC2 instance metadata. 
+
 
 IX. ---------------------------------------------------------- PRACTICE ----------------------------------------------------------
+
+* Sử dụng externalID khi assumeRole để tăng bảo mật khi đưa quyền cho 3rd party tool ?
 
 * Sử dụng Resources Group để tạo các group resource và sau đấy dùng System Manager để quản lý, ví dụ như install Apache đồng loạt
 
@@ -940,6 +953,7 @@ IX. ---------------------------------------------------------- PRACTICE --------
  
 * Mesh VPN 
 	-> Chính là peer-to-peer network.	
+
 
 
 * S3 Retrist Access
@@ -1045,6 +1059,10 @@ CloudFormation
 		+ data transit between EBS và instance
 		+ snapshot tạo ra từ volume
 		+ volume tạo ra từ snapshot
+		
+* Config Auto Scaling to watch SQS Queue
+
+LAG tối đa chỉ chứa dc 4 connections
 
 X. ---------------------------------------------------------- GENERAL WTFs ----------------------------------------------------------
  
