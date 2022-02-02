@@ -14,16 +14,14 @@ I. ---------------------------------------------------------- SERVICES ---------
 1. AWS
  a. Sell in bulk -> Cheaper if use
  b. New feature available everytime 
- c. Deploy in new region
- d. 3 Model of Cloud Computing
+ c. 3 Model of Cloud Computing
 	- IaaS (Infra)
 		Người dùng quản lý app, runtime, secure và db zz
-	- PaaS (Platform) - ko cần biết đến quản lý infra
-		Người dùng quản lý app
-	- SaaS (Software) - chỉ cần biết cách sử dụng 
-		Người dùng éo care j nữa. Ví dụ là salesforce
+	- PaaS (Platform)
+		người dùng ko cần biết đến quản lý infra
+	- SaaS (Software) 
+		Người dùng chỉ cần biết cách sử dụng app, còn lại éo care j nữa. Ví dụ là salesforce
   e. 1 region có thể bao gồm nhiều AZ
-  f. Latency giữa các Az thấp hơn 1 digit nên sync repli within AZ 
 		
 2. EC2: Có 3 loại instance dựa vào giá
 		- On demand: Loại mặc định, co giãn dc, nhưng mà mắc
@@ -565,6 +563,13 @@ I. ---------------------------------------------------------- SERVICES ---------
 	
 50. Athena
 	a. Chỉ chơi vs S3
+	
+51. Lex
+52. EMR
+53. SageMaker
+54. Config
+55. License Manager
+56. DataSync
 
 II. ---------------------------------------------------------- VPC ----------------------------------------------------------
 
@@ -1083,18 +1088,24 @@ FSx
 Shield
 Security HUB
 Macie
-DataSync
+
 Service Catalog
-License Manager
+
 Control Tower
-Config
+
 Compute
 Optimizer
 Docker 
 ML
-	SageMaker
-	Forecast
 	Lex
+	EMR
+	SageMaker
+	Config
+	License Manager
+	DataSync
+	
+Forecast
+	
 	Comprehend
 AppSync
 AppStream
@@ -1105,7 +1116,7 @@ ECR
 Outposts
 Alexa
 MQ
-EMR
+
 Sing Work Flow ?
 file-level restore ?
 Có thể sử dụng HSM Hardware Security Module để manage top level encription keys. ?? Redshift
