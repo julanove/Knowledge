@@ -12,16 +12,14 @@ X. GENERAL WTFs
 I. ---------------------------------------------------------- SERVICES ----------------------------------------------------------
 
 1. AWS
- a. Sell in bulk -> Cheaper if use
- b. New feature available everytime 
- c. 3 Model of Cloud Computing
-	- IaaS (Infra)
-		Người dùng quản lý app, runtime, secure và db zz
-	- PaaS (Platform)
-		người dùng ko cần biết đến quản lý infra
-	- SaaS (Software) 
-		Người dùng chỉ cần biết cách sử dụng app, còn lại éo care j nữa. Ví dụ là salesforce
-  e. 1 region có thể bao gồm nhiều AZ
+	a. Sell in bulk -> Cheaper if use
+	b. 3 Model of Cloud Computing
+		- IaaS (Infra)
+			Người dùng quản lý app, runtime, secure và db v..v..
+		- PaaS (Platform)
+			người dùng ko cần biết đến quản lý infra.
+		- SaaS (Software) 
+			Người dùng chỉ cần biết cách sử dụng app, còn lại méo care j nữa. Ví dụ là salesforce
 		
 2. EC2: Có 3 loại instance dựa vào giá
 		- On demand: Loại mặc định, co giãn dc, nhưng mà mắc
@@ -186,6 +184,10 @@ I. ---------------------------------------------------------- SERVICES ---------
 		- Files in an existing bucket are not replicated automatically but all the subsequent updated files will be automatically replicated.
 		Sau khi thiết đặt REPLICATION, các file hiện tại trong source bucket ko dc replication mà chỉ những file mới dc upload hoặc subsequent updated file ms dc replicate thôi.
 		
+	Quy trình up/get ảnh sử dụng S3 và CORS
+		1. Public bucket:
+			- Up lên là ko đủ, phải chỉnh cả bucket policy nữa
+		
 10. CloudFront.
 	a. Content Delivery Network (CDN)
 	b. caches copy of your content "close" to your viewer.
@@ -279,6 +281,10 @@ I. ---------------------------------------------------------- SERVICES ---------
 	g. SNI - Server Name Indicator: handle separate SSL cert for each device plaform
 	- Có thể add nhiều cert vào 1 ELB
 	h. Khi 1 con AMI mới đc tạo và add vào ELB có vấn đề, việc cần làm là health check kĩ, tiếp đến là nếu ko ổn thì associate lại với launch configuration cũ.
+	
+	i. Usecase (LuckyDraw) 
+		Listener (HTTPS-443) Tuy nhiên forward về instance qua HTTP cổng 80.
+		Cách này để sử dụng SSL của ELB mà ko cần cài đặt cert trên server. 
 	
 	
 14. AWS SQS (Simple Queue Service) 
@@ -427,7 +433,22 @@ I. ---------------------------------------------------------- SERVICES ---------
 	
 	b. Amazon Elastic Container Registry (ECR). Giống như Git, tuy nhiên lại sử dụng để quản lý image thay vì code :))
 		Có thể cài đặt, login vào ECR của 1 container -> Pull image -> Sử dụng image này để tạo Task Definition
+		
+	Tại sao container lại quan trọng ?
 	
+	Case-study của 1 ứng dụng ECS
+	
+	MicroService ? 
+		-> Lquan với nhau qua serivce discovery
+	Dùng Fargate để quản lý hạ tầng của container mà ko cần care nó chạy như nào
+	
+	Docker 
+		-> tạo chứa, quản lý và chạy container
+		
+	APplication Source code -> Build Image -> ECR -> Upload service -> ECS
+	
+	Bình thường thì dùng EC2 để chạy Container, tuy nhiên nếu ko muốn quản lý tài nguyên EC2, paching các kiểu thì cứ giao hết cho Fargate
+		
 	
 30. NAT
 	-> NAT-Gateway must stay in public subnet -> mà public subnet thì phải có Internet gateway 
@@ -563,6 +584,13 @@ I. ---------------------------------------------------------- SERVICES ---------
 	
 50. Athena
 	a. Chỉ chơi vs S3
+	b. Để query data trong S3, data ở  đây có thể từ CloudFront hoặc CW
+	c. Sử dụng kết hợp với Crawler để auto fetch data daily hoặc specific time.
+	
+51. SES:
+	- Có 2 chế độ: 
+		+ Sandbox: Cả email gửi lẫn email nhận đều phải được verified trước khi gửi
+		+ Production: Có thể gửi cho bất kỳ email nào, tuy nhiên email gửi vẫn phải được verifie.
 	
 51. Lex
 52. EMR
@@ -717,6 +745,12 @@ III. ---------------------------------------------------------- VPN ------------
 	b. Với sts thì cả 2 bên có thể communicate với nhau và có fixed IP
 	c. Trong khi client thì chỉ là 1 client ví dụ như 1 laptop connect đến AWS và ko có 1 địa chỉ IP cố định
 
+5. Client VPN Endpoints
+	a. Client VPN Endpoint + Route53 Revolver đắt vl, 1 tháng 1 man tiền association hour. thôi bỏ bỏ, chuyển qua dùng 1 SSH vào RDS. Solution này chỉ dùng cho doanh nghiệp + nhiều tiền thôi
+	b. Sử dụng để VPN vào 1 private VPC
+	c. Cần DNS server (tạo ra từ Route Revolver để ăn dc tên của RDS)
+	d. 	
+
 
 IV. ---------------------------------------------------------- RDS ----------------------------------------------------------
 
@@ -863,6 +897,8 @@ VIII. ---------------------------------------------------------- FAQs ----------
 7. Fixed MAC address luôn đi cùng 1 ENI
 
 8. TCP là 1 phương thức kết nối giữa client và server trong khi HTTP/HTTPS là phương thức kết nối giữa client/server. Với TCP, target có thể là 1 EC2, continer hoặc IP Address
+	SSH và MySQL sử dụng 3306 cũng là 1 giao thực thuộc TCP vậy nên khi allow ALL TCP thì mặc định có thể kết nối MYSQL và SSH vào instance 1 cách bình thường.
+	
 
 9. IP
 	Địa chỉ IPv4 được chia thành 6 class khác nhau là A, B, C, D, E, Loopback mỗi class được quy định một  dải IP :
@@ -1070,6 +1106,16 @@ CloudFormation
 LAG tối đa chỉ chứa dc 4 connections
 
 X. ---------------------------------------------------------- GENERAL WTFs ----------------------------------------------------------
+
+
+https://sqs.us-east-1.amazonaws.com/438887108678/Whizlabs-sqs
+https://developer.mozilla.org/en-US/docs/Web/API/Navigator/appVersion
+https://www.zaikei.co.jp/article/20210916/639190.html
+https://developers-jp.googleblog.com/2021/09/chrome-user-agent.html
+https://web.dev/migrate-to-ua-ch/
+https://web.dev/user-agent-client-hints/
+https://forest.watch.impress.co.jp/docs/digest/1360051.html
+https://developer.mozilla.org/en-US/docs/Glossary/Client_hints
  
 EC2 Image Builders
 CloudHSM
@@ -1126,3 +1172,4 @@ Docker
 CloudFormation
 AWS Data Lifecycle Management
 Hadoop
+

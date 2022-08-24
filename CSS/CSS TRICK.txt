@@ -1,0 +1,5 @@
+CSS:
+
+1. Z-INDEX:
+ The z-index property only works on elements with a position value other than static (e.g. position: absolute;, position: relative;, or position: fixed).
+ Chung là phải có position thì ms work.
