@@ -285,6 +285,22 @@ I. ---------------------------------------------------------- SERVICES ---------
 	i. Usecase (LuckyDraw) 
 		Listener (HTTPS-443) Tuy nhiên forward về instance qua HTTP cổng 80.
 		Cách này để sử dụng SSL của ELB mà ko cần cài đặt cert trên server. 
+		
+	l. TPC: In this example, we named the process https because it listens to secure (HTTPS) traffic. The listener sends traffic to the process on the designated port using the TCP protocol, because a Network Load Balancer works only with TCP. This is okay, because network traffic for HTTP and HTTPS is implemented on top of TCP.
+	
+	k. end-to-end connection: 
+		- Vì sao phải cần ? Vì connection between ELB và backend trong 1 private VPC chưa chắc đã an toàn nếu dùng cổng 80 ??? Thế éo nào mà vẫn chưa an toàn dc nhỉ
+		- END-TO-END nó sẽ nằm ở 2 đầu
+			+ Listener của ELB - set ACM
+			+ Target group - self ecripted
+		A Secure SocketsLayer (SSL) certificate managed by AWS Certificate Manager (ACM) on the load balancer to encrypt all traffic between the internet and the load balancer. Separateself-signed certificatesaregenerated on the EC2 instancesto encrypt traffic between the load balancer and the application instances.
+		-> same private key and certificate để tạo ACM và self cert
+		https://faun.pub/end-to-end-ssl-encryption-with-aws-application-load-balancer-b43db918bd9e
+		https://aws.amazon.com/blogs/containers/maintaining-transport-layer-security-all-the-way-to-your-container-using-the-application-load-balancer-with-amazon-ecs-and-envoy/
+		https://docs.aws.amazon.com/elasticbeanstalk/latest/dg/configuring-https-endtoend.html
+	
+		- Có vẻ như dùng Network và Application LB mang lại kq khác nhau ? cần test...
+	
 	
 	
 14. AWS SQS (Simple Queue Service) 
@@ -628,6 +644,7 @@ II. ---------------------------------------------------------- VPC -------------
 	f. Subnet giới hạn trong 1 AZs -> đồng nghĩa với 1 AZs, phải khởi tạo 1 subnet riêng
 	g. Cần chú ý khi khởi tạo VPC -> subnet tạo ra chỉ giới hạn trong range của VPC
 	h. first four and last IP mỗi subnet are reserved (cannot use) 10.0.0.1,2,3 and 255.
+	
 		
 	Example: Để có 1 public subnet
 		  + Cần 1 route table có igw 0.0.0.0/0 
@@ -669,6 +686,9 @@ II. ---------------------------------------------------------- VPC -------------
 	a. Kết nối nhiều VPC lại với nhau (chỉ trong 1 region). Và với VPC trong tài khoản khác
 	2021 (Update)
 	b. Trong khi VPC Peering chỉ có thể kết nối 2 VPC thì transit gateway có thể kết nối đến 5 VPC, tuy nhiên giá thì VPC Peering rẻ hơn và chỉ tính theo dung lượng truyền qua chứ ko theo thời gian như VPC Peering.
+	c. Kết nối xong how to connect vs nhau (trường hợp cùng CIDR nữa thì sao ?? )
+	
+	VPC Endpint sử dụng cho cả SNS, SQS, SES ???
 	
 
 III. ---------------------------------------------------------- VPN ----------------------------------------------------------
@@ -748,7 +768,7 @@ III. ---------------------------------------------------------- VPN ------------
 5. Client VPN Endpoints
 	a. Client VPN Endpoint + Route53 Revolver đắt vl, 1 tháng 1 man tiền association hour. thôi bỏ bỏ, chuyển qua dùng 1 SSH vào RDS. Solution này chỉ dùng cho doanh nghiệp + nhiều tiền thôi
 	b. Sử dụng để VPN vào 1 private VPC
-	c. Cần DNS server (tạo ra từ Route Revolver để ăn dc tên của RDS)
+	c. Cần DNS server (tạo ra từ Route Revolver để ăn dc tên của RDS -> truy cập theo host name, nếu ko thì chỉ có thể truy cập bằng IP)
 	d. 	
 
 
@@ -832,7 +852,11 @@ III. ---------------------------------------------------------- Monitoring -----
 		- Format của billing report là csv, ko có json j ở đây cả
 		- Về report data thì billing có thể integrate với Athena, Redshift hoặc Quicksight để phân tích
 		
-
+5. Có thể install Cloudwatch Agent lên EC2 để quản lý: 
+	Install Cloudwatch Agent trên Ubuntu:
+		wget https://s3.amazonaws.com/amazoncloudwatch-agent/amazon_linux/amd64/latest/amazon-cloudwatch-agent.rpm
+		sudo rpm -U ./amazon-cloudwatch-agent.rpm
+		
 6. CloudTrail.
 	a. Who made the request
 	b. When was the request made
@@ -900,7 +924,7 @@ VIII. ---------------------------------------------------------- FAQs ----------
 	SSH và MySQL sử dụng 3306 cũng là 1 giao thực thuộc TCP vậy nên khi allow ALL TCP thì mặc định có thể kết nối MYSQL và SSH vào instance 1 cách bình thường.
 	
 
-9. IP
+9. CIDR
 	Địa chỉ IPv4 được chia thành 6 class khác nhau là A, B, C, D, E, Loopback mỗi class được quy định một  dải IP :
 	a. Dải IP Class A : 1.0.0.1 126.0.0.0 (có thể viết 1-126)
 	b. Dải IP Class B : 128.1.0.0 191.254.0.0(có thể viết 128 -191)
@@ -918,6 +942,10 @@ VIII. ---------------------------------------------------------- FAQs ----------
 		+ Thứ ba subnet chứa 16 địa chỉ sẽ có subnet mask của "/ 28" (nghĩa là 2 đến sức mạnh 4).
 	Do đó, một khối địa chỉ của 64 địa chỉ IP được chia thành ba khối 32, 16 và 16 địa chỉ mỗi.
 	
+	/32 - 1
+	/31 - 2
+	/30 - 4
+	/29 - 8
 	/28 - 16
 	/27 - 32
 	/26 - 64
@@ -931,6 +959,8 @@ VIII. ---------------------------------------------------------- FAQs ----------
 	/18 - 16382
 	/17 - 32766
 	/16 - 65536
+	
+	
 	
 10. HSM - Hardware Security Module
 	1 hệ thống phần cứng dùng để tạo ra, quản lý và bảo vệ key. 
@@ -981,6 +1011,32 @@ VIII. ---------------------------------------------------------- FAQs ----------
 
 IX. ---------------------------------------------------------- PRACTICE ----------------------------------------------------------
 
+1. Tạo RSA key
+	- cd easyrdsa3
+	- ./easyrsa init-pki
+	- ./easyrsa build-ca nopass
+	- ./easyrsa build-server-full server nopass
+	- ./easyrsa build-client-full client1.domain.tld nopass
+	https://dev.classmethod.jp/articles/manage-aws-client-vpn-client-certificates/
+	https://github.com/OpenVPN/easy-rsa
+	
+2. EC2 Details
+	#!/bin/bash
+	sudo su
+	yum update -y
+	yum install httpd -y
+	systemctl start httpd
+	systemctl enable httpd
+	echo "REQUEST HANDLING BY SERVER 1" > /var/www/html/index.html
+	
+3. SSH
+	chmod 400 web-serverkey.pem
+	sudo ssh -i Jula-Private-Seoul.pem  ec2-user@10.0.4.12
+	
+5. Linux Install Mysql 
+	yum install mysql -y
+	mysql -h test.cnxb7nzas8z3.ap-northeast-2.rds.amazonaws.com -u admin -p
+
 * Sử dụng externalID khi assumeRole để tăng bảo mật khi đưa quyền cho 3rd party tool ?
 
 * Sử dụng Resources Group để tạo các group resource và sau đấy dùng System Manager để quản lý, ví dụ như install Apache đồng loạt
@@ -994,8 +1050,19 @@ IX. ---------------------------------------------------------- PRACTICE --------
  
 * Mesh VPN 
 	-> Chính là peer-to-peer network.	
+	
+* Test ClientVPN kết nối với only RDS hoặc nguyên cái VPC ?
+	-> Vì sao ko dùng ClientVPN để access tới website luôn mà phải set WAF qua IP
+	-> Đơn giản vì giá của Client VPN rất mắc, trong khi CloudFront kết hợp với WAF lại rất rẻ.
+	-> Mỗi Client VPN chỉ có thể associate với 1 subnet trong 1 AZ, ko thể associate với nhiều subnets của 1 AZ dc.
+	-> Cái target associate thì để cái méo j cũng dc cơ mà cái authorization mới là để xem thằng clientVPN này có thể access dc vào subnet nào
 
+* Khi SSH từ 1 EC2 này sang 1 EC2 khác, để tạo key trên EC2 mới, thì phải copy content của key ấy ra notepad rồi vi vào, tuy nhiên nó sẽ bị thiếu mất mấy chữ BEGIN ở đâu -> Check cẩn thận content key mới	
+	
+* Test NAT
+	https://aws.amazon.com/premiumsupport/knowledge-center/nat-gateway-vpc-private-subnet/
 
+* VPC Peering và Transit Gateway kết nối với nhau thì qua IP như nào ?
 
 * S3 Retrist Access
 	https://docs.aws.amazon.com/AmazonS3/latest/dev/s3-dg.pdf
