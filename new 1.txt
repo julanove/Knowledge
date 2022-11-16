@@ -1,38 +1,14 @@
-AOT - Requiem
-Onepunchman
-Railgun
-Index
-Tsugumomo
-Mushouku Tensei
-Bakemonogatari 
-Dungeon Meshi
-My Hero Academia
-Shuumatsu No Valikyrie
-Kaguya sama
-TENSEI SHITE INAKA DE SLOWLIFE WO OKURITAI
+居辛い：　ở thì khổ
 
+試行錯誤の末：　sau bao lần thí nghiệm
 
+設ける：　thiết lập
 
+築く：　xây dựng (quan hệ)
 
-dig <rds-hostname> -> lấy IP
-Cài đặt mysql trên linux":
-sudo wget https://dev.mysql.com/get/mysql57-community-release-el7-11.noarch.rpm
-sudo yum localinstall mysql57-community-release-el7-11.noarch.rpm 
-sudo yum install mysql-community-server
-systemctl start mysqld.service
-Connect:
-mysql -u admin -p -h client-certified-cluster-instance-1.cl2y9htvnn64.ap-northeast-1.rds.amazonaws.com
+をよそに；　mặc kệ
 
--- 
+目を通していただ。。。
 
-
-Học Scrum -> Làm cái băng băng j đó.
-
-
---
-
-window.navigator.appVersion -> trên firefox chỉ đẻ ra dc mỗi 5.0 (Windows)
-
-'5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/96.0.4664.93 Safari/537.36'
-'5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/96.0.4664.93 Safari/537.36'
-'5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/96.0.0.0 Safari/537.36'
+発足
+ = establish

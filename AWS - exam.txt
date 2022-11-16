@@ -176,7 +176,7 @@ I. ---------------------------------------------------------- SERVICES ---------
 	m. Dùng multi part upload để upload file trên 5GB
 	n.  File Gateway. 1 cái app hay kiểu thế để truy cập S3 từ on-premise.
 	i. Eventual Consistency: Nhất quán theo kiểu cuối cùng kiểu j cũng dc cập nhật thôi -> node2 data có thể là stale data. 
-	h. Strong Consistency: Nhất quán 1 cách mạnh mẽ, khi 1 file dc update -> đến lúc update toàn bộ node hoàn thành -> ko access nào lấy dc file 
+	h. Strong Consistency: Nhất quán 1 cách mạnh mẽ, khi 1 file dc update -> đến lúc update toàn bộ node hoàn thành -> ko access nào lấy 	dc file 
 	k. 1 single Put request -> chỉ có thể upload 1 file max 5Gb. Dùng multi-part upload -> 5TB
 	l. pre-sign URL -> Cách tốt nhất để cho quyền tạm thời. https://docs.aws.amazon.com/AmazonS3/latest/dev/PresignedUrlUploadObject.html
 	
@@ -187,6 +187,13 @@ I. ---------------------------------------------------------- SERVICES ---------
 	Quy trình up/get ảnh sử dụng S3 và CORS
 		1. Public bucket:
 			- Up lên là ko đủ, phải chỉnh cả bucket policy nữa
+	m. Muốn để S3 thành public thực thụ thì phải chỉnh bucketPolicy cho user ngoài có thể getObject nữa
+	n. ACL - Đại khái là với những file do người khác úp lên bucket của mình, phải dùng ACL để grant access cho những object này. 
+	
+	You can use a bucket policy to grant public read permission to your objects. However, the bucket policy applies only to objects that are owned by the bucket owner. If your bucket contains objects that aren't owned by the bucket owner, the bucket owner should use the object access control list (ACL) to grant public READ permission on those objects.
+
+    By default, when another AWS account uploads an object to your S3 bucket, that account (the object writer) owns the object, has access to it, and can grant other users access to it through ACLs. You can use Object Ownership to change this default behavior so that ACLs are disabled and you, as the bucket owner, automatically own every object in your bucket. As a result, access control for your data is based on policies, such as IAM policies, S3 bucket policies, virtual private cloud (VPC) endpoint policies, and AWS Organizations service control policies (SCPs).
+	
 		
 10. CloudFront.
 	a. Content Delivery Network (CDN)
@@ -207,6 +214,8 @@ I. ---------------------------------------------------------- SERVICES ---------
 			
 		cách thiết lập default hoặc custom certificate, tích hợp Lambda Edge vào request lifecycle, improve cache hit ratio 
 	k. U can make the on-premise load balancer as the custom origin of the CL distribution
+	l. Khi deploy những SPA như React hay VUE thì .. nhớ set Error Pages 400, 403 về 200 ko thì các page khác sẽ dính lỗi Access Denied ko truy cập dc (nghe méo lquan mie gì luôn)
+	Basically, what is happening is you are telling Cloudfront that regardless of a 400 or 403 error, to redirect back to index.html, thus giving control to Angular to decide if it can go to the path or not. If you would like to serve the client a 400 or 403 error, you need to define these routes in Angular.
 
 11. IAM
 	Hiểu đơn giản, 1 accout có thể thuộc 1 hoặc nhiều group, 1 group có thể có 1 hoặc nhiều policies. Policy có 1 danh sách và có thể tạo ra custom policy. End game. 		
@@ -234,6 +243,11 @@ I. ---------------------------------------------------------- SERVICES ---------
 		-> Từ đây có thể trail ra thằng nào đã xóa
 	h. Deny luôn có độ priority lớn hơn là rõ ràng, tuy nhiên nếu ko muốn deny hoàn toàn, hãy sử dụng NotAction
 		
+	i. Origin Path
+		Path mà CF sẽ ghi đè lên origin domain khi request
+		Ví dụ path gốc là example.com/development/abc.jpg
+		Nếu khai báo là /development ở Origin Path
+		Thì chỉ cần user gõ example.com/abc.jpg -> CF sẽ tự convert nó sang example.com/development/abc.jpg
 	
 	
 12. Auto Scaling 
@@ -255,6 +269,19 @@ I. ---------------------------------------------------------- SERVICES ---------
 		- Cân bằng số lượng instance các EC2 giữa các A-Z
 		Health check
 		...
+	-> Từ này ko xài LC nữa nha cưng, chuyển sang dùng Launch Template
+	Cách để update new code to AMI trước đến giờ:
+		- Tạo new AMI với code mới
+		- Update LC với AMI này
+		- Terminate các AMI có sẵn, ASG sẽ tạo ra các EC2 từ AMI mới này
+	2022 rồi. Ta có cách mới: Instance Refresh		
+		- Setup 1 EC2 Image Builder Pipeline -> build and test
+		- SNS Topic để notify khi build xong
+		- 1 Lambda function subcription to SNS topic để trigger khi nó chạy xong
+		- Lambda này sẽ lấy AMI ID từ SNS functon, tạo ra 1 Launch Template và trigger Instance Refresh
+		- Config ASG với LaunchTemplateVersion = $Latest
+	https://aws.amazon.com/blogs/compute/introducing-instance-refresh-for-ec2-auto-scaling/
+	
 	
 13. Elastic Load Balancer.
 	a. Application Load Balancer is best suited for load balancing of HTTP and HTTPS traffic
@@ -370,18 +397,22 @@ I. ---------------------------------------------------------- SERVICES ---------
 21. CloudFormation
 	a. Bạn xác định tất cả các tài nguyên mà bạn muốn AWS bật lên trong một bản thiết kế chi tiết, bấm vào một nút, và sau đó AWS sẽ thực hiện giúp bạn phần việc còn lại. Bản thiết kế này được gọi là một template trong CloudFormation. CloudFormation đảm bảo rằng các tài nguyên phụ thuộc trong template của bạn đều được tạo theo đúng thứ tự. Ví dụ, giả sử chúng ta muốn tạo record DNS Route53 và một instance EC2 có record DNS trỏ tới instance EC2. CloudFormation sẽ để cung cấp instance EC2 trước, chờ cho nó sẵn sàng được sử dụng, và sau đó tạo bản ghi DNS. AWS CloudFormation điều phối việc cung cấp các tài nguyên mong muốn. Vì vậy, thay vì phải viết script với một loạt các lời gọi API AWS, chờ vòng lặp và thử lại logic, bạn chỉ cần mô tả những gì bạn muốn và yêu cầu CloudFormation thực hiện điều đó cho bạn
 	- stacks ?
-	- layer (1 for java, 1 for node.js)
-	- recipe (for DynamoDB)
+	- layer ?
+	- recipe ?
 	
 22. BeanStalk
 	- Là 1 SaaS
 	- Khác vs Lambda tính phí theo thời gian chạy code thì BeanStalk tính phí theo resource chứa code.
 	- Nó giống với LightSail
+	- Elastic Beanstalk will take care of adding load balancing and Auto Scaling.
 	- CI/CD với CodePipeline, CodeBuild lifecycle hook, CodeDeploy, Blue/Green deployment on ElasticBeanstalk…
 
 23. API Gateway
 	- API KEYs: Tạo key -> Có mới có thể truy cập dc API Gateway
 	- Usge Plan: Tạo plan để cấp cho người dùng và thống kê khả năng sử dụng. Nhiều Api Gateway có thể sử dụng chung 1 plan
+	- Resource: Đường dẫn của API
+	- Method:
+	- Use Lambda Proxy integration: sida. Sử dụng nó tương đương với việc giữ nguyên si nội dung request (no modification) và chuyển đến lambda, thay vì transform request, và response ở API Gateway. 
 	
 24. KMS
 	Supports 2 kind of keys: master and data keys
@@ -659,6 +690,8 @@ II. ---------------------------------------------------------- VPC -------------
 		2011:dc8:1234:1c00::/56 - Local (internal routing within VPC)
 		172.31.0.0/16			- pcx-1d2e1f2c (VPC peering, đâm sang 1 VPC khác)		
 		0.0.0.0/0 				- igw-11222 (Allowing all trafic to go to the Internet Gateway)
+		
+	Ở tab routes, chúng ta có thể thấy 2 route. Route đầu tiên hiển thị địa chỉ IP của VPC mặc định ở cột destination và giá trị ở cột target là "local", điều này thể hiện rằng nếu địa chỉ IP của nơi đến nằm trong khoảng IP đó thì giao tiếp sẽ được giữ ở bên trong VPC. Route thứ 2 giá trị ở cột destination là 0.0.0.0/0, điều này có nghĩa là mọi giao tiếp nếu có địa chỉ IP nơi đến không nằm trong khoảng được định nghĩa ở các route khác thì sẽ được điều hướng tới nơi đến mặc định trong route này, đó chính là IGW.
 	
 4. Network Address Translation (NAT)
 	a. Open traffic to internet of an instance from private subnet (1 chiều). The internet cannot initiate a connection backward.
@@ -827,12 +860,14 @@ III. ---------------------------------------------------------- Monitoring -----
 	- Check the status to make sure the volume expanded and extended correctly.
 	- Send email notification
 	c. Có thể dùng CloudWatch subcription filter để deliver logs đến Lambda, Kinesis, OpenSearch
+	d. Có thể cài CW agent lên EC2 để theo dõi
+	
 	
 2. Config
 	Khi config thay đổi
 	
 3. VPC Flow Logs Nằm trong EC2/ Network Interface
-	- Có thể tạo cho subnet, network interface và VPC. Vấn đề là éo biết nó nằm ở đâu thôi ???
+	- Có thể tạo cho subnet, network interface và VPC. 
 
 4. Money
 	a. Cost Allocation Tag
@@ -899,6 +934,9 @@ VII. ---------------------------------------------------------- OTHER KNOWLEDGES
 		-> Rekognition Video sẽ xử lý cái stream này
 		-> 1 Kinesis data stream consumer để phân tích kết quả mà Rekognition gửi đến Kinesis Data stream
 	- Transcribe: Speech recognition
+	
+5. Network's flow:
+	Internetgateway -> Routetable -> Default NACL -> Security Group -> EC2 
 
 VIII. ---------------------------------------------------------- FAQs ----------------------------------------------------------
 
@@ -959,6 +997,7 @@ VIII. ---------------------------------------------------------- FAQs ----------
 	/18 - 16382
 	/17 - 32766
 	/16 - 65536
+
 	
 	
 	
@@ -1240,3 +1279,12 @@ CloudFormation
 AWS Data Lifecycle Management
 Hadoop
 
+
+. How can you recover/login to an EC2 instance for which you have lost the key?
+Follow the steps provided below to recover an EC2 instance if you have lost the key:
+
+Verify that the EC2Config service is running
+Detach the root volume for the instance
+Attach the volume to a temporary instance
+Modify the configuration file
+Restart the original instance

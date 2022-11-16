@@ -1,0 +1,29 @@
+AWSTemplateFormatVersion: 2010-09-09
+Parameters:
+  KeyName:
+    Description: Name of existing EC2 Keypair
+    Type: 'AWS::EC2::KeyPair::KeyName'
+Resources:
+  EC2Instance:
+    Type: 'AWS::EC2::Instance'
+    Properties:
+      ImageId: ami-08db9a99a170af330
+      InstanceType: t2.micro
+      SecurityGroupIds:
+        - sg-041b6489cc92cfca6
+      KeyName: !Ref KeyName
+      SubnetId: subnet-0bd77455e9de1aae6
+    Metadata:
+      'AWS::CloudFormation::Designer':
+        id: 6c0d49bc-6de9-4de3-a88c-e5849584b0c0
+Metadata:
+  'AWS::CloudFormation::Designer':
+    6c0d49bc-6de9-4de3-a88c-e5849584b0c0:
+      size:
+        width: 60
+        height: 60
+      position:
+        x: 60
+        'y': 90
+      z: 1
+      embeds: []
