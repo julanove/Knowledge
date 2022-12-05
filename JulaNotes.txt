@@ -2,29 +2,49 @@ GOT ONLY 1 YEAR LEFT IN JAPAN
 MONEY & KNOWLEDGE
 Tech Lead + DevOps + Biết tiếng Anh + Tiếng Nhật
 
+https://msngr.com/dttwvnyatncn
+
 ========================= 1. THINGS NEEDED TO DO ============================================
 
-AU
-	0800-1111-820
-IPAD
-	UNLOCK SOFTBANK
-Key của S3 => 
-	SIMILAR TOUR
-	API xóa ảnh khi remove - travel
-	Bỏ SIMILAR TOUR
+Mô hình cho đối tác Greenstamp
+	- Sử dụng PHP
+	- Stateless server
+	- Instance type
+	- 
+
+AWS	
+	Sử dụng VPC Endpoint thay thế NAT
+	https://aws.amazon.com/premiumsupport/knowledge-center/vpc-reduce-nat-gateway-transfer-costs/
+Chí	
+	Quản lý lịch đặt
+	Quản lý tin
+	Quản lý dịch vụ
+	Hiển thị thuốc list
+	Hiển thị thuốc chi tiết
+	Xem lại lịch hẹn
+	Đặt thuốc
+	Quản lý order thuốc
+	authen api của admin
+	Đẩy tiếp CICD của nó
 	
-	graviton AWS
-
-	Just Advisor
-
-	Dịch vụ có dc sử dụng hay ko ?
-
-	Hỏi về skill
-
-	NSY LÊN CF, RDS sử dụng EC2
+	s3_upload_chihoa:
+	AKIASEHQJQCA6VXTL252
+	I7pgDgZGml+lj9LfaLHUaExdGr/nVGx8W3FQ600Q
+	
+	export AWS_ACCESS_KEY_ID=AKIASEHQJQCA6VXTL252
+	export AWS_SECRET_ACCESS_KEY=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
+	
+	julanove:
+	export AWS_ACCESS_KEY_ID=AKIASEHQJQCAS5FPN4KO
+	export AWS_SECRET_ACCESS_KEY=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 -> có vđề
+	
+Giấy tờ NA
+Tài liệu list acc
+	
 
 KIẾN THỨC
 	Dev-Ops
+		3/61
 	Tiếng Nhật
 	Tiếng Anh
 	Mythology
@@ -33,31 +53,16 @@ KIẾN THỨC
 
 	• Understanding of REST API
 	 find example
-	 
-	• Experience of CI/CD
-	 Code Build and Code Deploy -> Code Pipeline
 
 	• Encrypt
 	 KMS
-	 
-	• Experience of Agile development
-		Sprint, Burndown chart, User story
-		
-	• Experience of middleware/server construction for web system.
-
-	• Experience of requirement definition
 
 	• Terraform
-	• CloudFormation
 
 	• promise, async await, event loop, single thread, engine v8
 	• REST
 	• http request, session, cookie, authen
-	• chuyển đổi thành serverless
 	• LÀM SAO MÀ GIT THÔNG BÁO CHO AWS
-	
-	Basic Design
-	Details Design
 	
 ========================= 2. AUTHENTICATION ============================================
 
@@ -67,6 +72,8 @@ Pass MYSQL: nsy@123
 https://my.vultr.com/
 hangpt248@gmail.com
 KNG@ugnPz86mh63
+
++X8t*hmUH[f_??W*
 
 . NSY VPN
 Gateway: 42.118.107.60
@@ -81,6 +88,9 @@ server 10.0.1.18
 User: ubuntu
 Pass: 123@123a
 
+112.78.1.135
+ngocld/Aa@123456
+
 . UNKNOWN 
 root@localhost
 ALTER USER 'root'@'localhost' IDENTIFIED BY 'Jula_nove@0319';
@@ -90,8 +100,8 @@ mysql -uroot -p
 alter user 'root'@'localhost' identified with mysql_native_password by 'nsy@123';
 CREATE USER 'admin'@'%' IDENTIFIED WITH mysql_native_password BY 'nsy@123';
 
-yuna.love.26@gmail.com
-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
+julanove
+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
 
 Bitbucket: 
 NSY
@@ -103,6 +113,7 @@ HienAnh30011996
 
 . SAIMEI
 @SgR9OisTVb3zJMJD2AMbR3O
+wl4svMnNkYAsTJh4dVFZj4jpVWOLmXXXd5LMHFxh
 
 SQL:
 	Comic@123456
@@ -159,5 +170,9 @@ Josee to Tora to Sakana-tachi
 Beastars
 Shadows House
 Mieruko-chan
+Magi
+Bleach
 
 153.231.52.145
+
+Châu tinh trì - gia hữu hỉ sự

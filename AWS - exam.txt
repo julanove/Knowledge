@@ -24,7 +24,7 @@ I. ---------------------------------------------------------- SERVICES ---------
 2. EC2: Có 3 loại instance dựa vào giá
 		- On demand: Loại mặc định, co giãn dc, nhưng mà mắc
 		- Reserved Instance: Loại biết trc cấu hình, nhu cầu tăng giảm 1 cách cụ thể vào thời gian nào, có thể trả tiền trc hoặc ko.
-		- Spot instance: đấu giá, thằng nào nhanh tay thì lượm. 
+		- Spot instance: đấu giá, thằng nào nhanh tay thì lượm. Kiểu như khai báo 1 range price mà mình có thể chịu dc, nếu vượt quá mức range ấy thì mất. Giá sẽ rẻ hơn bt rất nhiều
 	a. Có thể hibernation instance, tuy nhiên phải setting điều này lúc khởi tạo. Console hay CLI đều dc 
 	b. Có thể đổi instance type, tuy nhiên phải stop service đã :))
 	c. EC2ConfigService ?
@@ -43,6 +43,9 @@ I. ---------------------------------------------------------- SERVICES ---------
 	h. 1 vài EC2 instance đã có sẵn local storage built-in gọi là instance store. Data trong instance store này là ephemeral -> terminate instance cái là đi luôn.
 
 	i. 1 EC2 có thể có nhiều IPs sử dụng nhiều Network Interface
+	
+	k. Spot Instance: 
+		+ Nếu vượt quá max price range thì se
 
 3. Lambda
 	a. Run code without provisioning 
@@ -163,7 +166,7 @@ I. ---------------------------------------------------------- SERVICES ---------
 9. S3 
 	a. Data transfer via SSL using IAM
 	b. Sử dụng phối hợp với CloudFront -> tăng tốc độ distribute , minimize network latency
-	c. Can archive old file to Glacier sử dụng life cycle sau 1 thời gian
+	c. Can archive old file to Glacier sử dụng life cycle sau 1 thời gian. Kiểu sao bn ngày thì move vào Tier nhỏ hơn, sau bn ngày thì xóa mie luôn. Đấy gọi là life cycle
 	d. Tạo private repository như GIT trên S3
 	e. Ko có cơ chế object loking, thằng nào đi trước thì thắng. 
 	f. Cách thay đổi tên và folder trong bucket có ảnh hưởng đến tốc độ truy xuất và partition
@@ -249,6 +252,12 @@ I. ---------------------------------------------------------- SERVICES ---------
 		Nếu khai báo là /development ở Origin Path
 		Thì chỉ cần user gõ example.com/abc.jpg -> CF sẽ tự convert nó sang example.com/development/abc.jpg
 	
+	k. Các cách phân quyền cho 3rd party 
+		- AssumeRole: cấp quyền cho 1 aws user đã có sẵn, tuy nhiên lại ko có quyền truy cập vào 1 resource nào đóng
+		- AssumeRoleWithWebIdentity: Cho 1 user của Fb, Google hay OIDC v...v.. 
+		- AssumeRoleWithSAML: Cho 1 tổ chức mà hệ thống có phần mềm có thể produce SAML
+		- GetFederationToken
+		- GetSessionToken 
 	
 12. Auto Scaling 
 	a. Phải khởi tạo 1 launch configuration trc khi tạo 1 Auto SCaling group. ASgroup sẽ chạy dựa trên launch configuration này. Khi 1 lc bị xóa (lc ko thể sửa) thì ASgroup sẽ tự động update thông tin EC2 dựa trên lc mới. ví dụ lc là 4 instance C4, sau đó xóa lc và update thành C4-extra -> Những instance EC2 từ đó về sau sinh ra sẽ chỉ dựa trên lc này.
@@ -936,7 +945,22 @@ VII. ---------------------------------------------------------- OTHER KNOWLEDGES
 	- Transcribe: Speech recognition
 	
 5. Network's flow:
-	Internetgateway -> Routetable -> Default NACL -> Security Group -> EC2 
+	Internetgateway -> Routetable -> Default NACL -> Security Group -> EC2 7
+	
+6. Encryption:
+	Mã hóa đối xứng: Symmetric Encryption
+		Sử dụng 1 key để mã hóa
+	
+	Mã hóa bất đối xứng: Asymmetric Encription
+		Public key: như 1 ổ khóa để mã hóa thông tin
+		Private key: là cách duy nhất giải mã hóa thông tin do public key mã hóa. 
+	
+		https://viblo.asia/p/giai-thich-co-che-hoat-dong-cua-ssl-va-certificate-thong-qua-cau-chuyen-cua-romeo-va-juliet-PwlVmyElV5Z?fbclid=IwAR2rywgf0S4il0tvllF4Js4yjT-HpAWTv9sJfCY5A2JgdSDi1Zg6A3HF2nc
+	
+	Certificate:
+		Chứng thực xem thông tin được gửi từ nguồn là đáng tin cậy hay ko
+		
+
 
 VIII. ---------------------------------------------------------- FAQs ----------------------------------------------------------
 
@@ -1047,7 +1071,11 @@ VIII. ---------------------------------------------------------- FAQs ----------
 	
 22. Khi 1 application chạy trong 1 EC2 (EC2 này đã dc assign role để access 1 resource j đó, S3 chẳng hạn). Để application có thể execute code tương tác với resource thì nó phải nhận temporary security credential từ EC2 instance metadata. 
 
-
+23. Khác biệt giữa IAM Role và Bucket Policy
+ - IAM Role: What can a user can do in AWS
+ - S3 Bucket Policy: Who can access this S3 bucket
+ 
+ 
 IX. ---------------------------------------------------------- PRACTICE ----------------------------------------------------------
 
 1. Tạo RSA key
@@ -1075,8 +1103,14 @@ IX. ---------------------------------------------------------- PRACTICE --------
 5. Linux Install Mysql 
 	yum install mysql -y
 	mysql -h test.cnxb7nzas8z3.ap-northeast-2.rds.amazonaws.com -u admin -p
+	
+6. Cấp quyền tạm thời cho 1 bên thứ 3
+   Sử dụng externalID khi assumeRole để tăng bảo mật khi đưa quyền cho 3rd party tool ?
+   Sử dụng external ID để chặn confused deputy attach (Mạo danh ARN của account cung cấp resource)
+   
+   
 
-* Sử dụng externalID khi assumeRole để tăng bảo mật khi đưa quyền cho 3rd party tool ?
+
 
 * Sử dụng Resources Group để tạo các group resource và sau đấy dùng System Manager để quản lý, ví dụ như install Apache đồng loạt
 
@@ -1120,7 +1154,7 @@ IX. ---------------------------------------------------------- PRACTICE --------
 	-> gọi API assumeRole lên STS
 	- How to switch role ?
 	- MFA có thể add vào 1 role
-	Sử dụng external ID để chặn confused deputy attach (Mạo danh ARN của accound cung cấp resource)
+	
 	
 	1 flow:
 		a. Login vào application (identity broker)
