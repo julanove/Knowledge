@@ -762,62 +762,6 @@
                 }
             }
         },
-        "S3Front": {
-            "Type": "AWS::S3::Bucket",
-            "Properties": {
-                "BucketName": "greens-client-front",
-                "OwnershipControls": {
-                    "Rules": [
-                        {
-                            "ObjectOwnership": "BucketOwnerEnforced"
-                        }
-                    ]
-                },
-                "PublicAccessBlockConfiguration": {
-                    "BlockPublicAcls": "True",
-                    "BlockPublicPolicy": "True",
-                    "IgnorePublicAcls": "True",
-                    "RestrictPublicBuckets": "True"
-                },
-                "Tags": [
-                    {
-                        "Key": "Name",
-                        "Value": "greens-client-front"
-                    }
-                ],
-                "VersioningConfiguration": {
-                    "Status": "Suspended"
-                }
-            }
-        },
-        "S3Files": {
-            "Type": "AWS::S3::Bucket",
-            "Properties": {
-                "BucketName": "greens-files",
-                "OwnershipControls": {
-                    "Rules": [
-                        {
-                            "ObjectOwnership": "ObjectWriter"
-                        }
-                    ]
-                },
-                "PublicAccessBlockConfiguration": {
-                    "BlockPublicAcls": "False",
-                    "BlockPublicPolicy": "False",
-                    "IgnorePublicAcls": "True",
-                    "RestrictPublicBuckets": "True"
-                },
-                "Tags": [
-                    {
-                        "Key": "Name",
-                        "Value": "greens-files"
-                    }
-                ],
-                "VersioningConfiguration": {
-                    "Status": "Suspended"
-                }
-            }
-        },
         "SGDB": {
             "Type": "AWS::EC2::SecurityGroup",
             "Properties": {
@@ -829,6 +773,14 @@
                         "ToPort": "3306",
                         "SourceSecurityGroupId": {
                             "Ref": "SGAPI"
+                        }
+                    },
+					{
+                        "IpProtocol": "tcp",
+                        "FromPort": "3306",
+                        "ToPort": "3306",
+                        "SourceSecurityGroupId": {
+                            "Ref": "SGBastion"
                         }
                     }
                 ],
@@ -902,6 +854,36 @@
                 }
             }
         },
+		"SGLoadBalancer": {
+            "Type": "AWS::EC2::SecurityGroup",
+            "Properties": {
+                "VpcId": {
+                    "Ref": "GreenstampsVPC"
+                },
+                "GroupDescription": "Allow access from HTTP",
+                "SecurityGroupIngress": [
+                    {
+                        "IpProtocol": "tcp",
+                        "FromPort": 80,
+                        "ToPort": 80,
+                        "CidrIp": {
+                            "Ref": "SSHLocation"
+                        }
+                    }
+                ],
+                "Tags": [
+                    {
+                        "Key": "Name",
+                        "Value": "GS-LoadBalancer"
+                    }
+                ]
+            },
+            "Metadata": {
+                "AWS::CloudFormation::Designer": {
+                    "id": "1e9d60bf-4e6a-4167-a385-346fff99f952"
+                }
+            }
+        },
         "ASG": {
             "Type": "AWS::AutoScaling::AutoScalingGroup",
             "Properties": {
@@ -935,24 +917,8 @@
                     }
                 }
             },
-            "CreationPolicy": {
-                "ResourceSignal": {
-                    "Timeout": "PT10M",
-                    "Count": {
-                        "Ref": "ASGCapacity"
-                    }
-                }
-            },
-            "UpdatePolicy": {
-                "AutoScalingRollingUpdate": {
-                    "MinInstancesInService": "1",
-                    "MaxBatchSize": "1",
-                    "PauseTime": "PT5M",
-                    "WaitOnResourceSignals": "True"
-                }
-            },
 			"DependsOn" : [
-				"IGGreenstamps", "PriSub1a", "PriSub1b"
+				"IGGreenstamps", "PriSub1a", "PriSub1b", "SESRole"
 			]
         },
         "GSLaunchTemplate": {
@@ -976,13 +942,20 @@
                     "Fn::Sub": "${AWS::StackName}-launch-template"
                 },
                 "LaunchTemplateData": {
-                    "ImageId": "ami-072bfb8ae2c884cc4",
+                    "ImageId": "ami-01a6e205933cf085b",
                     "InstanceType": {
                         "Ref": "InstanceType"
                     },
                     "KeyName": {
                         "Ref": "KeyName"
                     },
+					"IamInstanceProfile" : {
+						"Arn":  {
+							"Fn::GetAtt": [
+								"SESInstanceProfile", "Arn"
+							]
+						}
+					},
 					"UserData": {
 						"Fn::Base64": {
 							"Fn::Join": [
@@ -1034,7 +1007,10 @@
                     {
                         "Ref": "PubSub1b"
                     }
-                ]
+                ],
+				"SecurityGroups" : [{
+					"Ref" : "SGLoadBalancer"
+				}]
             }
         },
         "ALBListener": {
@@ -1068,7 +1044,129 @@
                     "Ref": "GreenstampsVPC"
                 }
             }
-        }
+        },
+		
+		
+		
+		"AWSEBCloudwatchAlarmLow": {
+            "Properties": {
+                "AlarmActions": [
+                    {
+                        "Ref": "AWSEBAutoScalingScaleDownPolicy"
+                    }
+                ],
+                "MetricName": "CPUUtilization",
+                "ComparisonOperator": "LessThanThreshold",
+                "Statistic": "Average",
+                "AlarmDescription": "Scale Down alarm",
+                "Period": "300",
+                "Dimensions": [
+                    {
+                        "Value": {
+                            "Ref": "ASG"
+                        },
+                        "Name": "AutoScalingGroupName"
+                    }
+                ],
+                "EvaluationPeriods": "1",
+                "Namespace": "AWS/EC2",
+                "Threshold": "70"
+            },
+            "Type": "AWS::CloudWatch::Alarm"
+        },
+		"AWSEBCloudwatchAlarmHigh": {
+            "Properties": {
+                "AlarmActions": [
+                    {
+                        "Ref": "AWSEBAutoScalingScaleUpPolicy"
+                    }
+                ],
+                "MetricName": "CPUUtilization",
+                "ComparisonOperator": "GreaterThanThreshold",
+                "Statistic": "Average",
+                "AlarmDescription": "Scale Up alarm if CPU > 70",
+                "Period": "300",
+                "Dimensions": [
+                    {
+                        "Value": {
+                            "Ref": "ASG"
+                        },
+                        "Name": "AutoScalingGroupName"
+                    }
+                ],
+                "EvaluationPeriods": "1",
+                "Namespace": "AWS/EC2",
+                "Threshold": "70"
+            },
+            "Type": "AWS::CloudWatch::Alarm"
+        },
+		"AWSEBAutoScalingScaleDownPolicy": {
+            "Properties": {
+                "ScalingAdjustment": "-1",
+                "AutoScalingGroupName": {
+                    "Ref": "ASG"
+                },
+                "AdjustmentType": "ChangeInCapacity"
+            },
+            "Type": "AWS::AutoScaling::ScalingPolicy"
+        },
+		"AWSEBAutoScalingScaleUpPolicy": {
+            "Properties": {
+                "ScalingAdjustment": "1",
+                "AutoScalingGroupName": {
+                    "Ref": "ASG"
+                },
+                "AdjustmentType": "ChangeInCapacity"
+            "Type": "AWS::AutoScaling::ScalingPolicy"
+y            },
+        },
+		
+		
+		"SESRole": {
+			"Type": "AWS::IAM::Role",
+			"Properties": {
+				"RoleName": "ses-iam-role",
+				"Description": "IAM role with SES full access.",
+				"AssumeRolePolicyDocument": {
+					"Version": "2012-10-17",
+					"Statement": [
+						{
+						"Effect": "Allow",
+						"Principal": {
+							"Service": ["ec2.amazonaws.com"]
+						},
+					"Action": ["sts:AssumeRole"]
+						}
+					]
+				},
+				"Path": "/",
+				"ManagedPolicyArns": [
+					"arn:aws:iam::aws:policy/AmazonSESFullAccess",
+					"arn:aws:iam::aws:policy/CloudWatchAgentAdminPolicy"
+				],
+				"Tags": [
+				{
+					"Key": "Name",
+					"Value": "EC2 GS Role"
+				},
+				{
+					"Key": "Purpose",
+					"Value": "Accessing SES and CloudWatch Agent"
+				}
+			]
+			}
+		},
+		"SESInstanceProfile": {
+			"Type": "AWS::IAM::InstanceProfile",
+			"Properties": {
+				"Path": "/",
+				"Roles": [
+				{
+					"Ref": "SESRole"
+				}
+				]
+			}
+		}
     },
     "Parameters": {
         "InstanceType": {
@@ -1109,7 +1207,7 @@
         },
         "DBPassword": {
             "NoEcho": "true",
-			"Default": "12345678",
+			"Default": "GS123qwe",
             "Description": "Password for MySQL database access",
             "Type": "String",
             "MinLength": "8",
@@ -1130,7 +1228,7 @@
             "ConstraintDescription": "must select a valid database instance type."
         },
         "DBAllocatedStorage": {
-            "Default": "5",
+            "Default": "20",
             "Description": "The size of the database (Gb)",
             "Type": "Number",
             "MinValue": "5",

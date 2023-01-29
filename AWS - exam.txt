@@ -8,6 +8,8 @@ VII. OTHER KNOWLEDGES
 VIII. FAQs
 IX. PRACTICE
 X. GENERAL WTFs
+XI. PRICING
+XII. CICD
 
 I. ---------------------------------------------------------- SERVICES ----------------------------------------------------------
 
@@ -23,7 +25,8 @@ I. ---------------------------------------------------------- SERVICES ---------
 		
 2. EC2: Có 3 loại instance dựa vào giá
 		- On demand: Loại mặc định, co giãn dc, nhưng mà mắc
-		- Reserved Instance: Loại biết trc cấu hình, nhu cầu tăng giảm 1 cách cụ thể vào thời gian nào, có thể trả tiền trc hoặc ko.
+		- Reserved Instance: Loại biết trc cấu hình, nhu cầu tăng giảm 1 cách cụ thể vào thời gian nào, có thể trả tiền trc / 1 nửa / hoặc ko.
+			=> Nên sử dụng thằng này để giảm tiền. Giảm nhiều vl ; v ;
 		- Spot instance: đấu giá, thằng nào nhanh tay thì lượm. Kiểu như khai báo 1 range price mà mình có thể chịu dc, nếu vượt quá mức range ấy thì mất. Giá sẽ rẻ hơn bt rất nhiều
 	a. Có thể hibernation instance, tuy nhiên phải setting điều này lúc khởi tạo. Console hay CLI đều dc 
 	b. Có thể đổi instance type, tuy nhiên phải stop service đã :))
@@ -74,6 +77,8 @@ I. ---------------------------------------------------------- SERVICES ---------
 	Generate security groups
 	Setup the DNS
 	Create the static IP
+	a. Rẻ vl, dùng con này thay EC2 bình thường. Tuy nhiên nếu muốn kết nối với AWS service thì phải enable VPC Peering của Lightsail trong phần Account/ Advanced
+	b. Chưa thấy có thể 
 	
 5. EBS, EFS
 	a. EBS - RAID (redundant array of independent disks) kĩ thuật lưu trữ dữ liệu sử dụng sự kết hợp nhiều disks
@@ -180,7 +185,7 @@ I. ---------------------------------------------------------- SERVICES ---------
 	n.  File Gateway. 1 cái app hay kiểu thế để truy cập S3 từ on-premise.
 	i. Eventual Consistency: Nhất quán theo kiểu cuối cùng kiểu j cũng dc cập nhật thôi -> node2 data có thể là stale data. 
 	h. Strong Consistency: Nhất quán 1 cách mạnh mẽ, khi 1 file dc update -> đến lúc update toàn bộ node hoàn thành -> ko access nào lấy 	dc file 
-	k. 1 single Put request -> chỉ có thể upload 1 file max 5Gb. Dùng multi-part upload -> 5TB
+	k. 1 single Put request -> chỉ có thể upload 1 file max 5Gb. Dùng multi-part S3 -> 5TB
 	l. pre-sign URL -> Cách tốt nhất để cho quyền tạm thời. https://docs.aws.amazon.com/AmazonS3/latest/dev/PresignedUrlUploadObject.html
 	
 	REPLICATION
@@ -219,6 +224,10 @@ I. ---------------------------------------------------------- SERVICES ---------
 	k. U can make the on-premise load balancer as the custom origin of the CL distribution
 	l. Khi deploy những SPA như React hay VUE thì .. nhớ set Error Pages 400, 403 về 200 ko thì các page khác sẽ dính lỗi Access Denied ko truy cập dc (nghe méo lquan mie gì luôn)
 	Basically, what is happening is you are telling Cloudfront that regardless of a 400 or 403 error, to redirect back to index.html, thus giving control to Angular to decide if it can go to the path or not. If you would like to serve the client a 400 or 403 error, you need to define these routes in Angular.
+	h. Để clear cache thì sử dụng invalidation
+		/* : Clear cmn hết
+	i. Cache policy: Cách CF cache theo cái gì, nếu chọn All thì ko 
+	k. Orign Request policy: Nếu CF ko tìm thấy data trong cache thì sẽ gửi request này đến Orign
 
 11. IAM
 	Hiểu đơn giản, 1 accout có thể thuộc 1 hoặc nhiều group, 1 group có thể có 1 hoặc nhiều policies. Policy có 1 danh sách và có thể tạo ra custom policy. End game. 		
@@ -290,6 +299,10 @@ I. ---------------------------------------------------------- SERVICES ---------
 		- Lambda này sẽ lấy AMI ID từ SNS functon, tạo ra 1 Launch Template và trigger Instance Refresh
 		- Config ASG với LaunchTemplateVersion = $Latest
 	https://aws.amazon.com/blogs/compute/introducing-instance-refresh-for-ec2-auto-scaling/
+	
+	l. Tạm thời disable ASG:
+		 aws autoscaling suspend-processes --auto-scaling-group-name GreenstampCF-ASG-1KWNBTSQ5CM6B
+		 aws autoscaling resume-processes --auto-scaling-group-name GreenstampCF-ASG-1KWNBTSQ5CM6B
 	
 	
 13. Elastic Load Balancer.
@@ -780,6 +793,7 @@ III. ---------------------------------------------------------- VPN ------------
 		- Gateway Load Balancer Endpoint
 	-> 1 Ví dụ đơn giản, dễ hiểu là 1 instance EC2 nằm trong private subnet ko thể truy cập dc S3. 
 	-> Chỉ cần tạo 1 gateway Endpoint trỏ đến S3 và add endpoint này vào route table chung của private subnet đó -> Ez access.
+		Có thể kết hợp cùng với NAT. Route sẽ ưu tiên traffic đến VPC.E trước khi bò ra ngoài.
 	
 	b. Endpoint service:
 		Your own application or service in your VPC.
@@ -801,6 +815,7 @@ III. ---------------------------------------------------------- VPN ------------
 	f. VPC Endpoint Service. 
 		- Tạo luôn 1 ứng dụng trong VPC. Các AWSer khác có thể truy cập app đó qua VPC Endpoint. Và bạn là người cung cấp service - qua LB.
 	g. Sử dụng TLS
+	h. Hnhu con mie nó chỉ dùng để wget thôi, khum có chạy cli dc, con mie nó chứ lậy -_-)
 	
 4. Site-to-site VPN vs Client VPN Endpoint
 	a. 1 cái là site-to-site (1-1), 1 cái là client to site (n-1)
@@ -870,6 +885,19 @@ III. ---------------------------------------------------------- Monitoring -----
 	- Send email notification
 	c. Có thể dùng CloudWatch subcription filter để deliver logs đến Lambda, Kinesis, OpenSearch
 	d. Có thể cài CW agent lên EC2 để theo dõi
+		yum install amazon-cloudwatch-agent
+		sudo amazon-linux-extras install collectd
+
+		1. Tạo file config
+			sudo /opt/aws/amazon-cloudwatch-agent/bin/amazon-cloudwatch-agent-config-wizard
+
+		2. Thêm quyền CloudWatchAgent vào IAM Role attached vào EC2
+
+		3. Sửa file config
+			nano /opt/aws/amazon-cloudwatch-agent/bin/config.json
+			
+		4. Reload file config và restart cloudwatch-agent
+			sudo /opt/aws/amazon-cloudwatch-agent/bin/amazon-cloudwatch-agent-ctl -a fetch-config -m ec2 -s -c file:/opt/aws/amazon-cloudwatch-agent/bin/config.json
 	
 	
 2. Config
@@ -960,7 +988,15 @@ VII. ---------------------------------------------------------- OTHER KNOWLEDGES
 	Certificate:
 		Chứng thực xem thông tin được gửi từ nguồn là đáng tin cậy hay ko
 		
+7. Dùng Reachability Analyzer để ktra kết nối
 
+8. Stress test:
+
+	sudo apt install stress
+
+	stress --cpu 8 --io 4 --vm 4 --vm-bytes 1024M --timeout 10s
+
+	apt install stress-ng 
 
 VIII. ---------------------------------------------------------- FAQs ----------------------------------------------------------
 
@@ -1107,10 +1143,6 @@ IX. ---------------------------------------------------------- PRACTICE --------
 6. Cấp quyền tạm thời cho 1 bên thứ 3
    Sử dụng externalID khi assumeRole để tăng bảo mật khi đưa quyền cho 3rd party tool ?
    Sử dụng external ID để chặn confused deputy attach (Mạo danh ARN của account cung cấp resource)
-   
-   
-
-
 
 * Sử dụng Resources Group để tạo các group resource và sau đấy dùng System Manager để quản lý, ví dụ như install Apache đồng loạt
 
@@ -1246,16 +1278,6 @@ CloudFormation
 LAG tối đa chỉ chứa dc 4 connections
 
 X. ---------------------------------------------------------- GENERAL WTFs ----------------------------------------------------------
-
-
-https://sqs.us-east-1.amazonaws.com/438887108678/Whizlabs-sqs
-https://developer.mozilla.org/en-US/docs/Web/API/Navigator/appVersion
-https://www.zaikei.co.jp/article/20210916/639190.html
-https://developers-jp.googleblog.com/2021/09/chrome-user-agent.html
-https://web.dev/migrate-to-ua-ch/
-https://web.dev/user-agent-client-hints/
-https://forest.watch.impress.co.jp/docs/digest/1360051.html
-https://developer.mozilla.org/en-US/docs/Glossary/Client_hints
  
 EC2 Image Builders
 CloudHSM
@@ -1274,11 +1296,8 @@ FSx
 Shield
 Security HUB
 Macie
-
 Service Catalog
-
 Control Tower
-
 Compute
 Optimizer
 Docker 
@@ -1291,25 +1310,22 @@ ML
 	DataSync
 	
 Forecast
-	
-	Comprehend
+Comprehend
 AppSync
 AppStream
 AD
-	Workspaces
+Workspaces
 Neptune
 ECR
 Outposts
 Alexa
 MQ
-
 Sing Work Flow ?
 file-level restore ?
 Có thể sử dụng HSM Hardware Security Module để manage top level encription keys. ?? Redshift
 - Batch có thể dùng để scheduly phân tích dữ liệu từ S3
 - BeanStalk and Docker relationship ??
 Docker
-CloudFormation
 AWS Data Lifecycle Management
 Hadoop
 
@@ -1322,3 +1338,42 @@ Detach the root volume for the instance
 Attach the volume to a temporary instance
 Modify the configuration file
 Restart the original instance
+
+ListObjectv2 -> Thiếu ListBucket policy là nó đéo chạy - cái dcmm nó (nhớ bổ sung thêm / và /* trong resource)
+
+
+
+
+XI. ---------------------------------------------------------- PRICING ----------------------------------------------------------
+
+1. Giá Lambda:
+	1 million request với 0.5Gb memory trong 3s 
+	= 1m * 0.5 * 3 * giá của Lambda (0.000015) = 22.5
+	+ thêm Lambda request 1M = 0.2$ = 22.7
+	
+2. Hourly commitment 
+	72% in exchange for commitment to usage of individual instance families in a region
+	Là số cam đoan mình sẽ dùng. Nếu cao hơn sẽ tính theo Ondemand charges
+
+XII. ---------------------------------------------------------- CICD ----------------------------------------------------------
+
+buildspec.yml – This file specifies the actions that CodeBuild requires to build and create an artifact for deployment.
+
+appspec.yml – This file specifies the actions that CodeDeploy requires to create an application and configure a target environment for on-premises EC2 instances.
+
+install_dependencies.sh – This file installs dependencies for the Apache Tomcat web server.
+
+start_server.sh – This file starts the Apache Tomcat web server.
+
+stop_server.sh – This file stops the Apache Tomcat web server.
+
+1. CodeDeploy
+	a. Để CodeDeploy có thể tương tác với private EC2 (ko có NAT), cần mở 1 Service Endpoint
+	
+	b. CodeDeploy có lifehook có thể tương tác được với AutoScaling, khi 1 instance mới từ ASG dc tạo ra, nó sẽ tự động deploy code mới lên instance đấy
+	https://docs.aws.amazon.com/codedeploy/latest/userguide/integrations-aws-auto-scaling.html
+	
+	c. Cần CodeDeploy agent với EC2/onpremise
+	https://docs.aws.amazon.com/codedeploy/latest/userguide/codedeploy-agent-operations-install-linux.html
+	
+	

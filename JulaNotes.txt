@@ -3,6 +3,16 @@ MONEY & KNOWLEDGE
 Tech Lead + DevOps + Biết tiếng Anh + Tiếng Nhật
 
 https://msngr.com/dttwvnyatncn
+LQ.WLE-d0k$3g9LzSV8Rch&al2I7S*Dj
+
+
+Newrelic
+duyenttl@vietis.com.vn
+vietis123
+
+admin@vietis.com.vn
+Vis@Psx2@12!@
+
 
 ========================= 1. THINGS NEEDED TO DO ============================================
 
@@ -10,22 +20,17 @@ Mô hình cho đối tác Greenstamp
 	- Sử dụng PHP
 	- Stateless server
 	- Instance type
-	- 
-
-AWS	
-	Sử dụng VPC Endpoint thay thế NAT
-	https://aws.amazon.com/premiumsupport/knowledge-center/vpc-reduce-nat-gateway-transfer-costs/
+	
 Chí	
-	Quản lý lịch đặt
-	Quản lý tin
-	Quản lý dịch vụ
-	Hiển thị thuốc list
-	Hiển thị thuốc chi tiết
-	Xem lại lịch hẹn
-	Đặt thuốc
-	Quản lý order thuốc
+	1. hiển thị bên view ng` dung, test đặt lịch // hỏi nó xem có đặt dc 1 ngày 2 lịch ko, 
+	2. Quản lý lịch đặt
+	3. View lịch, hủy lịch
+	4. Quản lý order thuốc
+	5. Đặt thuốc 
+	
 	authen api của admin
-	Đẩy tiếp CICD của nó
+	8. Sửa newss number
+	Đẩy tiếp CICD API cho nó, admin khỏi cần - tốn tiền quản lý CICD
 	
 	s3_upload_chihoa:
 	AKIASEHQJQCA6VXTL252
@@ -38,27 +43,18 @@ Chí
 	export AWS_ACCESS_KEY_ID=AKIASEHQJQCAS5FPN4KO
 	export AWS_SECRET_ACCESS_KEY=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 -> có vđề
 	
-Giấy tờ NA
-Tài liệu list acc
+	220.146.2.147
+	153.231.52.145 - nhà
+	admin
+	nsy123456
 	
-
 KIẾN THỨC
-	Dev-Ops
-		3/61
-	Tiếng Nhật
-	Tiếng Anh
 	Mythology
 	Piano
 	Guitar
-
 	• Understanding of REST API
-	 find example
-
-	• Encrypt
-	 KMS
-
+	• Encrypt - KMS
 	• Terraform
-
 	• promise, async await, event loop, single thread, engine v8
 	• REST
 	• http request, session, cookie, authen
@@ -71,16 +67,7 @@ Pass MYSQL: nsy@123
 . Hằng VULT
 https://my.vultr.com/
 hangpt248@gmail.com
-KNG@ugnPz86mh63
-
 +X8t*hmUH[f_??W*
-
-. NSY VPN
-Gateway: 42.118.107.60
-Port: 10443
-User: vpn-maruchan
-Pass: Aa@123456
-sudo su -
 
 . WEB DU LỊCH
 @Duy Ngọc Lê ip 
@@ -90,11 +77,16 @@ Pass: 123@123a
 
 112.78.1.135
 ngocld/Aa@123456
+	
+	
+112.78.1.135
+ngocld/Aa@123456
 
 . UNKNOWN 
 root@localhost
 ALTER USER 'root'@'localhost' IDENTIFIED BY 'Jula_nove@0319';
-CREATE USER 'true_admin'@'%' IDENTIFIED WITH mysql_native_password BY 'Jula_nove@0319';
+CREATE USER 'true_admin'@'localhost' IDENTIFIED WITH mysql_native_password BY 'Jula_nove@0319';
+GRANT SELECT, INSERT, UPDATE, DELETE, CREATE, INDEX, DROP, REFERENCES, ALTER, CREATE VIEW, CREATE TEMPORARY TABLES, LOCK TABLES ON hoachi.* TO 'true_admin'@'localhost';
 Cwy_d&RG6fp3
 mysql -uroot -p
 alter user 'root'@'localhost' identified with mysql_native_password by 'nsy@123';

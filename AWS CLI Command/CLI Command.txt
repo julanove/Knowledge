@@ -19,3 +19,29 @@ Copy a file:
 	
 Sync a folder (build folder)
 	aws s3 sync build/ s3://nsy-website-front --acl public-read --delete
+
+aws s3api put-object --bucket chihoa-resouce --key tes2.txt --body test.txt
+
+aws s3api get-object --bucket chihoa-resouce --key dir/my_images.tar.bz2 my_images.tar.bz2
+
+-- 4. SES
+
+Send mail:
+	aws ses send-email --from ngocld25@gmail.com --to yuna.love.26@gmail.com --message file://message.json
+
+{
+   "Subject": {
+       "Data": "Test email sent using the AWS CLI",
+       "Charset": "UTF-8"
+   },
+   "Body": {
+       "Text": {
+           "Data": "This is the message body in text format.",
+           "Charset": "UTF-8"
+       },
+       "Html": {
+           "Data": "This message body contains HTML formatting. It can, for example, contain links like this one: <a class=\"ulink\" href=\"http://docs.aws.amazon.com/ses/latest/DeveloperGuide\" target=\"_blank\">Amazon SES Developer Guide</a>.",
+           "Charset": "UTF-8"
+       }
+   }
+}
