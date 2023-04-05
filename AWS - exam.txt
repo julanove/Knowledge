@@ -92,6 +92,10 @@ I. ---------------------------------------------------------- SERVICES ---------
 	- EBS: lưu theo 1 block, phải gắn với 1 instance EC2, chỉ tồn tại trên 1 vùng
 	- EFS:  Vì chỉ chứa file system nên nhiều instance EC2 có thể truy cập vào 1 EFS, đắt. Chỉ hố trợ encription khi tạo. 
 		+ EFS chỉ hoạt động tại 1 VPC tại 1 thời điểm
+		+ Cách mount EFS:
+		yum install -y amazon-efs-utils
+		sudo mount -t efs -o tls fs-2ad0a9a8:/ efs
+
 	 
 	c. Muốn chuyển định dang 1 EBS (io, gp, sc, st)
 	- Thì ko cần phải stop instance.
@@ -182,11 +186,15 @@ I. ---------------------------------------------------------- SERVICES ---------
 	k. Giới thiệu new storage class: Intelligent-Tiering. Khi 1 file ko sử dụng quá 30 ngày -> IA, và khi nó dc sử dụng -> Standard.
 	l. Độ durable của IA và RRS: IA (99.9999999999) RRS(99.99)
 	m. Dùng multi part upload để upload file trên 5GB
+		+ 
 	n.  File Gateway. 1 cái app hay kiểu thế để truy cập S3 từ on-premise.
 	i. Eventual Consistency: Nhất quán theo kiểu cuối cùng kiểu j cũng dc cập nhật thôi -> node2 data có thể là stale data. 
 	h. Strong Consistency: Nhất quán 1 cách mạnh mẽ, khi 1 file dc update -> đến lúc update toàn bộ node hoàn thành -> ko access nào lấy 	dc file 
 	k. 1 single Put request -> chỉ có thể upload 1 file max 5Gb. Dùng multi-part S3 -> 5TB
+		
 	l. pre-sign URL -> Cách tốt nhất để cho quyền tạm thời. https://docs.aws.amazon.com/AmazonS3/latest/dev/PresignedUrlUploadObject.html
+		aws s3 presign [S3 URI] --expires-in 60
+		+ Tức là lấy về URL cho 1 file chỉ có thời hạn trong 60s :3
 	
 	REPLICATION
 		- Files in an existing bucket are not replicated automatically but all the subsequent updated files will be automatically replicated.
@@ -202,6 +210,7 @@ I. ---------------------------------------------------------- SERVICES ---------
 
     By default, when another AWS account uploads an object to your S3 bucket, that account (the object writer) owns the object, has access to it, and can grant other users access to it through ACLs. You can use Object Ownership to change this default behavior so that ACLs are disabled and you, as the bucket owner, automatically own every object in your bucket. As a result, access control for your data is based on policies, such as IAM policies, S3 bucket policies, virtual private cloud (VPC) endpoint policies, and AWS Organizations service control policies (SCPs).
 	
+	q. Có thể config trigger các event trong S3 (như thêm sửa xóa file) để nó chạy các service khác như Lambda, SNS v..v..
 		
 10. CloudFront.
 	a. Content Delivery Network (CDN)
@@ -352,26 +361,33 @@ I. ---------------------------------------------------------- SERVICES ---------
 	
 	
 	
-14. AWS SQS (Simple Queue Service) 
+14. SQS (Simple Queue Service) 
 	a. Có 2 loại: Standard và FIFO
 	b. Standard: Default type, best-effort ensuring that every messages are delivered the same order they're sent. 
 		- near unlimited transaction.
 	c. FIFO: First In, First Out. 300 transaction per/ sec 
-	d. Tối đa 1 tin là 256Kb
+	d. Tối đa 1 tin là 256Kb / 120k tin nhắn
+		(Nếu lớn hơn thì lưu trong S3, và phải sử dụng Extended Client Library for Java để tạo SQS queue)
 	e. Delivery Delay. Thời gian gửi chậm đến consumer sau khi vào queue. Ko ảnh hưởng đến standard, tuy nhiên affect hoàn toàn FIFO
 	
 	f. SQS cũng là một topic sẽ được hỏi nhiều thứ chi tiết liên quan đến DelaySeconds, hay 
 	g. Gửi từ SNS -> SQS (SQS hỗ trợ chức năng subscribe ngược)
 	h. SQS ko encript data by default, muốn dùng phải enable lên 
+	
 	i. Receive message Wait Time ~ Long Polling
 		-> Long polling -> Chờ đến khi nào có mess để gửi thì thôi.
+	ii. Message retention period
+		-> Thời gian nằm chờ trong queue. Hết thì xóa
+		
+		
 	k. VisibilityTimeout. 
 		-> Basically the time taken by the consumer to process the message -> Khó hiểu vãi lol
-		-> Thay vì thế, chỉ cần nói là sau khi message này được nhận, nó sẽ bị ẩn 1 tgian là VisibilityTimeout cho đến khi hiện lại để cho thằng consumer khác poll
+		-> Thay vì thế, chỉ cần nói là sau khi message này được poll, nó sẽ bị ẩn 1 tgian là VisibilityTimeout cho đến khi hiện lại để cho thằng consumer khác poll
+		-> Lambda poll xong message A, message A sẽ bị ẩn 1p -> 1p sau Lambda mới poll lại dc messageA
 	l. DeliveryDelay.
-		-> Ẩn message sau khi gửi cho đến khi hết delaySecond -> Thì người dùng mới có thể poll dc 
-	m. For an SQS FIFO queue, all the messages with the same Message Group Identifier will be delivered in order. 
-		Messages with different message group ID values might be sent and received out of order.
+		-> Ẩn message sau khi gửi cho đến khi hết delaySecond -> Thì người dùng mới có thể poll dc. Chung là tăng thời gian xử lý cho 1 mess, hết cái này thì mới hiện th sau (cơ bản là khá giống visibility timeout)
+		
+	m. For an SQS FIFO queue, all the messages with the same Message Group Identifier will 	be delivered in order. Messages with different message group ID values might be sent and received out of order.
 	n. Có thể sử dụng JAVA SDK để config visibility timeout cho riêng 1 vài message ??
 	
 	
@@ -418,9 +434,7 @@ I. ---------------------------------------------------------- SERVICES ---------
 	
 21. CloudFormation
 	a. Bạn xác định tất cả các tài nguyên mà bạn muốn AWS bật lên trong một bản thiết kế chi tiết, bấm vào một nút, và sau đó AWS sẽ thực hiện giúp bạn phần việc còn lại. Bản thiết kế này được gọi là một template trong CloudFormation. CloudFormation đảm bảo rằng các tài nguyên phụ thuộc trong template của bạn đều được tạo theo đúng thứ tự. Ví dụ, giả sử chúng ta muốn tạo record DNS Route53 và một instance EC2 có record DNS trỏ tới instance EC2. CloudFormation sẽ để cung cấp instance EC2 trước, chờ cho nó sẵn sàng được sử dụng, và sau đó tạo bản ghi DNS. AWS CloudFormation điều phối việc cung cấp các tài nguyên mong muốn. Vì vậy, thay vì phải viết script với một loạt các lời gọi API AWS, chờ vòng lặp và thử lại logic, bạn chỉ cần mô tả những gì bạn muốn và yêu cầu CloudFormation thực hiện điều đó cho bạn
-	- stacks ?
-	- layer ?
-	- recipe ?
+	b. Changeset: là 1 bản thay đổi 1 stack mà ng dùng muốn thay đổi. Có thể review trước đó. Trong khi cũng có thể update trực tiếp stack để thay đổi và review. Changeset thì nó organize hơn ...
 	
 22. BeanStalk
 	- Là 1 SaaS
@@ -480,20 +494,22 @@ I. ---------------------------------------------------------- SERVICES ---------
 28. Resource Group: Group lại các resource (ví dụ như EC2) theo tags
 	
 29. ECS:
-	Tạo 1 ECS Cluster bao gồm có thể là:
-		- Networking Only
-		- EC2 Linux + Networking
-		- EC2 Windows + Networking
-	-> Nó sẽ đẻ ra 1 ECS instance = ngang với 1 EC2 
+
+	- Là Container as Service (CaaS) khác với Lambda (SaaS)
+
+	- Tạo 1 ECS Cluster bao gồm có thể là:
+		+ Networking Only
+		+ EC2 Linux + Networking
+		+ EC2 Windows + Networking
 	
-	Tiếp đến, Task Definition là cần thiết để chạy Docker container trong ECS, nó sẽ:
-		- Định nghĩa Docker image nào để dùng với mỗi container
-		- How much CPU, memory to use with each task
-		- Launch type ...v...
-	-> Đính nghĩa 1 Task, tiếp đấy sử dụng:
+	- Các công đoạn tạo 1 Cluster:
 	
-	Service: Run and maitains desired number of tasks from a specified task definition
-	-> Nhân lên
+		+ Task Definition là cần thiết để chạy Docker container trong ECS, nó sẽ:
+			. Định nghĩa Docker image nào để dùng với mỗi container
+			. How much CPU, memory to use with each task
+			. Launch type ...v...
+		+ Đính nghĩa 1 Task, tiếp đấy sử dụng:
+			. Service: Run and maitains desired number of tasks from a specified task definition
 	
 	a. To deploy applications on Amazon ECS, your application components must be architected to run in containers. 
 		A container is a standardized unit of software development that contains everything that your software application needs to run, 
@@ -510,6 +526,8 @@ I. ---------------------------------------------------------- SERVICES ---------
 	MicroService ? 
 		-> Lquan với nhau qua serivce discovery
 	Dùng Fargate để quản lý hạ tầng của container mà ko cần care nó chạy như nào
+	
+	DB đặt đâu ? Gọi nhau như nào ? Gọi ra service ngoài như nào ?
 	
 	Docker 
 		-> tạo chứa, quản lý và chạy container
@@ -654,19 +672,31 @@ I. ---------------------------------------------------------- SERVICES ---------
 50. Athena
 	a. Chỉ chơi vs S3
 	b. Để query data trong S3, data ở  đây có thể từ CloudFront hoặc CW
-	c. Sử dụng kết hợp với Crawler để auto fetch data daily hoặc specific time.
+	c. Sử dụng kết hợp với Crawler để auto fetch data daily hoặc specific time.4
+	d. Tạo bảng với source từ S3 và các câu lệnh truy vấn: https://docs.aws.amazon.com/ja_jp/athena/latest/ug/waf-logs.html
 	
 51. SES:
 	- Có 2 chế độ: 
 		+ Sandbox: Cả email gửi lẫn email nhận đều phải được verified trước khi gửi
 		+ Production: Có thể gửi cho bất kỳ email nào, tuy nhiên email gửi vẫn phải được verifie.
-	
-51. Lex
-52. EMR
-53. SageMaker
-54. Config
-55. License Manager
-56. DataSync
+		
+52. Network Interface:
+	- Đúng như tên gọi, là interface của network, có thể assign Public IP cho NI này, và attach nó vào 1 EC2 (chỉ có thể là instance) khác (phải trong cùng subnet).
+	-> EC2 có thể có nhiều multi IP
+		
+53. X-ray
+	- Cài lib vào code (giống Cloudwatch dữ)
+	- Dùng annotation như key-value để filter data (user-data)
+			
+			
+52. RAM
+	- 
+5. Lex
+5. EMR
+5. SageMaker
+5. Config
+5. License Manager
+5. DataSync
 
 II. ---------------------------------------------------------- VPC ----------------------------------------------------------
 
@@ -726,7 +756,7 @@ II. ---------------------------------------------------------- VPC -------------
 	c. By default, allow all outbound traffic. Bởi vì anh là stateful, k phải stateless
 	d. Có thể đặt source của SG là 1 SG khác
 	
-6. Network Access Control List: (Network ACLs)
+6. NACL - Network Access Control List: (Network ACLs)
 	a. Tương tự như Security Group - tuy nhiên hoạt động ở tầng subnet như 1 firewall, còn Security Group apply ở instance hoặc zone level (IP range, SG, instance v...)
 	b. Max rule là 32766
 	c. NACL là stateless inbound and outbound rules trong khi Security Groups lại là stateful. 
@@ -794,6 +824,10 @@ III. ---------------------------------------------------------- VPN ------------
 	-> 1 Ví dụ đơn giản, dễ hiểu là 1 instance EC2 nằm trong private subnet ko thể truy cập dc S3. 
 	-> Chỉ cần tạo 1 gateway Endpoint trỏ đến S3 và add endpoint này vào route table chung của private subnet đó -> Ez access.
 		Có thể kết hợp cùng với NAT. Route sẽ ưu tiên traffic đến VPC.E trước khi bò ra ngoài.
+		- Cách để ktra VPC.E có hoạt động ko?
+		traceroute -n -T -p 443 s3.amazonaws.com
+		Nếu first hop ko phải là S3.address thì ko phải
+		Hoặc check log của S3, nếu là private IP thì ok
 	
 	b. Endpoint service:
 		Your own application or service in your VPC.
@@ -857,11 +891,22 @@ IV. ---------------------------------------------------------- RDS -------------
 	
 3. DynamoDB
 	a. For storing IOT sensor data or log ingestion
-	- Phục vụ cho mục đích phân tích dữ liệu chưa hoàn chỉnh
-	- Độ trễ thấp
+		- Phục vụ cho mục đích phân tích dữ liệu chưa hoàn chỉnh
+		- Độ trễ thấp
 	b. Dynamo sử dụng Gateway Endpoint
 	c. Dynamo hỗ trợ tạo multi-active DB ở multi region
-	d. Có thể kết hợp với DynamoDB Accelerator DAX để cache table request, tương tự như ElasticSearch
+	d. Có thể kết hợp với DynamoDB Accelerator (DAX) để cache table request, tương tự như ElasticSearch
+	e. Các thành phần
+		- Partition key (Primary key): những item (rows cùng partition key sẽ dc sắp xếp cùng nhau) và sắp xếp theo sort key
+		- Các item có thể có cùng partition key tuy nhiên sẽ khác sort key (composite key, y như kết hợp giữa 2 col làm khóa chính)
+		- Local Secondary Index
+			+ Chỉ có thể tạo khi tạo bảng
+		- Global Secondary Index
+			+ Có thể tạo sau khi tạo bảng
+			
+	f. Có 2 loại primary key		
+		- Hask key: bao gồm 1 attribute duy nhất cho item ấy (prim)
+		- Hash and Range key: bao gồm 2 atttribute
 	
 4. AWS Migration Service Tools
 	Migrate an existing Mysql DB on an EC2 to a RDS instance.
@@ -898,10 +943,17 @@ III. ---------------------------------------------------------- Monitoring -----
 			
 		4. Reload file config và restart cloudwatch-agent
 			sudo /opt/aws/amazon-cloudwatch-agent/bin/amazon-cloudwatch-agent-ctl -a fetch-config -m ec2 -s -c file:/opt/aws/amazon-cloudwatch-agent/bin/config.json
-	
+			
+		5. Check status 
+			sudo /opt/aws/amazon-cloudwatch-agent/bin/amazon-cloudwatch-agent-ctl -m ec2 -a status
+			
+			/var/www/html/greenstamp.pointsystem/storage/logs/ps_api/laravel.*
+
+		
+	e. High resolution alarm thì có thể quan sát trong 10/30s. regular thì trên 1p
 	
 2. Config
-	Khi config thay đổi
+	Check các config, tạo các rule để ktra các config có vđề ko, ví dụ như SG open cho toàn bộ 0.0.0.0 source connect vào
 	
 3. VPC Flow Logs Nằm trong EC2/ Network Interface
 	- Có thể tạo cho subnet, network interface và VPC. 
@@ -938,7 +990,11 @@ III. ---------------------------------------------------------- Monitoring -----
 	f. API, S3, Lambda 
 	g. CloudTrail, log luôn luôn dc encript
 	
+7. Event's Rule
 
+8. Scheduler
+
+	- 2 cái (7) và (8) cơ bản là giống nhau tuy nhiên 1 cái thì chạy theo 1 lịch cố định trong khi cái kia thì là tùy thuộc vào source event. Ví dụ như khi SQS hay SNS kích hoạt event này thì nó sẽ chạy 1 Lambda 
 
 VI. ---------------------------------------------------------- MIGRATION ----------------------------------------------------------
 
@@ -1110,6 +1166,10 @@ VIII. ---------------------------------------------------------- FAQs ----------
 23. Khác biệt giữa IAM Role và Bucket Policy
  - IAM Role: What can a user can do in AWS
  - S3 Bucket Policy: Who can access this S3 bucket
+ 
+24. Canary and Linear:
+	- Canary10Percent5Minutes - Chia là 2 phase, 10% và 90% sau 5p
+	- Linear10PercentEvery1Minutes - Chia làm 10 phase, sau 1p thì update 10%
  
  
 IX. ---------------------------------------------------------- PRACTICE ----------------------------------------------------------
@@ -1357,7 +1417,7 @@ XI. ---------------------------------------------------------- PRICING ---------
 
 XII. ---------------------------------------------------------- CICD ----------------------------------------------------------
 
-buildspec.yml – This file specifies the actions that CodeBuild requires to build and create an artifact for deployment.
+buildspec.yml – This file specifies the actions that CodeBuild requires to build and create an artifact for deployment. (Có thể dùng CLI để override sang file khác)
 
 appspec.yml – This file specifies the actions that CodeDeploy requires to create an application and configure a target environment for on-premises EC2 instances.
 

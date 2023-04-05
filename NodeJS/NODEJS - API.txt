@@ -32,7 +32,7 @@ API.
 	
 	8. LOGIN 
 	
-	8. DBCONNECTION
+	9. DBCONNECTION
 	
 		- Each open connection requires about 10MB of RAM and takes a decent amount of time
 		- Công thức tính toán số lượng connection mà 1 server có thể mở dựa trên memory của máy chủ: LEAST({DBInstanceClassMemory/9531392},5000)
@@ -45,3 +45,5 @@ API.
 		- Vì sao nên để Lambda connection là 1 
 		There is a big spike - it means that lambdas need additional containers. Each of them requires 5 new connections, and they were created at the same time. We decided to reduce the number of maximum opened connections to 1. We were wondering how it affects the performance of requests, but the performance was even better than with the previous configuration. The explanation of that is quite straightforward. Lambdas are executed in parallel, however for one container execution is sequential. So even if several users share the same container, they are handled one by one
 	
+	10. GIT
+		
