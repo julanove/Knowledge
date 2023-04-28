@@ -314,7 +314,7 @@ I. ---------------------------------------------------------- SERVICES ---------
 		 aws autoscaling resume-processes --auto-scaling-group-name GreenstampCF-ASG-1KWNBTSQ5CM6B
 	
 	
-13. Elastic Load Balancer.
+13. ELB.
 	a. Application Load Balancer is best suited for load balancing of HTTP and HTTPS traffic
 	b. Network Load Balancer is used to distribute the traffic or load using TCP/UDP/TLS protocols
 		- Có thể route traffic tới nhiều port trên 1 instance
@@ -358,7 +358,7 @@ I. ---------------------------------------------------------- SERVICES ---------
 		https://docs.aws.amazon.com/elasticbeanstalk/latest/dg/configuring-https-endtoend.html
 	
 		- Có vẻ như dùng Network và Application LB mang lại kq khác nhau ? cần test...
-	
+	m. Khi deregister 1 instance ra khỏi 1 target group thì ko phải lo connection chết ngay. Nó có cơ chế connection draining để hoàn tất những đơn hàng đang chạy và ko nhận những đơn hàng mới.
 	
 	
 14. SQS (Simple Queue Service) 
@@ -442,6 +442,9 @@ I. ---------------------------------------------------------- SERVICES ---------
 	- Nó giống với LightSail
 	- Elastic Beanstalk will take care of adding load balancing and Auto Scaling.
 	- CI/CD với CodePipeline, CodeBuild lifecycle hook, CodeDeploy, Blue/Green deployment on ElasticBeanstalk…
+	- Mỗi 1 lần úp 1 version mới thì nó sẽ tạo 1 application. Số lượng app là có giới hạn nên cần có application version lifecycle policy
+	- Có thể custom platform. Nhưng phải thay source_ami, và region nó phải trung với source_ami	
+	
 
 23. API Gateway
 	- API KEYs: Tạo key -> Có mới có thể truy cập dc API Gateway
@@ -690,13 +693,14 @@ I. ---------------------------------------------------------- SERVICES ---------
 			
 			
 52. RAM
-	- 
 5. Lex
 5. EMR
 5. SageMaker
 5. Config
 5. License Manager
 5. DataSync
+   CodeStar - quản lý full cycle của 1 project, khác với PipleLine chỉ quản lý CICD
+   DataPipleline -> là cái đéo j thế
 
 II. ---------------------------------------------------------- VPC ----------------------------------------------------------
 

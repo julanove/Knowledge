@@ -28,6 +28,11 @@ aws s3api get-object --bucket chihoa-resouce --key dir/my_images.tar.bz2 my_imag
 
 Send mail:
 	aws ses send-email --from ngocld25@gmail.com --to yuna.love.26@gmail.com --message file://message.json
+	
+	Send mail:
+	aws ses send-email --to yuna.love.26@gmail.com --message file://message.json
+	
+	aws ses send-email --region ap-northeast-1 --from aws@ts-jgs.link --to ngocld@vietis.com.vn --message file://mess.json
 
 {
    "Subject": {

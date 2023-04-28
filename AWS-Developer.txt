@@ -1,1 +1,43 @@
-Develop 
+Lab
+	37
+	39
+	58
+	59
+	60
+	63
+	69
+	70
+	71
+	72
+	73
+	74 EKS
+	75
+	76
+	77
+	78
+	84
+	86
+Test
+	1-10
+	1-46
+	1-65
+	
+a. Lỗi 500 -> Đến từ server -> retry
+   Lỗi 400 -> Đến từ client -> xem lại bản thân đi
+b. Mỗi record set chỉ nhận 1 routing policy 
+c. Amplify Studio 
+d. AWS App Config
+
+	
+--> loại trừ
+--> ko lquan hoặc ko dc cung cấp thông tin thì sẽ ko chọn
+
+	
+1. Dockerrun version 1, 2 ?
+Docker compose version 1,2 ?
+
+2. KMS API request throttle. 11000 request đồng loạt
+
+aws s3 cp s3://whizlabs.49195.56239829/ /tmp/WordPress --recursive
+
+aws deploy push --application-name WordPress_App --s3-location s3://whizlabs.49195.56239829/WordPressApp.zip --ignore-hidden-files --region us-east-1
