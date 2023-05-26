@@ -1423,6 +1423,10 @@ XII. ---------------------------------------------------------- CICD -----------
 
 buildspec.yml – This file specifies the actions that CodeBuild requires to build and create an artifact for deployment. (Có thể dùng CLI để override sang file khác)
 
+Có thể truyền git credential từ giai đoạn pull source vào container của CodeBuild. Chỉ cần đừng tạo pipeline là dc, tạo mỗi codebuild project thôi làm ơi...
+
+Check git credential: git rev-parse --git-dir
+
 appspec.yml – This file specifies the actions that CodeDeploy requires to create an application and configure a target environment for on-premises EC2 instances.
 
 install_dependencies.sh – This file installs dependencies for the Apache Tomcat web server.
@@ -1432,6 +1436,22 @@ start_server.sh – This file starts the Apache Tomcat web server.
 stop_server.sh – This file stops the Apache Tomcat web server.
 
 1. CodeDeploy
+
+- Flow của nó sẽ là lấy BuildArtifact dc built từ CodeBuild sau đó deploy lên EC2. Vậy nên EC2 cũng cần có IAM để get file từ S3.
+- Tiếp đến nếu file giống nhau thì cần có chế độ ghi đè lên file cũ: file_exists_behavior: OVERWRITE
+	
+	- Verify CodeDeploy agent: 
+	sudo service codedeploy-agent status
+	- Install CodeDeploy
+	  sudo yum update
+	  sudo yum install ruby
+	  sudo yum install wget
+	  cd /home/ec2-user
+	  wget https://aws-codedeploy-ap-northeast-1.s3.ap-northeast-1.amazonaws.com/latest/install
+	  chmod +x ./install
+	  sudo ./install auto
+	  sudo service codedeploy-agent status
+
 	a. Để CodeDeploy có thể tương tác với private EC2 (ko có NAT), cần mở 1 Service Endpoint
 	
 	b. CodeDeploy có lifehook có thể tương tác được với AutoScaling, khi 1 instance mới từ ASG dc tạo ra, nó sẽ tự động deploy code mới lên instance đấy
