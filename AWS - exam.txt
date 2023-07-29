@@ -186,7 +186,7 @@ I. ---------------------------------------------------------- SERVICES ---------
 		- Files in an existing bucket are not replicated automatically but all the subsequent updated files will be automatically replicated.
 		Sau khi thiết đặt REPLICATION, các file hiện tại trong source bucket ko dc replication mà chỉ những file mới dc upload hoặc subsequent updated file ms dc replicate thôi.
 		
-10. CloudFront.
+10. CloudFront. TEST
 	a. Content Delivery Network (CDN)
 	b. caches copy of your content "close" to your viewer.
 	c. ensure end-user request are served by closest edge location
@@ -1084,7 +1084,8 @@ AD
 	Workspaces
 Neptune
 ECR
-Outposts
+Outposts - Run api on our own infra mà k ném nó đi
+Để chạy trên 1 container thì cần phải có docker 
 Alexa
 MQ
 EMR
@@ -1097,3 +1098,4 @@ Docker
 CloudFormation
 AWS Data Lifecycle Management
 Hadoop
+
