@@ -127,6 +127,14 @@ I. ---------------------------------------------------------- SERVICES ---------
 	c. Route53 hỗ trợ health check ở rất nhiều nơi toàn thế giới. 
 	d. Weight
 		-> Hỗ trợ nested routing
+		- Simple: thôi éo nói làm gì
+		- Latency
+		- Geo-location
+		- Weight
+		- Failover
+		- Multi value
+		- IP-based
+		
 	e. When calamity happens, consider a whole region gone KABOOM, not only 1 AZ -> Use Route53 to route..
 	f. Record Type:
 		A (address record)
@@ -238,6 +246,8 @@ I. ---------------------------------------------------------- SERVICES ---------
 		/* : Clear cmn hết
 	i. Cache policy: Cách CF cache theo cái gì, nếu chọn All thì ko 
 	k. Orign Request policy: Nếu CF ko tìm thấy data trong cache thì sẽ gửi request này đến Orign
+	l. Khi liên kết đến S3, nhớ chọn regional Domain thay vì domain bình thường global — {bucket-name}.s3.amazonaws.com / regional — {bucket-name}.s3.{region}.amazonaws.com
+
 
 11. IAM
 	Hiểu đơn giản, 1 accout có thể thuộc 1 hoặc nhiều group, 1 group có thể có 1 hoặc nhiều policies. Policy có 1 danh sách và có thể tạo ra custom policy. End game. 		
@@ -801,7 +811,9 @@ III. ---------------------------------------------------------- VPN ------------
 	
 	d. Site-to-side VPN Connection ~ VPN Connection 
 		- Chính là quy trình thiết lập VPN Tunnel bằng cách khai báo VGW và CW đã khởi tạo từ trước
-	-> Thực hành: https://www.bogotobogo.com/DevOps/AWS/aws-VPN-Connections-Virtual-Private-Gateways.php
+	-> Thực hành: 
+		https://www.bogotobogo.com/DevOps/AWS/aws-VPN-Connections-Virtual-Private-Gateways.php
+		https://docs.aws.amazon.com/vpn/latest/s2svpn/SetUpVPNConnections.html#vpn-create-cgw
 	
 	e. Direct Connect
 		- Thiết lập kết nối trực tiếp từ data center đến VPC 
@@ -922,7 +934,7 @@ IV. ---------------------------------------------------------- RDS -------------
 	. Dahell is DynamoDB Stream and Application Shard MySQL 
 	. Using Redshift VPC Routing and S3 VPC Endpoint so Redshift can get data from S3 ???
 
-III. ---------------------------------------------------------- Monitoring ----------------------------------------------------------
+V. ---------------------------------------------------------- Monitoring ----------------------------------------------------------
 
 1. CloudWatch
 	a. CloudWatch Event's rule (EventBridge's rule)
@@ -956,6 +968,9 @@ III. ---------------------------------------------------------- Monitoring -----
 
 		
 	e. High resolution alarm thì có thể quan sát trong 10/30s. regular thì trên 1p
+	
+	f. Alarm dựa trên metric nên phải có metric mới tạo được alarm. 1 ví dụ của filter pattern: { $.eventName= "StopInstances" }
+		Để quản lý tình trạng của 1 EC2, ta có thể sử dụng CloudTrail để có dc tình trạng của EC2 -> Lưu log vào CloudWatch -> Tạo Metric -> Tạo Alarm -> Bắn SNS
 	
 2. Config
 	Check các config, tạo các rule để ktra các config có vđề ko, ví dụ như SG open cho toàn bộ 0.0.0.0 source connect vào
@@ -1176,6 +1191,11 @@ VIII. ---------------------------------------------------------- FAQs ----------
 	- Canary10Percent5Minutes - Chia là 2 phase, 10% và 90% sau 5p
 	- Linear10PercentEvery1Minutes - Chia làm 10 phase, sau 1p thì update 10%
  
+25. mTLS:
+	Mutual TLS authentication
+	- 2 ways authentication giữa client và server
+	- clients must present X.509 certificates to verify their identity to access your API
+	- Mutual TLS is a common requirement for Internet of Things (IoT) and business-to-business applications
  
 IX. ---------------------------------------------------------- PRACTICE ----------------------------------------------------------
 
