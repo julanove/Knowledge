@@ -1,0 +1,73 @@
+AWS RAM
+	- Sử dụng để chia sẻ tài nguyên giữa nhiều tk hoặc trong 1 organization
+
+CMK 
+	- Sử dụng để encrypt key
+	- Khi bị rotate thì ko ảnh hưởng gì app, vẫn có thể decrypt dc data cũ
+	
+
+AWS Security Hub
+AWS System Manager Explorer
+AWS System Manager OpsCenter
+AD - Connector
+AWS - Managed Micrsoft AD
+Simple AD
+PoC
+
+WAF - Rate-based rule: tương tự như rule nhưng là số lượng request trong vòng 5 phút.
+
+X-Forwared-For: IP từ máy chủ đích thông qua proxy
+
+DLQ: Dead-letter queue: Khi 1 event ko dc truyền đến target vì target đang ko có unavai, ko có permission hay mạng kém v..v... cái này là 1 SQS, tuy nhiên là 1 standard SQS ko phải FIFO
+
+Personal Health Dashboard khác vs Service Health Dashboard (1 cái của mình, 1 cái general thôi)
+
+Sử dụng SetAlarmState API để trigger SNS từ CloudWatch
+
+Window file server có chế độ  data deduplication - bỏ những file save nhiều lần -> tiết kiệm
+
+Sử dụng Control Tower
+
+Sử dụng Compute Optimizer để tiết kiệm chi phí cho EC2/EBS/Auto Scaling/Lambda
+
+GuardDuty để bảo vệ EC2 Workload, S3 và AWS Credential
+
+GuardDuty -> CloudWatch -> Lambda
+
+AWS Config: Ko phải để sử dụng config mà để check config, cấu hình của các resource khác. vd như https của EC2/ ELB
+
+Security Hub có thể theo dõi security của toàn bộ server và nhiều accounts sử dụng cùng OpsCenter và System Manager
+	SecurityHub -> CloudWatch -> Lambda
+
+Count mode: WAF https://docs.aws.amazon.com/waf/latest/developerguide/aws-managed-rule-groups.html
+
+Route 53 - Geoproximity vs Geolocation
+
+RDS Backtrack - restore SQL về 1 point time (đỉnh dzị ?)
+
+Endpoint: Gateway vs Interface
+
+Deployment Policy: Rolling, Traffic, Immutable
+
+Redis I/O
+
+IAM Access Analyzer
+
+CloudFront support failover bằng cách tạo 1 Origin Group -> Fail thằng này chạy sang thằng kia
+
+SAML IAM -> Create Identity Provider
+
+S3 Glacier - Vault Lock 
+
+CloudWatch - Metric Math -> query nhiều metric lại vs nhau -> tính toán dữ liệu các AZ lại vs nhau
+
+DynamoDB global tables
+
+Storage gateway Cached Volumes - lưu trữ cho on-premiese
+
+WAF - Count mode and testing: https://docs.aws.amazon.com/waf/latest/developerguide/waf-bot-control-deploying.html
+
+SQS -> Trigger Lambda 
+
+Tạo Metric từ CloudWatch -> Chọn Source là bất kỳ thứ gì (có thể là Lambda Error Invocation)
+
