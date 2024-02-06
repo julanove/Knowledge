@@ -1,7 +1,52 @@
--- RDS PROXY ------------------------------------------------------------
+-- 1. LAMBDA -----------------------------------------------------------------------
+
+aws lambda get-function --function-name $functionName --query 'Code.Location'
+
+wget -O myfunction.zip https://awslambda-ap-ne-1-tasks.s3.ap-northeast-1.amazonaws.com/snapshots/934124474942/noe-denki-api-production-webApp-43915610-454e-46ad-84ca-b942687c4fcc?versionId=2D9apyeI_3b6Hk5lAf05jHNOv4g6YOG7&X-Amz-Security-Token=IQoJb3JpZ2luX2VjEPv%2F%2F%2F%2F%2F%2F%2F%2F%2F%2FwEaDmFwLW5vcnRoZWFzdC0xIkcwRQIgYBYQOxL21dRYKdC%2Bzgm%2Fq7esWM%2BWpq0iCLmlHXdN5pkCIQCDcnVUTFO7xagI8LTYUufp10uyNO24Eu1kcnldxG4OLCqEBAgUEAIaDDkxOTk4MDkyNTEzOSIMmfFqn5Apkr0KXlRBKuEDE61HerdI%2BUx44wVP%2Bzf%2FqALXNF8nQlNkjYFVXr6Sap5mji7pgadNQjCg5RNAuOfz4m9%2BYB9hurDNeXxovs5u1YFQDh%2Fxn1GjOeu%2BlfVJBDh2SVGTgQq66RNj47zl%2ByeilkUCgSFJTeZkbWYki43r71b%2BxYaTmhEJRpohqibYy%2FomBnXkSD9N1nNC4q2scKZ0s8GU188r4B8Hp8cV1e%2Fn%2FgPh%2BE9YNHTie5Ol8dutLCJHMbjhhhGDtRipRGiobsgFmV4NBPhAgyaSiXz%2BNbF5t0cb1CcLGmbab4uYmJmV0bMGDFceTgKr6qO0Kl23ohZNne4gmYg4yyz%2FU4Mob8Ri%2F59rL%2F4eTPCCOU%2Fb24yRywGjlvQJ0h7GirobbLqkN1yuK%2B2C5r7hUi%2BdQKolIUAAg3wr8fo1VOqh5S8K7uzymjgsgUzy0sgfaH0b0NE2rEtGRrAaNYwh6Haa2p1%2FVNXm2Di%2Ba2Zpu42vruN49QTAkpXzDxkK1QrFyb701J65Hl7PEOKO2XnIN90TnEcDudnU5%2BfDrLAzLA9%2Fy%2BIb7L%2FToTibFyM%2FXwiN8qTNKjDTg%2FTlkte%2FD2Y6jQEStVlt1nKmqTxFWdMaVLgqwbOVsS9WmDO9ykujBXMOYiCaco85WIHO0zCr0KSIBjqlAWaFA1P8nd6fKD%2BZVXWWR4R%2BEBPRSLGN9XDc9s8Qi2J%2FtQ1hTTAoUFNJPgJPhjfvOxj5bpKfuf2gb0guPSmm6MrkNA1vNr90zjt471NbnlaYvsyekq%2BR%2Brlst3Hgt0BdDNGQWJbGqK8XilvhEDBiDCdmyJ%2FMs%2FlLBFeT4cKm71NAHYpjZmvvJGAFl0lbryEZgpki4RFhInHV0nNPDA3ONjpfKU2osw%3D%3D&X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Date=20210803T114457Z&X-Amz-SignedHeaders=host&X-Amz-Expires=600&X-Amz-Credential=ASIA5MMZC4DJQZS7UVF7%2F20210803%2Fap-northeast-1%2Fs3%2Faws4_request&X-Amz-Signature=3ac6540cfbebe190a9e38299384d253d7a5ea1275fda2409240f3b5d531443d8
+
+-- 2. LAMBDA -----------------------------------------------------------------------
 
 aws rds describe-db-proxy-targets --db-proxy-name prx-stagingproxy
 
 aws rds describe-db-proxies --db-proxy-name prx-pwa
 
 aws rds describe-db-proxy-target-groups --db-proxy-name prx-stagingproxy
+
+-- 3. S3 
+
+Copy a file:
+	aws s3 cp tsconfig.json s3://nsy-website-front/
+	
+Sync a folder (build folder)
+	aws s3 sync build/ s3://nsy-website-front --acl public-read --delete
+
+aws s3api put-object --bucket chihoa-resouce --key tes2.txt --body test.txt
+
+aws s3api get-object --bucket chihoa-resouce --key dir/my_images.tar.bz2 my_images.tar.bz2
+
+-- 4. SES
+
+Send mail:
+	aws ses send-email --from ngocld25@gmail.com --to yuna.love.26@gmail.com --message file://message.json
+	
+	Send mail:
+	aws ses send-email --to yuna.love.26@gmail.com --message file://message.json
+	
+	aws ses send-email --region ap-northeast-1 --from aws@ts-jgs.link --to ngocld@vietis.com.vn --message file://mess.json
+
+{
+   "Subject": {
+       "Data": "Test email sent using the AWS CLI",
+       "Charset": "UTF-8"
+   },
+   "Body": {
+       "Text": {
+           "Data": "This is the message body in text format.",
+           "Charset": "UTF-8"
+       },
+       "Html": {
+           "Data": "This message body contains HTML formatting. It can, for example, contain links like this one: <a class=\"ulink\" href=\"http://docs.aws.amazon.com/ses/latest/DeveloperGuide\" target=\"_blank\">Amazon SES Developer Guide</a>.",
+           "Charset": "UTF-8"
+       }
+   }
+}

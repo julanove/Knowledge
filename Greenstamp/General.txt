@@ -1,0 +1,76 @@
+Green Stamp
+I. TỔNG QUAN -------------------------------
+
+	1 hệ thống sử dụng point, với point có thể tamaru từ nhiều dịch vụ và cửa hàng khác nhau.
+	Hơn 900 cửa hàng x 3 máy, 50k x2 transaction per day
+	Dữ liệu về phát hành point sẽ được convert thành file ở server1 (本システム） và bắn về theo batch lúc nửa đêm đến server2 （ポイントシステム）
+		- Dữ liệu phát hành điểm sẽ được lưu tạm thời trên server1. 
+		- Mỗi teikeiten sẽ có 1 endpoint khác nhau
+		- Mỗi soushin saki point lại có 1 format file khác nhau
+		- Có 1 số teikeiten cũ sẽ bắn thẳng file trực tiếp đến server1 thay vì dữ liệu point 発行
+	Có hỗ trợ promotion, đọc bar code sau đó ban cho k/h 10,50,100p j đấy
+	Ở teikeiten có thể set 単位 cho số lượng sử dụng point (ví dụ thay vì 1 thì là 10 hay 100)
+	Hỗ trợ hybrid:
+		- Kết hợp sử dụng phiếu giấy và e-point
+		- 標準は「ポイント券1枚＝300ポイント」として計算するが、店舗によって異なるレートも存在している
+		- Hiện tại chỉ mỗi JGS có thể phát hành phiếu điểm
+	Cancel khi trả lại hàng:
+		- ポイントや金額入力して減算や戻しをするのではなく、）加算または利用した履歴実績を呼び出して、対象履歴のキャンセル処理のみとする（検討中）
+	Setting dc point rate, switchover date, (x2,x3 -> x10 service cho ngày đặc biệt hoặc ngày nào ấy trong tuần)
+		- Sẽ hiện lên màn hình khi dc thực thi
+		- Có thể quan sát lịch promotion bằng calendar
+		- Hỗ trợ luôn 買い上げ金額 trên bn thì ms dc x2, x3
+		- Hỗ trợ cho point (-> 1000p)
+	View lịch sử xem point của khách
+	Xuất ra report
+	
+
+	
+
+1. Quét, thanh toán từ mã QR của khách hàng, kể cả khi offline thì dữ liệu dc lưu trữ ở cache, sau đó đồng bộ lên hệ thống sau.
+	-> Điều này cũng có thể làm khi hakkou
+	
+2. Thiết bị:
+	- In-store web
+	- 4G Device
+	- Batch File
+
+3. Chức năng:
+	a. Login:
+		- Đọc thông tin từ QR code, sau đó liên kết với 1 dịch vụ khác của khách hàng để lấy thông tin point
+		
+		
+II. THẮC MẮC ------------------------------
+
+page 2. 
+	sao lại charge vào trong máy, mỗi lần 1 man ?? nếu point trong máy hết thì phải charge thêm ??
+	JGS phát hành phiếu điểm ?? đủ điểm (tròn điểm thì phát hành 1 phiếu điểm) -> thay bằng e-point. xài lúc nào cũng dc
+
+page 3.
+	nếu phát triển thì server này sẽ đặt ở đâu? vì cần gọi api của server khác nên tạo aws mới hay sử dụng aws acc của khứa ?
+	
+	JGS ?
+	※別紙　提携店_マスタ関連情報_20220901.xlsx 参照
+	Giới hạn lượng point có thể phát hành của 1 tenpo ?
+	
+Page 7. 
+	Tùy vào từng loại user mà 送信先 khác nhau
+	
+	利用する端末の基準とバーコード読込のスピードの検証が必要
+Page 8.
+	Đọc barcode ko dc thì nhập tay
+	Card cũng có status nhé (Check trc khi lấy point)	
+	Nếu ko lấy dc status của thẻ, nhưng chứng thức dc 4 số thì redirect về kasan menu
+	JB+の場合、まだ一度も使用されていないカード番号の場合「404 not found」というエラーメッセージが返信されます。 -> redirect về kasan menu
+
+	Gửi file nửa đêm theo giao thức FTP nên ko có check, phải check theo format nào trước khi upload
+	
+	利用サービスを事前登録しておいてWEBページへ表示させ、数量指定（指定ポイント数単位～500ポイント×3枚＝1,500ポイントなど）で利用できる
+	　　※プロモーションは端末側で設定します -> ko ổn
+
+	Nhân viên ch có thể tự đk
+	
+	- app ko tốt -> web 
+	
+	- interface -> the most important
+	

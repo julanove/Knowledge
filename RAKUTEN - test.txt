@@ -1,0 +1,34 @@
+// you can write to stdout for debugging purposes, e.g.
+// console.log('this is a debug message');
+
+var result = [];
+
+function solution(A) {
+    let valueOfA = 0;
+    // Calculate binanrian of A
+    for (let i = 0; i < A.length; i++) {
+        valueOfA += Math.pow(2, A[i]);
+    }
+    // Run a recursion
+    calPw(A.length, valueOfA);
+    return result.length;
+}
+
+function calPw(maxStep, valueOfA) {
+    // Check if the current binarian can be archived by the maxStep
+    if (valueOfA >= Math.pow(2, maxStep)) {
+        let calP = Math.pow(2, maxStep); // 1:8, 2:4, 3:1 
+        result.push(maxStep);
+        //console.log(result);
+        //console.log("valueOfA " + valueOfA);
+        //console.log("Remaining value: " + (valueOfA - calP));
+        //console.log("Number to go: " + lengthOfResult);
+        //console.log("-----");
+        if (valueOfA - calP > 0) {
+            return calPw(maxStep, valueOfA - calP); // Run the recursion with the remaining value
+        }
+    } 
+    else { // Decrease by 1 and try again
+        return calPw(maxStep - 1, valueOfA);
+    }
+}

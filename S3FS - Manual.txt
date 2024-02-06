@@ -1,0 +1,60 @@
+1. Tạo variable
+
+-- Trường hợp mount bucket
+S3BUCKETNAME=greens-files
+S3BUCKETREGION=ap-northeast-1
+FTPUSERNAME=gsadmin 
+FTPPASSWORD=password
+MOUNTPATH=/home/gsadmin/ftp/files
+
+-- Trường hợp mount folder bên trong bucket
+S3BUCKETNAME=greens-files:/Batch/0563_かわねや/リサイクル
+S3BUCKETREGION=ap-northeast-1 
+FTPUSERNAME=recycling  
+FTPPASSWORD=ftp_password 
+MOUNTPATH=/home/recycling/ftp/files
+
+2. Tạo user
+
+sudo adduser $FTPUSERNAME 
+echo "$FTPUSERNAME:$FTPPASSWORD" | sudo chpasswd
+
+3. Tạo folder FTP cho user và cấp quyền
+
+sudo mkdir /home/$FTPUSERNAME/ftp 
+sudo chown nfsnobody:nfsnobody /home/$FTPUSERNAME/ftp 
+sudo chmod a-w /home/$FTPUSERNAME/ftp 
+sudo mkdir /home/$FTPUSERNAME/ftp/files 
+sudo chown $FTPUSERNAME:$FTPUSERNAME /home/$FTPUSERNAME/ftp/files // xem lại
+
+4. Thêm user vào FTP user list
+
+echo $FTPUSERNAME | sudo tee -a /etc/vsftpd.userlist
+
+5. Mount
+
+EC2METALATEST=http://169.254.169.254/latest && \
+EC2METAURL=$EC2METALATEST/meta-data/iam/security-credentials/ && \
+EC2ROLE=`curl -s $EC2METAURL` && \
+DOC=`curl -s $EC2METALATEST/dynamic/instance-identity/document` && \
+REGION=`jq -r .region <<< $DOC`
+
+sudo /usr/local/bin/s3fs $S3BUCKETNAME \
+-o use_cache=/tmp,iam_role="$EC2ROLE",allow_other $MOUNTPATH \
+-o url="https://s3-$REGION.amazonaws.com" \
+-o nonempty
+
+Note:
+6. Troubleshoot
+sudo /usr/local/bin/s3fs $S3BUCKETNAME \
+-o use_cache=/tmp,iam_role="$EC2ROLE",allow_other $MOUNTPATH \
+-o dbglevel=info -f \
+-o curldbg \
+-o url="https://s3-$REGION.amazonaws.com" \
+-o nonempty
+
+7. Chỉ có thể mount những folder được tạo ra từ FTP, ko thể mount những folder tạo từ console.
+
+8. Unmount:
+fusermount -u $MOUNTPATH
+
