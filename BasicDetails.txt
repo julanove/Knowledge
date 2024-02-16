@@ -1,0 +1,14 @@
+Basic Design
+
+要求分析  -> Những thứ sau:
+
+1. Business flow 
+2. System Map - システム構成図
+3. ER Map - ER図
+4. Table def - Table 定義書
+5. 機能一覧表
+6. 設計書記述様式
+7. 画面遷移図
+
+https://thinkit.co.jp/free/project/4/3/1.html
+

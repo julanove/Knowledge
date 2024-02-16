@@ -71,3 +71,16 @@ SQS -> Trigger Lambda
 
 Tạo Metric từ CloudWatch -> Chọn Source là bất kỳ thứ gì (có thể là Lambda Error Invocation)
 
+System Manager
+	- Có thể collect data từ EC2, EBS, RDS
+	- Config resource
+	- Remote access
+	- Automation, viết script
+-> Sử dụng để cài đặt, chạy script trên EC2 là best -> Tuy nhiên EC2 Instace Profile cần IAM cho phép SSM chạy 
+
+
+S3 Multi Upload khi có KMS thì cần quyền Decrypt
+
+Memcache https://docs.aws.amazon.com/AmazonElastiCache/latest/mem-ug/BestPractices.LoadBalancing.html	
+
+Datasync https://docs.aws.amazon.com/datasync/latest/userguide/creating-task.html

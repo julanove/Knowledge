@@ -129,7 +129,8 @@ I. ---------------------------------------------------------- SERVICES ---------
 		-> Hỗ trợ nested routing
 		- Simple: thôi éo nói làm gì
 		- Latency
-		- Geo-location
+		- Geolocation: route traffic dựa vào location của người dùng	
+		- Geoproximity: route-traffic dựa vào location của resources
 		- Weight
 		- Failover
 		- Multi value
