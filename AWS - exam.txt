@@ -209,6 +209,7 @@ I. ---------------------------------------------------------- SERVICES ---------
 		- Files in an existing bucket are not replicated automatically but all the subsequent updated files will be automatically replicated.
 		Sau khi thiết đặt REPLICATION, các file hiện tại trong source bucket ko dc replication mà chỉ những file mới dc upload hoặc subsequent updated file ms dc replicate thôi.
 		
+
 	Quy trình up/get ảnh sử dụng S3 và CORS
 		1. Public bucket:
 			- Up lên là ko đủ, phải chỉnh cả bucket policy nữa
@@ -1402,7 +1403,8 @@ AD
 Workspaces
 Neptune
 ECR
-Outposts
+Outposts - Run api on our own infra mà k ném nó đi
+Để chạy trên 1 container thì cần phải có docker 
 Alexa
 MQ
 Sing Work Flow ?
@@ -1413,6 +1415,7 @@ Có thể sử dụng HSM Hardware Security Module để manage top level encrip
 Docker
 AWS Data Lifecycle Management
 Hadoop
+
 
 
 . How can you recover/login to an EC2 instance for which you have lost the key?
